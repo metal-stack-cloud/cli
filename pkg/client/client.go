@@ -12,7 +12,6 @@ import (
 	"google.golang.org/grpc/backoff"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
-	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/keepalive"
 
 	v1 "github.com/metal-stack-cloud/api-server/api/v1"
@@ -24,12 +23,10 @@ import (
 type GRPCScheme string
 
 const (
-	// GRPC defines a plaitext communication
-	GRPC GRPCScheme = "grpc"
 	// GRPCS defines https protocol for the communication
 	GRPCS GRPCScheme = "grpcs"
 
-	defaultUserAgent = "api-server-go"
+	defaultUserAgent = "cli"
 )
 
 // DialConfig is the configuration to create a duros-api connection
@@ -168,9 +165,6 @@ func Dial(ctx context.Context, config DialConfig) (Client, error) {
 	}
 	// Configure tls ca certificate based auth if credentials are given
 	switch config.Scheme {
-	case GRPC:
-		log.Infof("connecting insecurely")
-		opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	case GRPCS:
 		log.Infof("connecting securely")
 		opts = append(opts, grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{InsecureSkipVerify: true})))
