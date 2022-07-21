@@ -2,10 +2,14 @@ package cmd
 
 import (
 	"fmt"
+	"net/url"
 	"os"
+	"strings"
 	"time"
 
-	"github.com/metal-stack-cloud/cli/pkg/client"
+	"github.com/fatih/color"
+	"github.com/metal-stack-cloud/api/go/client"
+	"github.com/metal-stack/metal-lib/pkg/genericcli"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
@@ -13,9 +17,19 @@ import (
 	"golang.org/x/net/context"
 )
 
-// Execute is the entrypoint of the metal-go application
+const (
+	moduleName = "cli"
+)
+
+type config struct {
+	client client.Client
+	ctx    context.Context
+	pf     *printerFactory
+}
+
 func Execute() {
 	cmd := newRootCmd()
+
 	err := cmd.Execute()
 	if err != nil {
 		if viper.GetBool("debug") {
@@ -27,65 +41,184 @@ func Execute() {
 }
 
 func newRootCmd() *cobra.Command {
-	name := "cli"
+	config := &config{
+		ctx: context.Background(),
+	}
+
 	rootCmd := &cobra.Command{
-		Use:          name,
+		Use:          moduleName,
 		Aliases:      []string{"m"},
-		Short:        "a cli to manage metal-stack-cloud",
+		Short:        "cli for managing entities in metal-stack-cloud",
 		Long:         "",
 		SilenceUsage: true,
+		PersistentPreRunE: func(_ *cobra.Command, _ []string) error {
+			err := initConfig()
+			if err != nil {
+				return err
+			}
+
+			logger, err := initLogger()
+			if err != nil {
+				return err
+			}
+
+			client, err := initClient(logger)
+			if err != nil {
+				return err
+			}
+
+			config.client = client
+			config.pf = &printerFactory{log: logger}
+
+			return nil
+		},
 	}
-	rootCmd.PersistentFlags().StringP("log-level", "l", "error", "configure loglevel, can be one of error|info|debug")
+	rootCmd.PersistentFlags().StringP("log-level", "l", "error", "configure log level, can be one of error|info|debug")
+	must(rootCmd.RegisterFlagCompletionFunc("log-level", cobra.FixedCompletions([]string{"error", "info", "debug"}, cobra.ShellCompDirectiveNoFileComp)))
 	rootCmd.PersistentFlags().StringP("config", "c", "", `alternative config file path, (default is ~/.cli/config.yaml).
 Example config.yaml:
 
 ---
 apitoken: "alongtoken"
 ...
-
 `)
-	lvl, err := rootCmd.PersistentFlags().GetString("log-level")
+	rootCmd.PersistentFlags().StringP("output-format", "o", "table", "output format (table|wide|markdown|json|yaml|template), wide is a table with more columns.")
+	must(rootCmd.RegisterFlagCompletionFunc("output-format", cobra.FixedCompletions([]string{"table", "wide", "markdown", "json", "yaml", "template"}, cobra.ShellCompDirectiveNoFileComp)))
+	rootCmd.PersistentFlags().StringP("template", "", "", `output template for template output-format, go template format. For property names inspect the output of -o json or -o yaml for reference.`)
+	rootCmd.PersistentFlags().Bool("force-color", false, "force colored output even without tty")
+
+	rootCmd.PersistentFlags().String("api-url", "", "the url to the metal-stack cloud api")
+	rootCmd.PersistentFlags().String("api-token", "", "the token used for api requests")
+	rootCmd.PersistentFlags().String("api-ca-file", "", "the path to the ca file of the api server")
+
+	must(viper.BindPFlags(rootCmd.PersistentFlags()))
+
+	rootCmd.AddCommand(newVersionCmd(config))
+
+	return rootCmd
+}
+
+func must(err error) {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("loglevel:%q", lvl)
+}
+
+func initLogger() (*zap.SugaredLogger, error) {
+	lvl, err := zap.ParseAtomicLevel(viper.GetString("log-level"))
+	if err != nil {
+		return nil, err
+	}
+
 	cfg := zap.NewProductionConfig()
-	level, err := zap.ParseAtomicLevel(lvl)
-	if err != nil {
-		panic(err)
-	}
-	cfg.Level = level
+	cfg.Level = lvl
 	cfg.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
 	zlog, err := cfg.Build()
 	if err != nil {
 		panic(err)
 	}
 
-	log := zlog.Sugar()
-
-	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
-
-	apiClient, err := client.Dial(ctx, client.DialConfig{
-		Endpoint:  "localhost:9090",
-		Scheme:    client.GRPCS,
-		Token:     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJtZXRhbC1zdGFjay1jbG91ZCIsInN1YiI6ImpvaG4uZG9lQGdpdGh1YiIsImV4cCI6MTY1MzIwMzQ0OSwibmJmIjoxNjUwNjExNDQ5LCJpYXQiOjE2NTA2MTE0NDksImp0aSI6Ijg4ZjFlMTBjLTk0YjItNDBkMS1iN2Q3LWZhYzQ4OGJiNmUxMiJ9.udyoOgQT1rZrrBbi8Io0tkj-W6Yuyu6Otz4NQQzI7qQ",
-		Log:       log,
-		UserAgent: "cli",
-	})
-
-	c := &config{
-		client: apiClient,
-		ctx:    ctx,
-	}
-	if err != nil {
-		panic(err)
-	}
-	rootCmd.AddCommand(newVersionCmd(c))
-
-	return rootCmd
+	return zlog.Sugar(), nil
 }
 
-type config struct {
-	client client.Client
-	ctx    context.Context
+func initConfig() error {
+	viper.SetEnvPrefix(strings.ToUpper(moduleName))
+	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
+	viper.AutomaticEnv()
+
+	viper.SetConfigType("yaml")
+	cfgFile := viper.GetString("config")
+
+	if cfgFile != "" {
+		viper.SetConfigFile(cfgFile)
+		if err := viper.ReadInConfig(); err != nil {
+			return fmt.Errorf("config file path set explicitly, but unreadable: %w", err)
+		}
+	} else {
+		viper.SetConfigName("config")
+		viper.AddConfigPath(fmt.Sprintf("/etc/%s", moduleName))
+		h, err := os.UserHomeDir()
+		if err != nil {
+			fmt.Printf("unable to figure out user home directory, skipping config lookup path: %v", err)
+		} else {
+			viper.AddConfigPath(fmt.Sprintf(h+"/.%s", moduleName))
+		}
+		viper.AddConfigPath(".")
+		if err := viper.ReadInConfig(); err != nil {
+			usedCfg := viper.ConfigFileUsed()
+			if usedCfg != "" {
+				return fmt.Errorf("config %s file unreadable: %w", usedCfg, err)
+			}
+		}
+	}
+
+	return nil
+}
+
+func initClient(log *zap.SugaredLogger) (client.Client, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	endpoint, err := url.Parse(viper.GetString("api-url"))
+	if err != nil {
+		return nil, err
+	}
+
+	c, err := client.New(ctx, client.DialConfig{
+		Endpoint: endpoint.Host,
+		Token:    viper.GetString("api-token"),
+		Credentials: &client.Credentials{
+			ServerName: endpoint.Hostname(),
+			CAFile:     viper.GetString("api-ca-file"),
+		},
+		Scheme:    client.GRPCS,
+		UserAgent: "cli",
+		Log:       log,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return c, nil
+}
+
+type printerFactory struct {
+	log *zap.SugaredLogger
+}
+
+func (p *printerFactory) newPrinter() genericcli.Printer {
+	var printer genericcli.Printer
+	var err error
+
+	switch format := viper.GetString("output-format"); format {
+	case "yaml":
+		printer = genericcli.NewYAMLPrinter()
+	case "json":
+		printer = genericcli.NewJSONPrinter()
+	case "template":
+		printer, err = genericcli.NewTemplatePrinter(viper.GetString("template"))
+		if err != nil {
+			p.log.Fatalf("unable to initialize printer: %v", err)
+		}
+	default:
+		p.log.Fatalf("unknown output format: %q", format)
+	}
+
+	if viper.IsSet("force-color") {
+		enabled := viper.GetBool("force-color")
+		if enabled {
+			color.NoColor = false
+		} else {
+			color.NoColor = true
+		}
+	}
+
+	return printer
+}
+func (p *printerFactory) defaultToYAMLPrinter() genericcli.Printer {
+	if viper.IsSet("output-format") {
+		return p.newPrinter()
+	}
+	return genericcli.NewYAMLPrinter()
 }

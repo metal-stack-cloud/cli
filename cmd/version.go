@@ -3,11 +3,15 @@ package cmd
 import (
 	"fmt"
 
-	v1 "github.com/metal-stack-cloud/api-server/api/v1"
-	"github.com/metal-stack-cloud/cli/api"
+	v1 "github.com/metal-stack-cloud/api/go/v1"
 	"github.com/metal-stack/v"
 	"github.com/spf13/cobra"
 )
+
+type version struct {
+	Client string
+	Server *v1.Version
+}
 
 func newVersionCmd(c *config) *cobra.Command {
 	versionCmd := &cobra.Command{
@@ -15,17 +19,21 @@ func newVersionCmd(c *config) *cobra.Command {
 		Short: "print the client and server version information",
 		Long:  "print the client and server version information",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			v := api.Version{
+			v := version{
 				Client: v.V.String(),
 			}
+
 			resp, err := c.client.Version().Get(c.ctx, &v1.VersionServiceGetRequest{})
 			if err == nil {
-				v.Server = resp.Version.String()
+				v.Server = resp.Version
 			}
-			fmt.Print(v)
+
+			c.pf.defaultToYAMLPrinter().Print(v)
+
 			if err != nil {
 				return fmt.Errorf("failed to get server info: %w", err)
 			}
+
 			return nil
 		},
 	}
