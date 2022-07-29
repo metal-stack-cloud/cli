@@ -57,12 +57,12 @@ func newRootCmd() *cobra.Command {
 				return err
 			}
 
-			logger, err := initLogger()
+			logger, err := newLogger()
 			if err != nil {
 				return err
 			}
 
-			client, err := initClient(logger)
+			client, err := newClient(logger)
 			if err != nil {
 				return err
 			}
@@ -94,6 +94,7 @@ apitoken: "alongtoken"
 	must(viper.BindPFlags(rootCmd.PersistentFlags()))
 
 	rootCmd.AddCommand(newVersionCmd(config))
+	rootCmd.AddCommand(newHealthCmd(config))
 
 	return rootCmd
 }
@@ -104,7 +105,7 @@ func must(err error) {
 	}
 }
 
-func initLogger() (*zap.SugaredLogger, error) {
+func newLogger() (*zap.SugaredLogger, error) {
 	lvl, err := zap.ParseAtomicLevel(viper.GetString("log-level"))
 	if err != nil {
 		return nil, err
@@ -155,7 +156,7 @@ func initConfig() error {
 	return nil
 }
 
-func initClient(log *zap.SugaredLogger) (client.Client, error) {
+func newClient(log *zap.SugaredLogger) (client.Client, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -193,9 +194,9 @@ func (p *printerFactory) newPrinter() genericcli.Printer {
 
 	switch format := viper.GetString("output-format"); format {
 	case "yaml":
-		printer = genericcli.NewYAMLPrinter()
+		printer = genericcli.NewProtoYAMLPrinter()
 	case "json":
-		printer = genericcli.NewJSONPrinter()
+		printer = genericcli.NewProtoJSONPrinter()
 	case "template":
 		printer, err = genericcli.NewTemplatePrinter(viper.GetString("template"))
 		if err != nil {
@@ -216,9 +217,9 @@ func (p *printerFactory) newPrinter() genericcli.Printer {
 
 	return printer
 }
-func (p *printerFactory) defaultToYAMLPrinter() genericcli.Printer {
+func (p *printerFactory) newPrinterDefaultYAML() genericcli.Printer {
 	if viper.IsSet("output-format") {
 		return p.newPrinter()
 	}
-	return genericcli.NewYAMLPrinter()
+	return genericcli.NewProtoYAMLPrinter()
 }

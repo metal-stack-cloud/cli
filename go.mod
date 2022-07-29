@@ -4,16 +4,14 @@ go 1.18
 
 require (
 	github.com/fatih/color v1.13.0
-	github.com/metal-stack-cloud/api v0.0.0-20220720105147-dc1ca6e605bb
-	github.com/metal-stack/metal-lib v0.10.1-0.20220720131928-d4393229d6ae
+	github.com/metal-stack-cloud/api v0.0.0-20220728115439-8ce4127d8b9b
+	github.com/metal-stack/metal-lib v0.10.1-0.20220729124233-f468b2a76b1e
 	github.com/metal-stack/v v1.0.3
 	github.com/spf13/cobra v1.5.0
 	github.com/spf13/viper v1.11.0
 	go.uber.org/zap v1.21.0
 	golang.org/x/net v0.0.0-20220708220712-1185a9018129
 )
-
-replace github.com/metal-stack-cloud/api => ../api
 
 require (
 	github.com/Masterminds/goutils v1.1.1 // indirect
@@ -52,9 +50,9 @@ require (
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.8.0 // indirect
 	golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d // indirect
-	golang.org/x/sys v0.0.0-20220715151400-c0bba94af5f8 // indirect
+	golang.org/x/sys v0.0.0-20220721230656-c6bc011c0c49 // indirect
 	golang.org/x/text v0.3.7 // indirect
-	google.golang.org/genproto v0.0.0-20220719170305-83ca9fad585f // indirect
+	google.golang.org/genproto v0.0.0-20220720214146-176da50484ac // indirect
 	google.golang.org/grpc v1.48.0 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect

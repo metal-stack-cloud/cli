@@ -28,7 +28,9 @@ func newVersionCmd(c *config) *cobra.Command {
 				v.Server = resp.Version
 			}
 
-			c.pf.defaultToYAMLPrinter().Print(v)
+			if err := c.pf.newPrinterDefaultYAML().Print(v); err != nil {
+				return err
+			}
 
 			if err != nil {
 				return fmt.Errorf("failed to get server info: %w", err)
