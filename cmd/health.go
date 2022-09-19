@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 
-	v1 "github.com/metal-stack-cloud/api/go/v1"
+	v1 "github.com/metal-stack-cloud/api/go/api/v1"
 	"github.com/spf13/cobra"
 )
 
@@ -13,7 +13,7 @@ func newHealthCmd(c *config) *cobra.Command {
 		Short: "print the client and server health information",
 		Long:  "print the client and server health information",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			resp, err := c.client.Health().Get(c.ctx, &v1.HealthServiceGetRequest{})
+			resp, err := c.apiv1client.Health().Get(c.ctx, &v1.HealthServiceGetRequest{})
 			if err != nil {
 				return fmt.Errorf("failed to get health: %w", err)
 			}

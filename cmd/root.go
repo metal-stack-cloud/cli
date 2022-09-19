@@ -8,8 +8,9 @@ import (
 	"time"
 
 	"github.com/fatih/color"
-	"github.com/metal-stack-cloud/api/go/client"
-	"github.com/metal-stack/metal-lib/pkg/genericcli"
+	client "github.com/metal-stack-cloud/api/go/client"
+	apiv1client "github.com/metal-stack-cloud/api/go/client/api/v1"
+	"github.com/metal-stack/metal-lib/pkg/genericcli/printers"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
@@ -22,9 +23,9 @@ const (
 )
 
 type config struct {
-	client client.Client
-	ctx    context.Context
-	pf     *printerFactory
+	apiv1client apiv1client.Client
+	ctx         context.Context
+	pf          *printerFactory
 }
 
 func Execute() {
@@ -67,7 +68,7 @@ func newRootCmd() *cobra.Command {
 				return err
 			}
 
-			config.client = client
+			config.apiv1client = client
 			config.pf = &printerFactory{log: logger}
 
 			return nil
@@ -156,7 +157,7 @@ func initConfig() error {
 	return nil
 }
 
-func newClient(log *zap.SugaredLogger) (client.Client, error) {
+func newClient(log *zap.SugaredLogger) (apiv1client.Client, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -165,7 +166,7 @@ func newClient(log *zap.SugaredLogger) (client.Client, error) {
 		return nil, err
 	}
 
-	c, err := client.New(ctx, client.DialConfig{
+	c, err := apiv1client.New(ctx, client.DialConfig{
 		Endpoint: endpoint.Host,
 		Token:    viper.GetString("api-token"),
 		Credentials: &client.Credentials{
@@ -188,20 +189,16 @@ type printerFactory struct {
 	log *zap.SugaredLogger
 }
 
-func (p *printerFactory) newPrinter() genericcli.Printer {
-	var printer genericcli.Printer
-	var err error
+func (p *printerFactory) newPrinter() printers.Printer {
+	var printer printers.Printer
 
 	switch format := viper.GetString("output-format"); format {
 	case "yaml":
-		printer = genericcli.NewProtoYAMLPrinter()
+		printer = printers.NewProtoYAMLPrinter()
 	case "json":
-		printer = genericcli.NewProtoJSONPrinter()
+		printer = printers.NewProtoJSONPrinter()
 	case "template":
-		printer, err = genericcli.NewTemplatePrinter(viper.GetString("template"))
-		if err != nil {
-			p.log.Fatalf("unable to initialize printer: %v", err)
-		}
+		printer = printers.NewTemplatePrinter(viper.GetString("template"))
 	default:
 		p.log.Fatalf("unknown output format: %q", format)
 	}
@@ -217,9 +214,9 @@ func (p *printerFactory) newPrinter() genericcli.Printer {
 
 	return printer
 }
-func (p *printerFactory) newPrinterDefaultYAML() genericcli.Printer {
+func (p *printerFactory) newPrinterDefaultYAML() printers.Printer {
 	if viper.IsSet("output-format") {
 		return p.newPrinter()
 	}
-	return genericcli.NewProtoYAMLPrinter()
+	return printers.NewProtoYAMLPrinter()
 }

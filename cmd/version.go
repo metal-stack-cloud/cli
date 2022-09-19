@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 
-	v1 "github.com/metal-stack-cloud/api/go/v1"
+	v1 "github.com/metal-stack-cloud/api/go/api/v1"
 	"github.com/metal-stack/v"
 	"github.com/spf13/cobra"
 )
@@ -23,7 +23,7 @@ func newVersionCmd(c *config) *cobra.Command {
 				Client: v.V.String(),
 			}
 
-			resp, err := c.client.Version().Get(c.ctx, &v1.VersionServiceGetRequest{})
+			resp, err := c.apiv1client.Version().Get(c.ctx, &v1.VersionServiceGetRequest{})
 			if err == nil {
 				v.Server = resp.Version
 			}
