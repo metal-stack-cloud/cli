@@ -21,10 +21,6 @@ import (
 	"golang.org/x/net/context"
 )
 
-const (
-	moduleName = "cli"
-)
-
 func Execute() {
 	cmd := newRootCmd()
 
@@ -39,12 +35,12 @@ func Execute() {
 }
 
 func newRootCmd() *cobra.Command {
-	config := &config.Config{
+	cfg := &config.Config{
 		Ctx: context.Background(),
 	}
 
 	rootCmd := &cobra.Command{
-		Use:          moduleName,
+		Use:          config.BinaryName,
 		Aliases:      []string{"m"},
 		Short:        "cli for managing entities in metal-stack-cloud",
 		Long:         "",
@@ -65,11 +61,11 @@ func newRootCmd() *cobra.Command {
 				return err
 			}
 
-			config.Apiv1Client = apiclient
-			config.Adminv1Client = adminclient
+			cfg.Apiv1Client = apiclient
+			cfg.Adminv1Client = adminclient
 
-			config.Pf = &printer.PrinterFactory{Log: logger}
-			config.Out = os.Stdout
+			cfg.Pf = &printer.PrinterFactory{Log: logger}
+			cfg.Out = os.Stdout
 
 			return nil
 		},
@@ -94,10 +90,10 @@ apitoken: "alongtoken"
 
 	must(viper.BindPFlags(rootCmd.PersistentFlags()))
 
-	rootCmd.AddCommand(apiv1.NewVersionCmd(config))
-	rootCmd.AddCommand(apiv1.NewHealthCmd(config))
+	rootCmd.AddCommand(apiv1.NewVersionCmd(cfg))
+	rootCmd.AddCommand(apiv1.NewHealthCmd(cfg))
 
-	rootCmd.AddCommand(adminv1.NewCustomerCmd(config))
+	rootCmd.AddCommand(adminv1.NewCustomerCmd(cfg))
 
 	return rootCmd
 }
@@ -126,7 +122,7 @@ func newLogger() (*zap.SugaredLogger, error) {
 }
 
 func initConfig() error {
-	viper.SetEnvPrefix(strings.ToUpper(moduleName))
+	viper.SetEnvPrefix(strings.ToUpper(config.BinaryName))
 	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 	viper.AutomaticEnv()
 
@@ -140,12 +136,12 @@ func initConfig() error {
 		}
 	} else {
 		viper.SetConfigName("config")
-		viper.AddConfigPath(fmt.Sprintf("/etc/%s", moduleName))
+		viper.AddConfigPath(fmt.Sprintf("/etc/%s", config.BinaryName))
 		h, err := os.UserHomeDir()
 		if err != nil {
 			fmt.Printf("unable to figure out user home directory, skipping config lookup path: %v", err)
 		} else {
-			viper.AddConfigPath(fmt.Sprintf(h+"/.%s", moduleName))
+			viper.AddConfigPath(fmt.Sprintf(h+"/.%s", config.BinaryName))
 		}
 		viper.AddConfigPath(".")
 		if err := viper.ReadInConfig(); err != nil {
