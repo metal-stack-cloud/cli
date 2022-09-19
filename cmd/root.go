@@ -7,10 +7,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/fatih/color"
 	client "github.com/metal-stack-cloud/api/go/client"
+	adminv1client "github.com/metal-stack-cloud/api/go/client/admin/v1"
 	apiv1client "github.com/metal-stack-cloud/api/go/client/api/v1"
-	"github.com/metal-stack/metal-lib/pkg/genericcli/printers"
+	"github.com/metal-stack-cloud/cli/cmd/admin"
+	"github.com/metal-stack-cloud/cli/cmd/config"
+	"github.com/metal-stack-cloud/cli/cmd/printer"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
@@ -21,12 +23,6 @@ import (
 const (
 	moduleName = "cli"
 )
-
-type config struct {
-	apiv1client apiv1client.Client
-	ctx         context.Context
-	pf          *printerFactory
-}
 
 func Execute() {
 	cmd := newRootCmd()
@@ -42,8 +38,8 @@ func Execute() {
 }
 
 func newRootCmd() *cobra.Command {
-	config := &config{
-		ctx: context.Background(),
+	config := &config.Config{
+		Ctx: context.Background(),
 	}
 
 	rootCmd := &cobra.Command{
@@ -63,13 +59,16 @@ func newRootCmd() *cobra.Command {
 				return err
 			}
 
-			client, err := newClient(logger)
+			apiclient, adminclient, err := newClient(logger)
 			if err != nil {
 				return err
 			}
 
-			config.apiv1client = client
-			config.pf = &printerFactory{log: logger}
+			config.Apiv1Client = apiclient
+			config.Adminv1Client = adminclient
+
+			config.Pf = &printer.PrinterFactory{Log: logger}
+			config.Out = os.Stdout
 
 			return nil
 		},
@@ -96,6 +95,8 @@ apitoken: "alongtoken"
 
 	rootCmd.AddCommand(newVersionCmd(config))
 	rootCmd.AddCommand(newHealthCmd(config))
+
+	rootCmd.AddCommand(admin.NewCustomerCmd(config))
 
 	return rootCmd
 }
@@ -157,16 +158,16 @@ func initConfig() error {
 	return nil
 }
 
-func newClient(log *zap.SugaredLogger) (apiv1client.Client, error) {
+func newClient(log *zap.SugaredLogger) (apiv1client.Client, adminv1client.Client, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	endpoint, err := url.Parse(viper.GetString("api-url"))
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	c, err := apiv1client.New(ctx, client.DialConfig{
+	dialConfig := client.DialConfig{
 		Endpoint: endpoint.Host,
 		Token:    viper.GetString("api-token"),
 		Credentials: &client.Credentials{
@@ -176,47 +177,16 @@ func newClient(log *zap.SugaredLogger) (apiv1client.Client, error) {
 		Scheme:    client.GRPCS,
 		UserAgent: "cli",
 		Log:       log,
-	})
+	}
 
+	apiclient, err := apiv1client.New(ctx, dialConfig)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
+	}
+	adminclient, err := adminv1client.New(ctx, dialConfig)
+	if err != nil {
+		return nil, nil, err
 	}
 
-	return c, nil
-}
-
-type printerFactory struct {
-	log *zap.SugaredLogger
-}
-
-func (p *printerFactory) newPrinter() printers.Printer {
-	var printer printers.Printer
-
-	switch format := viper.GetString("output-format"); format {
-	case "yaml":
-		printer = printers.NewProtoYAMLPrinter()
-	case "json":
-		printer = printers.NewProtoJSONPrinter()
-	case "template":
-		printer = printers.NewTemplatePrinter(viper.GetString("template"))
-	default:
-		p.log.Fatalf("unknown output format: %q", format)
-	}
-
-	if viper.IsSet("force-color") {
-		enabled := viper.GetBool("force-color")
-		if enabled {
-			color.NoColor = false
-		} else {
-			color.NoColor = true
-		}
-	}
-
-	return printer
-}
-func (p *printerFactory) newPrinterDefaultYAML() printers.Printer {
-	if viper.IsSet("output-format") {
-		return p.newPrinter()
-	}
-	return printers.NewProtoYAMLPrinter()
+	return apiclient, adminclient, nil
 }

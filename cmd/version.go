@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	v1 "github.com/metal-stack-cloud/api/go/api/v1"
+	"github.com/metal-stack-cloud/cli/cmd/config"
 	"github.com/metal-stack/v"
 	"github.com/spf13/cobra"
 )
@@ -13,7 +14,7 @@ type version struct {
 	Server *v1.Version
 }
 
-func newVersionCmd(c *config) *cobra.Command {
+func newVersionCmd(c *config.Config) *cobra.Command {
 	versionCmd := &cobra.Command{
 		Use:   "version",
 		Short: "print the client and server version information",
@@ -23,12 +24,12 @@ func newVersionCmd(c *config) *cobra.Command {
 				Client: v.V.String(),
 			}
 
-			resp, err := c.apiv1client.Version().Get(c.ctx, &v1.VersionServiceGetRequest{})
+			resp, err := c.Apiv1Client.Version().Get(c.Ctx, &v1.VersionServiceGetRequest{})
 			if err == nil {
 				v.Server = resp.Version
 			}
 
-			if err := c.pf.newPrinterDefaultYAML().Print(v); err != nil {
+			if err := c.Pf.NewPrinterDefaultYAML(c.Out).Print(v); err != nil {
 				return err
 			}
 
