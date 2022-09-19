@@ -1,4 +1,4 @@
-package cmd
+package v1
 
 import (
 	"fmt"
@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func newHealthCmd(c *config.Config) *cobra.Command {
+func NewHealthCmd(c *config.Config) *cobra.Command {
 	healthCmd := &cobra.Command{
 		Use:   "health",
 		Short: "print the client and server health information",

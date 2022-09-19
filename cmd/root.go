@@ -10,7 +10,8 @@ import (
 	client "github.com/metal-stack-cloud/api/go/client"
 	adminv1client "github.com/metal-stack-cloud/api/go/client/admin/v1"
 	apiv1client "github.com/metal-stack-cloud/api/go/client/api/v1"
-	"github.com/metal-stack-cloud/cli/cmd/admin"
+	adminv1 "github.com/metal-stack-cloud/cli/cmd/admin/v1"
+	apiv1 "github.com/metal-stack-cloud/cli/cmd/api/v1"
 	"github.com/metal-stack-cloud/cli/cmd/config"
 	"github.com/metal-stack-cloud/cli/cmd/printer"
 	"github.com/spf13/cobra"
@@ -93,10 +94,10 @@ apitoken: "alongtoken"
 
 	must(viper.BindPFlags(rootCmd.PersistentFlags()))
 
-	rootCmd.AddCommand(newVersionCmd(config))
-	rootCmd.AddCommand(newHealthCmd(config))
+	rootCmd.AddCommand(apiv1.NewVersionCmd(config))
+	rootCmd.AddCommand(apiv1.NewHealthCmd(config))
 
-	rootCmd.AddCommand(admin.NewCustomerCmd(config))
+	rootCmd.AddCommand(adminv1.NewCustomerCmd(config))
 
 	return rootCmd
 }

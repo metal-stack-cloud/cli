@@ -1,4 +1,4 @@
-package cmd
+package v1
 
 import (
 	"fmt"
@@ -14,7 +14,7 @@ type version struct {
 	Server *v1.Version
 }
 
-func newVersionCmd(c *config.Config) *cobra.Command {
+func NewVersionCmd(c *config.Config) *cobra.Command {
 	versionCmd := &cobra.Command{
 		Use:   "version",
 		Short: "print the client and server version information",
