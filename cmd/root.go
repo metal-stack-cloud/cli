@@ -93,7 +93,7 @@ apitoken: "alongtoken"
 	rootCmd.AddCommand(apiv1.NewVersionCmd(cfg))
 	rootCmd.AddCommand(apiv1.NewHealthCmd(cfg))
 
-	rootCmd.AddCommand(adminv1.NewCustomerCmd(cfg))
+	rootCmd.AddCommand(adminv1.NewUserCmd(cfg))
 
 	return rootCmd
 }

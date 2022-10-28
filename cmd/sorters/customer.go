@@ -1,18 +1,17 @@
 package sorters
 
 import (
-	v1 "github.com/metal-stack-cloud/api/go/api/v1"
+	adminv1 "github.com/metal-stack-cloud/api/go/admin/v1"
 	"github.com/metal-stack/metal-lib/pkg/multisort"
-	p "github.com/metal-stack/metal-lib/pkg/pointer"
 )
 
-func CustomerSorter() *multisort.Sorter[*v1.PaymentCustomer] {
-	return multisort.New(multisort.FieldMap[*v1.PaymentCustomer]{
-		"id": func(a, b *v1.PaymentCustomer, descending bool) multisort.CompareResult {
-			return multisort.Compare(p.SafeDeref(a.CustomerId), p.SafeDeref(b.CustomerId), descending)
+func UserSorter() *multisort.Sorter[*adminv1.User] {
+	return multisort.New(multisort.FieldMap[*adminv1.User]{
+		"id": func(a, b *adminv1.User, descending bool) multisort.CompareResult {
+			return multisort.Compare(a.User.Login, b.User.Login, descending)
 		},
-		"name": func(a, b *v1.PaymentCustomer, descending bool) multisort.CompareResult {
-			return multisort.Compare(p.SafeDeref(a.Name), p.SafeDeref(b.Name), descending)
+		"name": func(a, b *adminv1.User, descending bool) multisort.CompareResult {
+			return multisort.Compare(a.User.Name, b.User.Name, descending)
 		},
 	}, multisort.Keys{{ID: "name"}, {ID: "id"}})
 }
