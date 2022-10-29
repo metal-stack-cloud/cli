@@ -3,6 +3,7 @@ module github.com/metal-stack-cloud/cli
 go 1.19
 
 require (
+	github.com/dustin/go-humanize v1.0.0
 	github.com/fatih/color v1.13.0
 	github.com/metal-stack-cloud/api v0.0.0-20221029135617-eb85666293a4
 	github.com/metal-stack/metal-lib v0.11.2
