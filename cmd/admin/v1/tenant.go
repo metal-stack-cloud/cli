@@ -16,7 +16,7 @@ type tenant struct {
 	c *config.Config
 }
 
-func NewUserCmd(c *config.Config) *cobra.Command {
+func newTenantCmd(c *config.Config) *cobra.Command {
 	w := &tenant{
 		c: c,
 	}
