@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/fatih/color v1.13.0
-	github.com/metal-stack-cloud/api v0.0.0-20221029085813-bf2146aa8d3f
+	github.com/metal-stack-cloud/api v0.0.0-20221029135617-eb85666293a4
 	github.com/metal-stack/metal-lib v0.11.2
 	github.com/metal-stack/v v1.0.3
 	github.com/spf13/afero v1.9.2
