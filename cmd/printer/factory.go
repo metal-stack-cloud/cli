@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/fatih/color"
-	adminv1 "github.com/metal-stack-cloud/api/go/admin/v1"
+	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
 	"github.com/metal-stack/metal-lib/pkg/genericcli/printers"
 	"github.com/metal-stack/metal-lib/pkg/pointer"
 
@@ -81,10 +81,10 @@ func (t *TablePrinter) SetLastEventErrorThreshold(threshold time.Duration) {
 
 func (t *TablePrinter) ToHeaderAndRows(data any, wide bool) ([]string, [][]string, error) {
 	switch d := data.(type) {
-	case *adminv1.User:
-		return t.UserTable(pointer.WrapInSlice(d), wide)
-	case []*adminv1.User:
-		return t.UserTable(d, wide)
+	case *apiv1.Tenant:
+		return t.TenantTable(pointer.WrapInSlice(d), wide)
+	case []*apiv1.Tenant:
+		return t.TenantTable(d, wide)
 	default:
 		return nil, nil, fmt.Errorf("unknown table printer for type: %T", d)
 	}
