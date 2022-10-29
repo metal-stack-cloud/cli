@@ -93,7 +93,7 @@ apitoken: "alongtoken"
 	rootCmd.AddCommand(apiv1.NewVersionCmd(cfg))
 	rootCmd.AddCommand(apiv1.NewHealthCmd(cfg))
 
-	// FIXME guard admin command visibility behind a ENV variable set
+	// Admin subcommand, hidden by default
 	rootCmd.AddCommand(adminv1.NewAdminCmd(cfg))
 
 	return rootCmd

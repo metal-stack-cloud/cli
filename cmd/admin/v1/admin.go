@@ -12,6 +12,7 @@ func NewAdminCmd(c *config.Config) *cobra.Command {
 		Short:        "admin commands",
 		Long:         "",
 		SilenceUsage: true,
+		Hidden:       true,
 	}
 
 	adminCmd.AddCommand(newTenantCmd(c))
