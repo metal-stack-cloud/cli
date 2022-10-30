@@ -77,6 +77,8 @@ func (c *tenant) Get(id string) (*apiv1.Tenant, error) {
 	panic("unimplemented")
 }
 
+var nextpage *uint64
+
 // List implements genericcli.CRUD
 func (c *tenant) List() ([]*apiv1.Tenant, error) {
 	// FIXME implement filters and paging
@@ -88,7 +90,7 @@ func (c *tenant) List() ([]*apiv1.Tenant, error) {
 	if viper.IsSet("limit") {
 		req.Paging = &apiv1.Paging{
 			Count: pointer.Pointer(viper.GetUint64("limit")),
-			Page:  pointer.Pointer(viper.GetUint64("page")),
+			Page:  nextpage,
 		}
 	}
 	resp, err := c.c.Adminv1Client.Tenant().List(c.c.Ctx, req)
@@ -97,16 +99,16 @@ func (c *tenant) List() ([]*apiv1.Tenant, error) {
 	}
 
 	if resp.NextPage != nil {
-		fmt.Printf("more results available goto page:%d\n", *resp.NextPage)
+		nextpage = resp.NextPage
 		err := genericcli.PromptCustom(&genericcli.PromptConfig{
-			Message:         "show next results",
+			Message:         fmt.Sprintf("show next results on page:%d", *nextpage),
 			No:              "n",
 			AcceptedAnswers: genericcli.PromptDefaultAnswers(),
+			ShowAnswers:     true,
 		})
 		if err != nil {
 			return resp.Tenants, err
 		}
-		viper.Set("page", *resp.NextPage)
 		return c.List()
 	}
 	return resp.Tenants, nil
