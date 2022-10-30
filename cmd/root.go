@@ -45,7 +45,10 @@ func newRootCmd() *cobra.Command {
 		Short:        "cli for managing entities in metal-stack-cloud",
 		Long:         "",
 		SilenceUsage: true,
-		PersistentPreRunE: func(_ *cobra.Command, _ []string) error {
+		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
+			must(viper.BindPFlags(cmd.Flags()))
+			must(viper.BindPFlags(cmd.PersistentFlags()))
+
 			err := initConfig()
 			if err != nil {
 				return err
