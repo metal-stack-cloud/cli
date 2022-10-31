@@ -15,13 +15,17 @@ import (
 )
 
 type tenant struct {
-	c *config.Config
+	c               *config.Config
+	listPrinter     func() printers.Printer
+	describePrinter func() printers.Printer
 }
 
 func newTenantCmd(c *config.Config) *cobra.Command {
 	w := &tenant{
 		c: c,
 	}
+	w.listPrinter = func() printers.Printer { return c.Pf.NewPrinter(c.Out) }
+	w.describePrinter = func() printers.Printer { return c.Pf.NewPrinterDefaultYAML(c.Out) }
 
 	cmdsConfig := &genericcli.CmdsConfig[any, any, *apiv1.Tenant]{
 		BinaryName:      config.BinaryName,
@@ -30,8 +34,8 @@ func newTenantCmd(c *config.Config) *cobra.Command {
 		Plural:          "tenants",
 		Description:     "a tenant of metal-stack cloud",
 		Sorter:          sorters.TenantSorter(),
-		DescribePrinter: func() printers.Printer { return c.Pf.NewPrinterDefaultYAML(c.Out) },
-		ListPrinter:     func() printers.Printer { return c.Pf.NewPrinter(c.Out) },
+		DescribePrinter: w.describePrinter,
+		ListPrinter:     w.listPrinter,
 		OnlyCmds:        genericcli.OnlyCmds(genericcli.ListCmd),
 		ListCmdMutateFn: func(cmd *cobra.Command) {
 			cmd.Flags().BoolP("admitted", "a", false, "filter by admitted tenant")
@@ -98,10 +102,14 @@ func (c *tenant) List() ([]*apiv1.Tenant, error) {
 		return nil, fmt.Errorf("failed to get tenants: %w", err)
 	}
 
-	if resp.NextPage != nil {
-		nextpage = resp.NextPage
+	nextpage = resp.NextPage
+	if nextpage != nil {
+		err = c.listPrinter().Print(resp.Tenants)
+		if err != nil {
+			return nil, err
+		}
 		err := genericcli.PromptCustom(&genericcli.PromptConfig{
-			Message:         fmt.Sprintf("show next results on page:%d", *nextpage),
+			Message:         "show more",
 			No:              "n",
 			AcceptedAnswers: genericcli.PromptDefaultAnswers(),
 			ShowAnswers:     true,
