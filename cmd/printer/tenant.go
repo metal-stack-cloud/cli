@@ -14,9 +14,9 @@ func (t *TablePrinter) TenantTable(data []*apiv1.Tenant, wide bool) ([]string, [
 		rows [][]string
 	)
 
-	header := []string{"ID", "Name", "Email", "Registered", "Admitted"}
+	header := []string{"ID", "Name", "Email", "Provider", "Registered", "Admitted"}
 	if wide {
-		header = []string{"ID", "Name", "Email", "Registered", "Admitted"}
+		header = []string{"ID", "Name", "Email", "Provider", "Registered", "Admitted"}
 	}
 
 	sort.SliceStable(data, func(i, j int) bool { return data[i].Login < data[j].Login })
@@ -26,11 +26,12 @@ func (t *TablePrinter) TenantTable(data []*apiv1.Tenant, wide bool) ([]string, [
 		email := tenant.Email
 		admitted := strconv.FormatBool(tenant.Admitted)
 		since := humanize.Time(tenant.CreatedAt.AsTime())
+		provider := tenant.OauthProvider.Enum().String()
 
 		if wide {
-			rows = append(rows, []string{id, name, email, since, admitted})
+			rows = append(rows, []string{id, name, email, provider, since, admitted})
 		} else {
-			rows = append(rows, []string{id, name, email, since, admitted})
+			rows = append(rows, []string{id, name, email, provider, since, admitted})
 		}
 	}
 

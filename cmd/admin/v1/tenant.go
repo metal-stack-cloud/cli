@@ -40,6 +40,8 @@ func newTenantCmd(c *config.Config) *cobra.Command {
 		ListCmdMutateFn: func(cmd *cobra.Command) {
 			cmd.Flags().BoolP("admitted", "a", false, "filter by admitted tenant")
 			cmd.Flags().Uint64("limit", 100, "limit results returned")
+			cmd.Flags().StringP("provider", "", "", "filter by provider")
+			cmd.Flags().StringP("email", "", "", "filter by email")
 		},
 	}
 
@@ -96,6 +98,12 @@ func (c *tenant) List() ([]*apiv1.Tenant, error) {
 			Count: pointer.Pointer(viper.GetUint64("limit")),
 			Page:  nextpage,
 		}
+	}
+	if viper.IsSet("provider") {
+		return nil, fmt.Errorf("unimplemented filter by provider")
+	}
+	if viper.IsSet("email") {
+		return nil, fmt.Errorf("unimplemented filter by provider")
 	}
 	resp, err := c.c.Adminv1Client.Tenant().List(c.c.Ctx, req)
 	if err != nil {

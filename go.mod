@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/dustin/go-humanize v1.0.0
 	github.com/fatih/color v1.13.0
-	github.com/metal-stack-cloud/api v0.0.0-20221029201753-a86e18a0eef3
+	github.com/metal-stack-cloud/api v0.0.0-20221031095715-28a1bcd3ffe7
 	github.com/metal-stack/metal-lib v0.11.2
 	github.com/metal-stack/v v1.0.3
 	github.com/spf13/afero v1.9.2
