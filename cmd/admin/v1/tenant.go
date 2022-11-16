@@ -130,17 +130,12 @@ func (c *tenant) List() ([]*apiv1.Tenant, error) {
 	return resp.Tenants, nil
 }
 
-// ToCreate implements genericcli.CRUD
-func (c *tenant) ToCreate(r *apiv1.Tenant) (any, error) {
-	panic("unimplemented")
-}
-
-// ToUpdate implements genericcli.CRUD
-func (c *tenant) ToUpdate(r *apiv1.Tenant) (any, error) {
-	panic("unimplemented")
-}
-
 // Update implements genericcli.CRUD
 func (c *tenant) Update(rq any) (*apiv1.Tenant, error) {
 	panic("unimplemented")
+}
+
+// ToCreate implements genericcli.CRUD
+func (c *tenant) Convert(r *apiv1.Tenant) (string, any, any, error) {
+	return r.Login, nil, nil, nil
 }
