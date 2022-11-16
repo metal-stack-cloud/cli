@@ -11,7 +11,11 @@ import (
 )
 
 const (
+	// BinaryName is the name of the cli in all help texts
 	BinaryName = "cli"
+	// ConfigDir is the directory in either the homedir or in /etc where the cli searches for a file config.yaml
+	// also used as prefix for environment based configuration, e.g. METAL_STACK_CLOUD_ will be the variable prefix.
+	ConfigDir = "metal-stack-cloud"
 )
 
 type Config struct {

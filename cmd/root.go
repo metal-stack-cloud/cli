@@ -126,7 +126,7 @@ func newLogger() (*zap.SugaredLogger, error) {
 }
 
 func initConfig() error {
-	viper.SetEnvPrefix(strings.ToUpper(config.BinaryName))
+	viper.SetEnvPrefix(strings.ToUpper(config.ConfigDir))
 	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 	viper.AutomaticEnv()
 
@@ -140,12 +140,12 @@ func initConfig() error {
 		}
 	} else {
 		viper.SetConfigName("config")
-		viper.AddConfigPath(fmt.Sprintf("/etc/%s", config.BinaryName))
+		viper.AddConfigPath(fmt.Sprintf("/etc/%s", config.ConfigDir))
 		h, err := os.UserHomeDir()
 		if err != nil {
 			fmt.Printf("unable to figure out user home directory, skipping config lookup path: %v", err)
 		} else {
-			viper.AddConfigPath(fmt.Sprintf(h+"/.%s", config.BinaryName))
+			viper.AddConfigPath(fmt.Sprintf(h+"/.%s", config.ConfigDir))
 		}
 		viper.AddConfigPath(".")
 		if err := viper.ReadInConfig(); err != nil {

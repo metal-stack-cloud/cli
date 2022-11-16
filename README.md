@@ -2,7 +2,7 @@
 
 ## Admin usage
 
-In order to use the admin commands you must first create a config file `~/.cli/config.yaml` with this content.
+In order to use the admin commands you must first create a config file `~/.metal-stack-cloud/config.yaml` with this content.
 
 ```yaml
 api-url: https://api.172.17.0.1.nip.io:50052
