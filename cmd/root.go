@@ -95,6 +95,7 @@ apitoken: "alongtoken"
 
 	rootCmd.AddCommand(apiv1.NewVersionCmd(cfg))
 	rootCmd.AddCommand(apiv1.NewHealthCmd(cfg))
+	rootCmd.AddCommand(apiv1.NewIPCmd(cfg))
 
 	// Admin subcommand, hidden by default
 	rootCmd.AddCommand(adminv1.NewAdminCmd(cfg))
