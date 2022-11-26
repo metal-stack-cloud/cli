@@ -162,11 +162,18 @@ func newClient(log *zap.SugaredLogger) (apiv1client.Client, adminv1client.Client
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
+	lvl, _ := zap.ParseAtomicLevel(viper.GetString("log-level"))
+	debug := false
+	if lvl.Enabled(zap.DebugLevel) {
+		debug = true
+	}
+
 	dialConfig := client.DialConfig{
 		BaseURL:   viper.GetString("api-url"),
 		Token:     viper.GetString("api-token"),
 		UserAgent: "metal-stack-cloud-cli",
 		Log:       log,
+		Debug:     debug,
 	}
 
 	apiclient := apiv1client.New(ctx, dialConfig)
