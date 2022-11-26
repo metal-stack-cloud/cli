@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -163,31 +162,15 @@ func newClient(log *zap.SugaredLogger) (apiv1client.Client, adminv1client.Client
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	endpoint, err := url.Parse(viper.GetString("api-url"))
-	if err != nil {
-		return nil, nil, err
-	}
-
 	dialConfig := client.DialConfig{
-		Endpoint: endpoint.Host,
-		Token:    viper.GetString("api-token"),
-		Credentials: &client.Credentials{
-			ServerName: endpoint.Hostname(),
-			CAFile:     viper.GetString("api-ca-file"),
-		},
-		Scheme:    client.GRPCS,
-		UserAgent: "cli",
+		BaseURL:   viper.GetString("api-url"),
+		Token:     viper.GetString("api-token"),
+		UserAgent: "metal-stack-cloud-cli",
 		Log:       log,
 	}
 
-	apiclient, err := apiv1client.New(ctx, dialConfig)
-	if err != nil {
-		return nil, nil, err
-	}
-	adminclient, err := adminv1client.New(ctx, dialConfig)
-	if err != nil {
-		return nil, nil, err
-	}
+	apiclient := apiv1client.New(ctx, dialConfig)
+	adminclient := adminv1client.New(ctx, dialConfig)
 
 	return apiclient, adminclient, nil
 }
