@@ -12,8 +12,8 @@ cli: test
 								   -X 'github.com/metal-stack/v.Revision=$(GITVERSION)' \
 								   -X 'github.com/metal-stack/v.GitSHA1=$(SHA)' \
 								   -X 'github.com/metal-stack/v.BuildDate=$(BUILDDATE)'" \
-	   -o bin/cli github.com/metal-stack-cloud/cli
-	strip bin/cli
+	   -o bin/metal github.com/metal-stack-cloud/cli
+	strip bin/metal
 
 .PHONY: test
 test:
