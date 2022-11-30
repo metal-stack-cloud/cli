@@ -58,10 +58,7 @@ func newRootCmd() *cobra.Command {
 				return err
 			}
 
-			apiclient, adminclient, err := newClient(logger)
-			if err != nil {
-				return err
-			}
+			apiclient, adminclient := newClient(logger)
 
 			cfg.Apiv1Client = apiclient
 			cfg.Adminv1Client = adminclient
@@ -160,13 +157,12 @@ func initConfig() error {
 	return nil
 }
 
-func newClient(log *zap.SugaredLogger) (apiv1client.Client, adminv1client.Client, error) {
+func newClient(log *zap.SugaredLogger) (apiv1client.Client, adminv1client.Client) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	lvl, _ := zap.ParseAtomicLevel(viper.GetString("log-level"))
 	debug := false
-	if lvl.Enabled(zap.DebugLevel) {
+	if log.Level() == zap.DebugLevel {
 		debug = true
 	}
 
@@ -181,5 +177,5 @@ func newClient(log *zap.SugaredLogger) (apiv1client.Client, adminv1client.Client
 	apiclient := apiv1client.New(ctx, dialConfig)
 	adminclient := adminv1client.New(ctx, dialConfig)
 
-	return apiclient, adminclient, nil
+	return apiclient, adminclient
 }
