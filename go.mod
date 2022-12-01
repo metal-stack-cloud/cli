@@ -3,10 +3,10 @@ module github.com/metal-stack-cloud/cli
 go 1.19
 
 require (
-	github.com/bufbuild/connect-go v1.2.0
+	github.com/bufbuild/connect-go v1.3.0
 	github.com/dustin/go-humanize v1.0.0
 	github.com/fatih/color v1.13.0
-	github.com/metal-stack-cloud/api v0.0.0-20221128061506-030d2d12cb4d
+	github.com/metal-stack-cloud/api v0.0.0-20221201123041-314185c73ec6
 	github.com/metal-stack/metal-lib v0.11.2
 	github.com/metal-stack/v v1.0.3
 	github.com/spf13/afero v1.9.3
