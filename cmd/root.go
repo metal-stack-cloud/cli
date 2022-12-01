@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -59,10 +58,7 @@ func newRootCmd() *cobra.Command {
 				return err
 			}
 
-			apiclient, adminclient, err := newClient(logger)
-			if err != nil {
-				return err
-			}
+			apiclient, adminclient := newClient(logger)
 
 			cfg.Apiv1Client = apiclient
 			cfg.Adminv1Client = adminclient
@@ -95,6 +91,9 @@ apitoken: "alongtoken"
 
 	rootCmd.AddCommand(apiv1.NewVersionCmd(cfg))
 	rootCmd.AddCommand(apiv1.NewHealthCmd(cfg))
+	rootCmd.AddCommand(apiv1.NewAssetCmd(cfg))
+	rootCmd.AddCommand(apiv1.NewTokenCmd(cfg))
+	rootCmd.AddCommand(apiv1.NewIPCmd(cfg))
 
 	// Admin subcommand, hidden by default
 	rootCmd.AddCommand(adminv1.NewAdminCmd(cfg))
@@ -159,35 +158,25 @@ func initConfig() error {
 	return nil
 }
 
-func newClient(log *zap.SugaredLogger) (apiv1client.Client, adminv1client.Client, error) {
+func newClient(log *zap.SugaredLogger) (apiv1client.Client, adminv1client.Client) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	endpoint, err := url.Parse(viper.GetString("api-url"))
-	if err != nil {
-		return nil, nil, err
+	debug := false
+	if log.Level() == zap.DebugLevel {
+		debug = true
 	}
 
 	dialConfig := client.DialConfig{
-		Endpoint: endpoint.Host,
-		Token:    viper.GetString("api-token"),
-		Credentials: &client.Credentials{
-			ServerName: endpoint.Hostname(),
-			CAFile:     viper.GetString("api-ca-file"),
-		},
-		Scheme:    client.GRPCS,
-		UserAgent: "cli",
+		BaseURL:   viper.GetString("api-url"),
+		Token:     viper.GetString("api-token"),
+		UserAgent: "metal-stack-cloud-cli",
 		Log:       log,
+		Debug:     debug,
 	}
 
-	apiclient, err := apiv1client.New(ctx, dialConfig)
-	if err != nil {
-		return nil, nil, err
-	}
-	adminclient, err := adminv1client.New(ctx, dialConfig)
-	if err != nil {
-		return nil, nil, err
-	}
+	apiclient := apiv1client.New(ctx, dialConfig)
+	adminclient := adminv1client.New(ctx, dialConfig)
 
-	return apiclient, adminclient, nil
+	return apiclient, adminclient
 }

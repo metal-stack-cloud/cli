@@ -3,6 +3,7 @@ package v1
 import (
 	"fmt"
 
+	"github.com/bufbuild/connect-go"
 	adminv1 "github.com/metal-stack-cloud/api/go/admin/v1"
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
 	"github.com/metal-stack-cloud/cli/cmd/config"
@@ -54,14 +55,14 @@ func newTenantCmd(c *config.Config) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			resp, err := c.Adminv1Client.Tenant().Admit(c.Ctx, &adminv1.TenantServiceAdmitRequest{
+			resp, err := c.Adminv1Client.Tenant().Admit(c.Ctx, connect.NewRequest(&adminv1.TenantServiceAdmitRequest{
 				TenantId: id,
-			})
+			}))
 			if err != nil {
 				return fmt.Errorf("failed to admit tenant: %w", err)
 			}
 
-			return c.Pf.NewPrinter(c.Out).Print(resp.Tenant)
+			return c.Pf.NewPrinter(c.Out).Print(resp.Msg.Tenant)
 		},
 	}
 
@@ -105,14 +106,14 @@ func (c *tenant) List() ([]*apiv1.Tenant, error) {
 	if viper.IsSet("email") {
 		return nil, fmt.Errorf("unimplemented filter by provider")
 	}
-	resp, err := c.c.Adminv1Client.Tenant().List(c.c.Ctx, req)
+	resp, err := c.c.Adminv1Client.Tenant().List(c.c.Ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get tenants: %w", err)
 	}
 
-	nextpage = resp.NextPage
+	nextpage = resp.Msg.NextPage
 	if nextpage != nil {
-		err = c.listPrinter().Print(resp.Tenants)
+		err = c.listPrinter().Print(resp.Msg.Tenants)
 		if err != nil {
 			return nil, err
 		}
@@ -123,11 +124,11 @@ func (c *tenant) List() ([]*apiv1.Tenant, error) {
 			ShowAnswers:     true,
 		})
 		if err != nil {
-			return resp.Tenants, err
+			return resp.Msg.Tenants, err
 		}
 		return c.List()
 	}
-	return resp.Tenants, nil
+	return resp.Msg.Tenants, nil
 }
 
 // ToCreate implements genericcli.CRUD
