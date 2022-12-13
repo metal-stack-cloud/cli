@@ -9,23 +9,18 @@ import (
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
 	"github.com/metal-stack-cloud/cli/cmd/config"
 	"github.com/metal-stack/metal-lib/pkg/genericcli"
-	"github.com/metal-stack/metal-lib/pkg/genericcli/printers"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
 type ip struct {
-	c               *config.Config
-	listPrinter     func() printers.Printer
-	describePrinter func() printers.Printer
+	c *config.Config
 }
 
 func NewIPCmd(c *config.Config) *cobra.Command {
 	w := &ip{
 		c: c,
 	}
-	w.listPrinter = func() printers.Printer { return c.Pf.NewPrinter(c.Out) }
-	w.describePrinter = func() printers.Printer { return c.Pf.NewPrinterDefaultYAML(c.Out) }
 
 	cmdsConfig := &genericcli.CmdsConfig[*connect.Request[apiv1.IPServiceAllocateRequest], *connect.Request[apiv1.IPServiceStaticRequest], *apiv1.IP]{
 		BinaryName:  config.BinaryName,
@@ -34,8 +29,8 @@ func NewIPCmd(c *config.Config) *cobra.Command {
 		Plural:      "ips",
 		Description: "a ip address of metal-stack cloud",
 		// Sorter:          sorters.TenantSorter(), //TODO: how to deal with sorters
-		DescribePrinter: w.describePrinter,
-		ListPrinter:     w.listPrinter,
+		DescribePrinter: c.DescribePrinter,
+		ListPrinter:     c.ListPrinter,
 		ListCmdMutateFn: func(cmd *cobra.Command) {
 			cmd.Flags().StringP("project", "", "", "project from where ips should be listed")
 			genericcli.Must(cmd.MarkFlagRequired("project"))
@@ -66,7 +61,7 @@ func NewIPCmd(c *config.Config) *cobra.Command {
 		},
 		UpdateRequestFromCLI: func(args []string) (*connect.Request[apiv1.IPServiceStaticRequest], error) {
 			ipsr := &apiv1.IPServiceStaticRequest{
-				Uuid: viper.GetString("uuid"),
+				Uuid:    viper.GetString("uuid"),
 				Project: viper.GetString("project"),
 			}
 			return connect.NewRequest(ipsr), nil
@@ -91,7 +86,7 @@ func (c *ip) Delete(id string) (*apiv1.IP, error) {
 	ctx := context.Background()
 	resp, err := c.c.Apiv1Client.IP().Delete(ctx, connect.NewRequest(&apiv1.IPServiceDeleteRequest{
 		Project: viper.GetString("project"),
-		Uuid: id,
+		Uuid:    id,
 	}))
 	if err != nil {
 		return nil, err

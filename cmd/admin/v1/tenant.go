@@ -9,24 +9,19 @@ import (
 	"github.com/metal-stack-cloud/cli/cmd/config"
 	"github.com/metal-stack-cloud/cli/cmd/sorters"
 	"github.com/metal-stack/metal-lib/pkg/genericcli"
-	"github.com/metal-stack/metal-lib/pkg/genericcli/printers"
 	"github.com/metal-stack/metal-lib/pkg/pointer"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
 type tenant struct {
-	c               *config.Config
-	listPrinter     func() printers.Printer
-	describePrinter func() printers.Printer
+	c *config.Config
 }
 
 func newTenantCmd(c *config.Config) *cobra.Command {
 	w := &tenant{
 		c: c,
 	}
-	w.listPrinter = func() printers.Printer { return c.Pf.NewPrinter(c.Out) }
-	w.describePrinter = func() printers.Printer { return c.Pf.NewPrinterDefaultYAML(c.Out) }
 
 	cmdsConfig := &genericcli.CmdsConfig[any, any, *apiv1.Tenant]{
 		BinaryName:      config.BinaryName,
@@ -35,8 +30,8 @@ func newTenantCmd(c *config.Config) *cobra.Command {
 		Plural:          "tenants",
 		Description:     "a tenant of metal-stack cloud",
 		Sorter:          sorters.TenantSorter(),
-		DescribePrinter: w.describePrinter,
-		ListPrinter:     w.listPrinter,
+		DescribePrinter: c.DescribePrinter,
+		ListPrinter:     c.ListPrinter,
 		OnlyCmds:        genericcli.OnlyCmds(genericcli.ListCmd),
 		ListCmdMutateFn: func(cmd *cobra.Command) {
 			cmd.Flags().BoolP("admitted", "a", false, "filter by admitted tenant")
@@ -62,7 +57,7 @@ func newTenantCmd(c *config.Config) *cobra.Command {
 				return fmt.Errorf("failed to admit tenant: %w", err)
 			}
 
-			return c.Pf.NewPrinter(c.Out).Print(resp.Msg.Tenant)
+			return c.DescribePrinter().Print(resp.Msg.Tenant)
 		},
 	}
 
@@ -113,7 +108,7 @@ func (c *tenant) List() ([]*apiv1.Tenant, error) {
 
 	nextpage = resp.Msg.NextPage
 	if nextpage != nil {
-		err = c.listPrinter().Print(resp.Msg.Tenants)
+		err = c.c.ListPrinter().Print(resp.Msg.Tenants)
 		if err != nil {
 			return nil, err
 		}
