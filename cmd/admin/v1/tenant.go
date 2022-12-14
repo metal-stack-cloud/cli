@@ -9,6 +9,7 @@ import (
 	"github.com/metal-stack-cloud/cli/cmd/config"
 	"github.com/metal-stack-cloud/cli/cmd/sorters"
 	"github.com/metal-stack/metal-lib/pkg/genericcli"
+	"github.com/metal-stack/metal-lib/pkg/genericcli/printers"
 	"github.com/metal-stack/metal-lib/pkg/pointer"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -30,8 +31,8 @@ func newTenantCmd(c *config.Config) *cobra.Command {
 		Plural:          "tenants",
 		Description:     "a tenant of metal-stack cloud",
 		Sorter:          sorters.TenantSorter(),
-		DescribePrinter: c.DescribePrinter,
-		ListPrinter:     c.ListPrinter,
+		DescribePrinter: func() printers.Printer { return c.DescribePrinter },
+		ListPrinter:     func() printers.Printer { return c.ListPrinter },
 		OnlyCmds:        genericcli.OnlyCmds(genericcli.ListCmd),
 		ListCmdMutateFn: func(cmd *cobra.Command) {
 			cmd.Flags().BoolP("admitted", "a", false, "filter by admitted tenant")
@@ -57,7 +58,7 @@ func newTenantCmd(c *config.Config) *cobra.Command {
 				return fmt.Errorf("failed to admit tenant: %w", err)
 			}
 
-			return c.DescribePrinter().Print(resp.Msg.Tenant)
+			return c.DescribePrinter.Print(resp.Msg.Tenant)
 		},
 	}
 
@@ -108,7 +109,7 @@ func (c *tenant) List() ([]*apiv1.Tenant, error) {
 
 	nextpage = resp.Msg.NextPage
 	if nextpage != nil {
-		err = c.c.ListPrinter().Print(resp.Msg.Tenants)
+		err = c.c.ListPrinter.Print(resp.Msg.Tenants)
 		if err != nil {
 			return nil, err
 		}

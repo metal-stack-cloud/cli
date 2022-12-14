@@ -12,7 +12,6 @@ import (
 	adminv1 "github.com/metal-stack-cloud/cli/cmd/admin/v1"
 	apiv1 "github.com/metal-stack-cloud/cli/cmd/api/v1"
 	"github.com/metal-stack-cloud/cli/cmd/config"
-	"github.com/metal-stack/metal-lib/pkg/genericcli/printers"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -131,8 +130,12 @@ func readConfigFile() error {
 func initConfigWithViperCtx(c *config.Config) {
 	c.Log = newLogger()
 
-	c.ListPrinter = func() printers.Printer { return newPrinterFromCLI(c.Log, c.Out) }
-	c.DescribePrinter = func() printers.Printer { return defaultToYAMLPrinter(c.Log, c.Out) }
+	c.ListPrinter = newPrinterFromCLI(c.Log, c.Out)
+	c.DescribePrinter = defaultToYAMLPrinter(c.Log, c.Out)
+
+	if c.Adminv1Client != nil && c.Apiv1Client != nil {
+		return
+	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()

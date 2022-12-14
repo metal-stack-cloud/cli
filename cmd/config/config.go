@@ -26,6 +26,6 @@ type Config struct {
 	Adminv1Client   adminv1client.Client
 	Ctx             context.Context
 	Log             *zap.SugaredLogger
-	ListPrinter     func() printers.Printer
-	DescribePrinter func() printers.Printer
+	ListPrinter     printers.Printer
+	DescribePrinter printers.Printer
 }

@@ -30,7 +30,7 @@ func NewVersionCmd(c *config.Config) *cobra.Command {
 				v.Server = resp.Msg.Version
 			}
 
-			if err := c.DescribePrinter().Print(v); err != nil {
+			if err := c.DescribePrinter.Print(v); err != nil {
 				return err
 			}
 

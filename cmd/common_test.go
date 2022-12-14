@@ -14,6 +14,7 @@ import (
 	"bou.ke/monkey"
 	"github.com/go-openapi/strfmt"
 	"github.com/google/go-cmp/cmp"
+	apitests "github.com/metal-stack-cloud/api/go/tests"
 	"github.com/metal-stack-cloud/cli/cmd/config"
 	"github.com/metal-stack/metal-lib/pkg/pointer"
 	"github.com/metal-stack/metal-lib/pkg/testcommon"
@@ -33,9 +34,10 @@ func init() {
 
 type Test[R any] struct {
 	Name string
-	// Mocks   *client.MetalMockFns
-	FsMocks func(fs afero.Fs, want R)
-	Cmd     func(want R) []string
+	Cmd  func(want R) []string
+
+	APIMocks *apitests.APIMockFns
+	FsMocks  func(fs afero.Fs, want R)
 
 	DisableMockClient bool // can switch off mock client creation
 
@@ -59,11 +61,9 @@ func (c *Test[R]) TestCmd(t *testing.T) {
 		os.Args = append([]string{config.BinaryName}, c.Cmd(c.Want)...)
 
 		err := cmd.Execute()
-		if diff := cmp.Diff(c.WantErr, err, testcommon.ErrorStringComparer()); diff != "" {
+		if diff := cmp.Diff(c.WantErr, err, testcommon.IgnoreUnexported(), testcommon.ErrorStringComparer()); diff != "" {
 			t.Errorf("error diff (+got -want):\n %s", diff)
 		}
-
-		// mock.AssertExpectations(t)
 	}
 
 	for _, format := range outputFormats(c) {
@@ -79,14 +79,12 @@ func (c *Test[R]) TestCmd(t *testing.T) {
 			assert.NoError(t, err)
 
 			format.Validate(t, out.Bytes())
-
-			// mock.AssertExpectations(t)
 		})
 	}
 }
 
 func (c *Test[R]) newMockConfig(t *testing.T) (any, *bytes.Buffer, *config.Config) {
-	// mock, client := client.NewMetalMockClient(c.Mocks)
+	mock := apitests.New(t)
 
 	fs := afero.NewMemMapFs()
 	if c.FsMocks != nil {
@@ -101,12 +99,14 @@ func (c *Test[R]) newMockConfig(t *testing.T) (any, *bytes.Buffer, *config.Confi
 			Log: zaptest.NewLogger(t).Sugar(),
 			// comp:   &completion.Completion{},
 			// Client: client,
+			Apiv1Client:   mock.API(c.APIMocks),
+			Adminv1Client: mock.Admin(),
 		}
 	)
 
-	// if c.DisableMockClient {
-	// 	config.client = nil
-	// }
+	if c.DisableMockClient {
+		config.Apiv1Client = nil
+	}
 
 	return nil, &out, config
 }
@@ -215,7 +215,7 @@ func (o *jsonOutputFormat[R]) Validate(t *testing.T, output []byte) {
 	err := json.Unmarshal(output, &got)
 	require.NoError(t, err, string(output))
 
-	if diff := cmp.Diff(o.want, got, testcommon.StrFmtDateComparer()); diff != "" {
+	if diff := cmp.Diff(o.want, got, testcommon.IgnoreUnexported(), testcommon.StrFmtDateComparer()); diff != "" {
 		t.Errorf("diff (+got -want):\n %s", diff)
 	}
 }
@@ -233,7 +233,7 @@ func (o *yamlOutputFormat[R]) Validate(t *testing.T, output []byte) {
 	err := yaml.Unmarshal(output, &got)
 	require.NoError(t, err)
 
-	if diff := cmp.Diff(o.want, got, testcommon.StrFmtDateComparer()); diff != "" {
+	if diff := cmp.Diff(o.want, got, testcommon.IgnoreUnexported(), testcommon.StrFmtDateComparer()); diff != "" {
 		t.Errorf("diff (+got -want):\n %s", diff)
 	}
 }

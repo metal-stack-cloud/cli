@@ -9,6 +9,7 @@ import (
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
 	"github.com/metal-stack-cloud/cli/cmd/config"
 	"github.com/metal-stack/metal-lib/pkg/genericcli"
+	"github.com/metal-stack/metal-lib/pkg/genericcli/printers"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -29,8 +30,8 @@ func NewIPCmd(c *config.Config) *cobra.Command {
 		Plural:      "ips",
 		Description: "a ip address of metal-stack cloud",
 		// Sorter:          sorters.TenantSorter(), //TODO: how to deal with sorters
-		DescribePrinter: c.DescribePrinter,
-		ListPrinter:     c.ListPrinter,
+		DescribePrinter: func() printers.Printer { return c.DescribePrinter },
+		ListPrinter:     func() printers.Printer { return c.ListPrinter },
 		ListCmdMutateFn: func(cmd *cobra.Command) {
 			cmd.Flags().StringP("project", "", "", "project from where ips should be listed")
 			genericcli.Must(cmd.MarkFlagRequired("project"))

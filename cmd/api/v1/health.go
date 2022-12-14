@@ -20,7 +20,7 @@ func NewHealthCmd(c *config.Config) *cobra.Command {
 				return fmt.Errorf("failed to get health: %w", err)
 			}
 
-			return c.DescribePrinter().Print(resp.Msg.Health)
+			return c.DescribePrinter.Print(resp.Msg.Health)
 		},
 	}
 	return healthCmd
