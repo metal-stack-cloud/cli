@@ -36,8 +36,9 @@ type Test[R any] struct {
 	Name string
 	Cmd  func(want R) []string
 
-	APIMocks *apitests.APIMockFns
-	FsMocks  func(fs afero.Fs, want R)
+	APIMocks   *apitests.APIMockFns
+	AdminMocks *apitests.AdminMockFns
+	FsMocks    func(fs afero.Fs, want R)
 
 	DisableMockClient bool // can switch off mock client creation
 
@@ -94,18 +95,17 @@ func (c *Test[R]) newMockConfig(t *testing.T) (any, *bytes.Buffer, *config.Confi
 	var (
 		out    bytes.Buffer
 		config = &config.Config{
-			Fs:  fs,
-			Out: &out,
-			Log: zaptest.NewLogger(t).Sugar(),
-			// comp:   &completion.Completion{},
-			// Client: client,
+			Fs:            fs,
+			Out:           &out,
+			Log:           zaptest.NewLogger(t).Sugar(),
 			Apiv1Client:   mock.API(c.APIMocks),
-			Adminv1Client: mock.Admin(nil),
+			Adminv1Client: mock.Admin(c.AdminMocks),
 		}
 	)
 
 	if c.DisableMockClient {
 		config.Apiv1Client = nil
+		config.Adminv1Client = nil
 	}
 
 	return nil, &out, config
