@@ -100,7 +100,7 @@ func (c *Test[R]) newMockConfig(t *testing.T) (any, *bytes.Buffer, *config.Confi
 			// comp:   &completion.Completion{},
 			// Client: client,
 			Apiv1Client:   mock.API(c.APIMocks),
-			Adminv1Client: mock.Admin(),
+			Adminv1Client: mock.Admin(nil),
 		}
 	)
 

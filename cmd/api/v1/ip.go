@@ -1,13 +1,10 @@
 package v1
 
 import (
-	"context"
-
-	"fmt"
-
 	"github.com/bufbuild/connect-go"
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
 	"github.com/metal-stack-cloud/cli/cmd/config"
+	"github.com/metal-stack-cloud/cli/cmd/sorters"
 	"github.com/metal-stack/metal-lib/pkg/genericcli"
 	"github.com/metal-stack/metal-lib/pkg/genericcli/printers"
 	"github.com/spf13/cobra"
@@ -24,12 +21,12 @@ func NewIPCmd(c *config.Config) *cobra.Command {
 	}
 
 	cmdsConfig := &genericcli.CmdsConfig[*connect.Request[apiv1.IPServiceAllocateRequest], *connect.Request[apiv1.IPServiceStaticRequest], *apiv1.IP]{
-		BinaryName:  config.BinaryName,
-		GenericCLI:  genericcli.NewGenericCLI[*connect.Request[apiv1.IPServiceAllocateRequest], *connect.Request[apiv1.IPServiceStaticRequest], *apiv1.IP](w).WithFS(c.Fs),
-		Singular:    "ip",
-		Plural:      "ips",
-		Description: "a ip address of metal-stack cloud",
-		// Sorter:          sorters.TenantSorter(), //TODO: how to deal with sorters
+		BinaryName:      config.BinaryName,
+		GenericCLI:      genericcli.NewGenericCLI[*connect.Request[apiv1.IPServiceAllocateRequest], *connect.Request[apiv1.IPServiceStaticRequest], *apiv1.IP](w).WithFS(c.Fs),
+		Singular:        "ip",
+		Plural:          "ips",
+		Description:     "a ip address of metal-stack cloud",
+		Sorter:          sorters.IPSorter(),
 		DescribePrinter: func() printers.Printer { return c.DescribePrinter },
 		ListPrinter:     func() printers.Printer { return c.ListPrinter },
 		ListCmdMutateFn: func(cmd *cobra.Command) {
@@ -48,6 +45,14 @@ func NewIPCmd(c *config.Config) *cobra.Command {
 			cmd.Flags().StringP("uuid", "", "", "uuid of the ip")
 			cmd.Flags().StringP("project", "", "", "project from where the ip should be made static")
 			genericcli.Must(cmd.MarkFlagRequired("uuid"))
+			genericcli.Must(cmd.MarkFlagRequired("project"))
+		},
+		DescribeCmdMutateFn: func(cmd *cobra.Command) {
+			cmd.Flags().StringP("project", "", "", "project of the ip")
+			genericcli.Must(cmd.MarkFlagRequired("project"))
+		},
+		DeleteCmdMutateFn: func(cmd *cobra.Command) {
+			cmd.Flags().StringP("project", "", "", "project of the ip")
 			genericcli.Must(cmd.MarkFlagRequired("project"))
 		},
 		CreateRequestFromCLI: func() (*connect.Request[apiv1.IPServiceAllocateRequest], error) {
@@ -74,8 +79,7 @@ func NewIPCmd(c *config.Config) *cobra.Command {
 
 // Create implements genericcli.CRUD
 func (c *ip) Create(rq *connect.Request[apiv1.IPServiceAllocateRequest]) (*apiv1.IP, error) {
-	ctx := context.Background()
-	resp, err := c.c.Apiv1Client.IP().Allocate(ctx, rq)
+	resp, err := c.c.Apiv1Client.IP().Allocate(c.c.Ctx, rq)
 	if err != nil {
 		return nil, err
 	}
@@ -84,8 +88,7 @@ func (c *ip) Create(rq *connect.Request[apiv1.IPServiceAllocateRequest]) (*apiv1
 
 // Delete implements genericcli.CRUD
 func (c *ip) Delete(id string) (*apiv1.IP, error) {
-	ctx := context.Background()
-	resp, err := c.c.Apiv1Client.IP().Delete(ctx, connect.NewRequest(&apiv1.IPServiceDeleteRequest{
+	resp, err := c.c.Apiv1Client.IP().Delete(c.c.Ctx, connect.NewRequest(&apiv1.IPServiceDeleteRequest{
 		Project: viper.GetString("project"),
 		Uuid:    id,
 	}))
@@ -97,15 +100,20 @@ func (c *ip) Delete(id string) (*apiv1.IP, error) {
 
 // Get implements genericcli.CRUD
 func (c *ip) Get(id string) (*apiv1.IP, error) {
-	panic("unimplemented")
+	resp, err := c.c.Apiv1Client.IP().Get(c.c.Ctx, connect.NewRequest(&apiv1.IPServiceGetRequest{
+		Project: viper.GetString("project"),
+		Uuid:    id,
+	}))
+	if err != nil {
+		return nil, err
+	}
+	return resp.Msg.Ip, nil
 }
 
 // List implements genericcli.CRUD
 func (c *ip) List() ([]*apiv1.IP, error) {
-	fmt.Printf("project: %v\n", viper.GetString("project"))
 	// FIXME implement filters and paging
-	ctx := context.Background()
-	resp, err := c.c.Apiv1Client.IP().List(ctx, connect.NewRequest(&apiv1.IPServiceListRequest{
+	resp, err := c.c.Apiv1Client.IP().List(c.c.Ctx, connect.NewRequest(&apiv1.IPServiceListRequest{
 		Project: viper.GetString("project"),
 	}))
 	if err != nil {
@@ -127,8 +135,7 @@ func (c *ip) ToUpdate(r *apiv1.IP) (*connect.Request[apiv1.IPServiceStaticReques
 
 // Update implements genericcli.CRUD
 func (c *ip) Update(rq *connect.Request[apiv1.IPServiceStaticRequest]) (*apiv1.IP, error) {
-	ctx := context.Background()
-	resp, err := c.c.Apiv1Client.IP().Static(ctx, rq)
+	resp, err := c.c.Apiv1Client.IP().Static(c.c.Ctx, rq)
 	if err != nil {
 		return nil, err
 	}
