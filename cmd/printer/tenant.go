@@ -30,16 +30,20 @@ func (t *TablePrinter) TenantTable(data []*apiv1.Tenant, wide bool) ([]string, [
 		since := humanize.Time(tenant.CreatedAt.AsTime())
 		provider := tenant.OauthProvider.Enum().String()
 		coupons := "-"
+		couponsWide := coupons
 		if tenant.PaymentDetails != nil {
 			cs := []string{}
+			csw := []string{}
 			for _, c := range tenant.PaymentDetails.Coupons {
-				cs = append(cs, fmt.Sprintf("%.2f%s til %s", float64(c.AmountOff/100), c.Currency, c.RedeemBy))
+				cs = append(cs, c.Name)
+				csw = append(csw, fmt.Sprintf("%s %s", c.Name, c.CreatedAt.AsTime()))
 			}
 			coupons = strings.Join(cs, "\n")
+			couponsWide = strings.Join(csw, "\n")
 		}
 
 		if wide {
-			rows = append(rows, []string{id, name, email, provider, since, admitted, coupons})
+			rows = append(rows, []string{id, name, email, provider, since, admitted, couponsWide})
 		} else {
 			rows = append(rows, []string{id, name, email, provider, since, admitted, coupons})
 		}
