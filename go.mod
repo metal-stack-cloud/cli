@@ -6,7 +6,7 @@ require (
 	github.com/bufbuild/connect-go v1.4.0
 	github.com/dustin/go-humanize v1.0.0
 	github.com/fatih/color v1.13.0
-	github.com/metal-stack-cloud/api v0.1.0
+	github.com/metal-stack-cloud/api v0.1.1-0.20221215090053-4875489adf27
 	github.com/metal-stack/metal-lib v0.11.2
 	github.com/metal-stack/v v1.0.3
 	github.com/spf13/afero v1.9.3
@@ -15,8 +15,6 @@ require (
 	go.uber.org/zap v1.24.0
 	golang.org/x/net v0.4.0
 )
-
-replace github.com/metal-stack-cloud/api => ../api
 
 require (
 	github.com/Masterminds/goutils v1.1.1 // indirect
