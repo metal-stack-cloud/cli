@@ -55,9 +55,13 @@ func newTenantCmd(c *config.Config) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			resp, err := c.Adminv1Client.Tenant().Admit(c.Ctx, connect.NewRequest(&adminv1.TenantServiceAdmitRequest{
+			req := &adminv1.TenantServiceAdmitRequest{
 				TenantId: id,
-			}))
+			}
+			if viper.IsSet("coupon-id") {
+				req.CouponId = pointer.Pointer(viper.GetString("coupon-id"))
+			}
+			resp, err := c.Adminv1Client.Tenant().Admit(c.Ctx, connect.NewRequest(req))
 			if err != nil {
 				return fmt.Errorf("failed to admit tenant: %w", err)
 			}
@@ -65,6 +69,7 @@ func newTenantCmd(c *config.Config) *cobra.Command {
 			return c.Pf.NewPrinter(c.Out).Print(resp.Msg.Tenant)
 		},
 	}
+	admitCmd.Flags().StringP("coupon-id", "", "", "optional add a coupon with given id, see coupon list for available coupons")
 
 	return genericcli.NewCmds(cmdsConfig, admitCmd)
 }
