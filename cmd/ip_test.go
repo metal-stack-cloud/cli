@@ -198,7 +198,7 @@ IP        PROJECT
 		{
 			Name: "create",
 			Cmd: func(want *apiv1.IP) []string {
-				args := []string{"ip", "create", "--project", "a", "--description", "a description", "--name", "a", "--static", "--tags", "a=b"}
+				args := []string{"ip", "create", "--project", "a", "--description", "a description", "--name", "a", "--network", "a-network", "--static", "--tags", "a=b"}
 				AssertExhaustiveArgs(t, args, "file")
 				return args
 			},
@@ -208,6 +208,7 @@ IP        PROJECT
 						Project:     "a",
 						Name:        "a",
 						Description: "a description",
+						Network:     "a-network",
 						Static:      true,
 						Tags:        []string{"a=b"},
 					}), cmpopts.IgnoreTypes(protoimpl.MessageState{}))).Return(&connect.Response[apiv1.IPServiceAllocateResponse]{
@@ -237,6 +238,68 @@ IP        PROJECT
 				Tags:        []string{"a=b"},
 			},
 		},
+		{
+			Name: "update",
+			Cmd: func(want *apiv1.IP) []string {
+				args := []string{"ip", "update", "--project", "a", "--uuid", "uuid"}
+				AssertExhaustiveArgs(t, args, "file")
+				return args
+			},
+			APIMocks: &apitests.APIMockFns{
+				IP: func(m *mock.Mock) {
+					m.On("Static", mock.Anything, testcommon.MatchByCmpDiff(t, connect.NewRequest(&apiv1.IPServiceStaticRequest{
+						Project: "a",
+						Uuid:    "uuid",
+					}), cmpopts.IgnoreTypes(protoimpl.MessageState{}))).Return(&connect.Response[apiv1.IPServiceStaticResponse]{
+						Msg: &apiv1.IPServiceStaticResponse{
+							Ip: &apiv1.IP{
+								Uuid:        "uuid",
+								Ip:          "1.1.1.1",
+								Name:        "a",
+								Description: "a description",
+								Network:     "a-network",
+								Project:     "a",
+								Type:        "ephemeral",
+								Tags:        []string{"a=b"},
+							},
+						},
+					}, nil)
+				},
+			},
+			Want: &apiv1.IP{
+				Uuid:        "uuid",
+				Ip:          "1.1.1.1",
+				Name:        "a",
+				Description: "a description",
+				Network:     "a-network",
+				Project:     "a",
+				Type:        "ephemeral",
+				Tags:        []string{"a=b"},
+			},
+		},
+		// TODO
+		// {
+		// 	Name: "create from file",
+		// 	Cmd: func(want *apiv1.IP) []string {
+		// 		return []string{"ip", "create", "-f", "/file.yaml"}
+		// 	},
+		// 	FsMocks: func(fs afero.Fs, want *apiv1.IP) {
+		// 		require.NoError(t, afero.WriteFile(fs, "/file.yaml", MustMarshal(t, want), 0755))
+		// 	},
+		// 	Want: nil,
+		// },
+		// TODO
+		// {
+		// 	Name: "update from file",
+		// 	Cmd: func(want *apiv1.IP) []string {
+		// 		return []string{"ip", "create", "-f", "/file.yaml"}
+		// 	},
+		// 	FsMocks: func(fs afero.Fs, want *apiv1.IP) {
+		// 		require.NoError(t, afero.WriteFile(fs, "/file.yaml", MustMarshal(t, want), 0755))
+		// 	},
+		// 	Want: nil,
+		// },
+
 	}
 	for _, tt := range tests {
 		tt.TestCmd(t)
