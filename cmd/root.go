@@ -49,14 +49,14 @@ func NewRootCmd(c *config.Config) *cobra.Command {
 		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
 			must(viper.BindPFlags(cmd.Flags()))
 			must(viper.BindPFlags(cmd.PersistentFlags()))
-
+			
 			must(readConfigFile())
 			initConfigWithViperCtx(c)
 
 			return nil
 		},
 	}
-	rootCmd.PersistentFlags().StringP("config", "c", "", `alternative config file path, (default is ~/.cli/config.yaml).
+	rootCmd.PersistentFlags().StringP("config", "c", "", `alternative config file path, (default is ~/.metal-stack-cloud/config.yaml).
 Example config.yaml:
 
 ---
