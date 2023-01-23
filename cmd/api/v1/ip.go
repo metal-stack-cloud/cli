@@ -25,7 +25,7 @@ func NewIPCmd(c *config.Config) *cobra.Command {
 		GenericCLI:      genericcli.NewGenericCLI[*connect.Request[apiv1.IPServiceAllocateRequest], *connect.Request[apiv1.IPServiceStaticRequest], *apiv1.IP](w).WithFS(c.Fs),
 		Singular:        "ip",
 		Plural:          "ips",
-		Description:     "a ip address of metal-stack cloud",
+		Description:     "an ip address of metal-stack cloud",
 		Sorter:          sorters.IPSorter(),
 		DescribePrinter: func() printers.Printer { return c.DescribePrinter },
 		ListPrinter:     func() printers.Printer { return c.ListPrinter },
@@ -39,13 +39,12 @@ func NewIPCmd(c *config.Config) *cobra.Command {
 			cmd.Flags().StringP("description", "", "", "description of the ip")
 			cmd.Flags().StringSliceP("tags", "", nil, "tags to add to the ip")
 			cmd.Flags().BoolP("static", "", false, "make this ip static")
+			cmd.Flags().StringP("network", "", "", "network for this ip")
 			cmd.MarkFlagsMutuallyExclusive("project", "file")
 		},
 		UpdateCmdMutateFn: func(cmd *cobra.Command) {
 			cmd.Flags().StringP("uuid", "", "", "uuid of the ip")
 			cmd.Flags().StringP("project", "", "", "project from where the ip should be made static")
-			genericcli.Must(cmd.MarkFlagRequired("uuid"))
-			genericcli.Must(cmd.MarkFlagRequired("project"))
 		},
 		DescribeCmdMutateFn: func(cmd *cobra.Command) {
 			cmd.Flags().StringP("project", "", "", "project of the ip")
@@ -62,6 +61,7 @@ func NewIPCmd(c *config.Config) *cobra.Command {
 				Description: viper.GetString("description"),
 				Tags:        viper.GetStringSlice("tags"),
 				Static:      viper.GetBool("static"),
+				Network:	 viper.GetString("network"),
 			}
 			return connect.NewRequest(ipar), nil
 		},
@@ -125,12 +125,12 @@ func (c *ip) List() ([]*apiv1.IP, error) {
 
 // ToCreate implements genericcli.CRUD
 func (c *ip) ToCreate(r *apiv1.IP) (*connect.Request[apiv1.IPServiceAllocateRequest], error) {
-	panic("unimplemented")
+	return ipResponseToCreate(r), nil
 }
 
 // ToUpdate implements genericcli.CRUD
 func (c *ip) ToUpdate(r *apiv1.IP) (*connect.Request[apiv1.IPServiceStaticRequest], error) {
-	panic("unimplemented")
+	return ipResponseToUpdate(r), nil
 }
 
 // Update implements genericcli.CRUD
@@ -140,4 +140,34 @@ func (c *ip) Update(rq *connect.Request[apiv1.IPServiceStaticRequest]) (*apiv1.I
 		return nil, err
 	}
 	return resp.Msg.Ip, nil
+}
+
+func ipResponseToCreate(r *apiv1.IP) *connect.Request[apiv1.IPServiceAllocateRequest] {
+	var isStatic bool
+	if r != nil {
+		if r.Type == "ephemeral" {
+			isStatic = false
+		} else {
+			isStatic = true
+		}
+	}
+	return &connect.Request[apiv1.IPServiceAllocateRequest]{
+		Msg: &apiv1.IPServiceAllocateRequest{
+			Project: r.Project,
+			Name: r.Name,
+			Description: r.Description,
+			Network: r.Network,
+			Tags: r.Tags,
+			Static: isStatic,
+		},
+	}
+}
+
+func ipResponseToUpdate(r *apiv1.IP) *connect.Request[apiv1.IPServiceStaticRequest] {
+	return &connect.Request[apiv1.IPServiceStaticRequest]{
+		Msg: &apiv1.IPServiceStaticRequest{
+			Uuid: r.Uuid,
+			Project: r.Project,
+		},
+	}
 }
