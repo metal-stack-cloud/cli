@@ -6,7 +6,7 @@ require (
 	github.com/bufbuild/connect-go v1.5.0
 	github.com/dustin/go-humanize v1.0.1
 	github.com/fatih/color v1.14.1
-	github.com/metal-stack-cloud/api v0.1.3-0.20230131164714-54af458d0755
+	github.com/metal-stack-cloud/api v0.1.3
 	github.com/metal-stack/metal-lib v0.11.3
 	github.com/metal-stack/v v1.0.3
 	github.com/spf13/afero v1.9.3
