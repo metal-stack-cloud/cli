@@ -23,7 +23,6 @@ func (t *TablePrinter) TenantTable(data []*apiv1.Tenant, wide bool) ([]string, [
 
 	sort.SliceStable(data, func(i, j int) bool { return data[i].Login < data[j].Login })
 	for _, tenant := range data {
-		tenant := tenant
 		id := tenant.Login
 		name := tenant.Name
 		email := tenant.Email
