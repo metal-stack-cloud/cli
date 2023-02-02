@@ -71,7 +71,28 @@ func newTenantCmd(c *config.Config) *cobra.Command {
 	}
 	admitCmd.Flags().StringP("coupon-id", "", "", "optional add a coupon with given id, see coupon list for available coupons")
 
-	return genericcli.NewCmds(cmdsConfig, admitCmd)
+	revokeCmd := &cobra.Command{
+		Use:   "revoke",
+		Short: "revoke a tenant",
+		Long:  "revoke a tenant to be able to consume resources, can be enabled again with admit",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			id, err := genericcli.GetExactlyOneArg(args)
+			if err != nil {
+				return err
+			}
+			req := &adminv1.TenantServiceRevokeRequest{
+				TenantId: id,
+			}
+			resp, err := c.Adminv1Client.Tenant().Revoke(c.Ctx, connect.NewRequest(req))
+			if err != nil {
+				return fmt.Errorf("failed to revoke tenant: %w", err)
+			}
+
+			return c.Pf.NewPrinter(c.Out).Print(resp.Msg.Tenant)
+		},
+	}
+
+	return genericcli.NewCmds(cmdsConfig, admitCmd, revokeCmd)
 }
 
 // Create implements genericcli.CRUD
