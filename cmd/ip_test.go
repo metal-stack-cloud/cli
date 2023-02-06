@@ -286,7 +286,41 @@ IP        PROJECT
 		// 	FsMocks: func(fs afero.Fs, want *apiv1.IP) {
 		// 		require.NoError(t, afero.WriteFile(fs, "/file.yaml", MustMarshal(t, want), 0755))
 		// 	},
-		// 	Want: nil,
+		// 	APIMocks: &apitests.APIMockFns{
+		// 		IP: func(m *mock.Mock) {
+		// 			m.On("Allocate", mock.Anything, testcommon.MatchByCmpDiff(t, connect.NewRequest(&apiv1.IPServiceAllocateRequest{
+		// 				Project:     "a",
+		// 				Name:        "a",
+		// 				Description: "a description",
+		// 				Network:     "a-network",
+		// 				Static:      true,
+		// 				Tags:        []string{"a=b"},
+		// 			}), cmpopts.IgnoreTypes(protoimpl.MessageState{}))).Return(&connect.Response[apiv1.IPServiceAllocateResponse]{
+		// 				Msg: &apiv1.IPServiceAllocateResponse{
+		// 					Ip: &apiv1.IP{
+		// 						Uuid:        "uuid",
+		// 						Ip:          "1.1.1.1",
+		// 						Name:        "a",
+		// 						Description: "a description",
+		// 						Network:     "a-network",
+		// 						Project:     "a",
+		// 						Type:        "ephemeral",
+		// 						Tags:        []string{"a=b"},
+		// 					},
+		// 				},
+		// 			}, nil)
+		// 		},
+		// 	},
+		// 	Want: &apiv1.IP{
+		// 		Uuid:        "uuid",
+		// 		Ip:          "1.1.1.1",
+		// 		Name:        "a",
+		// 		Description: "a description",
+		// 		Network:     "a-network",
+		// 		Project:     "a",
+		// 		Type:        "ephemeral",
+		// 		Tags:        []string{"a=b"},
+		// 	},
 		// },
 		// TODO
 		// {
