@@ -51,9 +51,13 @@ func newTenantCmd(c *config.Config) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			resp, err := c.Adminv1Client.Tenant().Admit(c.Ctx, connect.NewRequest(&adminv1.TenantServiceAdmitRequest{
+			req := &adminv1.TenantServiceAdmitRequest{
 				TenantId: id,
-			}))
+			}
+			if viper.IsSet("coupon-id") {
+				req.CouponId = pointer.Pointer(viper.GetString("coupon-id"))
+			}
+			resp, err := c.Adminv1Client.Tenant().Admit(c.Ctx, connect.NewRequest(req))
 			if err != nil {
 				return fmt.Errorf("failed to admit tenant: %w", err)
 			}
@@ -61,8 +65,30 @@ func newTenantCmd(c *config.Config) *cobra.Command {
 			return c.DescribePrinter.Print(resp.Msg.Tenant)
 		},
 	}
+	admitCmd.Flags().StringP("coupon-id", "", "", "optional add a coupon with given id, see coupon list for available coupons")
 
-	return genericcli.NewCmds(cmdsConfig, admitCmd)
+	revokeCmd := &cobra.Command{
+		Use:   "revoke",
+		Short: "revoke a tenant",
+		Long:  "revoke a tenant to be able to consume resources, can be enabled again with admit",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			id, err := genericcli.GetExactlyOneArg(args)
+			if err != nil {
+				return err
+			}
+			req := &adminv1.TenantServiceRevokeRequest{
+				TenantId: id,
+			}
+			resp, err := c.Adminv1Client.Tenant().Revoke(c.Ctx, connect.NewRequest(req))
+			if err != nil {
+				return fmt.Errorf("failed to revoke tenant: %w", err)
+			}
+
+			return c.DescribePrinter.Print(resp.Msg.Tenant)
+		},
+	}
+
+	return genericcli.NewCmds(cmdsConfig, admitCmd, revokeCmd)
 }
 
 // Create implements genericcli.CRUD

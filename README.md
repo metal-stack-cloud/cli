@@ -6,7 +6,7 @@ In order to use the admin commands you must first create a config file `~/.metal
 
 ```yaml
 # this config works in the mini-lab
-# api-url: https://api.172.17.0.1.nip.io:50052
+# api-url: http://api.172.17.0.1.nip.io:8080
 # this config is working for a api-server started locally
 api-url: http://localhost:8080
 api-token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJtZXRhbC1zdGFjay1jbG91ZCIsInN1YiI6ImFkbWluIiwiZXhwIjo0ODEyNjE0OTczLCJyb2xlcyI6eyIqIjoiYWRtaW4ifX0.gsqlaAcvIZFFYZSxrOMIwiZdKb0AZiGhFt4qpS0keC8

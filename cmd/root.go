@@ -49,7 +49,7 @@ func NewRootCmd(c *config.Config) *cobra.Command {
 		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
 			must(viper.BindPFlags(cmd.Flags()))
 			must(viper.BindPFlags(cmd.PersistentFlags()))
-			
+
 			must(readConfigFile())
 			initConfigWithViperCtx(c)
 
