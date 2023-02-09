@@ -1,0 +1,23 @@
+package sorters
+
+import (
+	"net/netip"
+
+	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
+	"github.com/metal-stack/metal-lib/pkg/multisort"
+)
+
+func IPSorter() *multisort.Sorter[*apiv1.IP] {
+	return multisort.New(multisort.FieldMap[*apiv1.IP]{
+		"ip": func(a, b *apiv1.IP, descending bool) multisort.CompareResult {
+			aIP, _ := netip.ParseAddr(a.Ip)
+			bIP, _ := netip.ParseAddr(b.Ip)
+			return multisort.WithCompareFunc(func() int {
+				return aIP.Compare(bIP)
+			}, descending)
+		},
+		"name": func(a, b *apiv1.IP, descending bool) multisort.CompareResult {
+			return multisort.Compare(a.Name, b.Name, descending)
+		},
+	}, multisort.Keys{{ID: "ip"}, {ID: "name"}})
+}

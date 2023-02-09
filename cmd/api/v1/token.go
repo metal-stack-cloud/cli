@@ -1,6 +1,8 @@
 package v1
 
 import (
+	"fmt"
+
 	"github.com/bufbuild/connect-go"
 	v1 "github.com/metal-stack-cloud/api/go/api/v1"
 	"github.com/metal-stack-cloud/cli/cmd/config"
@@ -29,9 +31,7 @@ func NewTokenCmd(c *config.Config) *cobra.Command {
 				return err
 			}
 
-			if err := c.Pf.NewPrinterDefaultYAML(c.Out).Print("Token:" + resp.Msg.Token); err != nil {
-				return err
-			}
+			fmt.Fprintf(c.Out, "Token:"+resp.Msg.Token)
 
 			return nil
 		},
