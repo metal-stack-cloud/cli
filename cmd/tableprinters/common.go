@@ -30,6 +30,10 @@ func (t *TablePrinter) ToHeaderAndRows(data any, wide bool) ([]string, [][]strin
 		return t.IPTable(pointer.WrapInSlice(d), wide)
 	case []*apiv1.IP:
 		return t.IPTable(d, wide)
+	case *apiv1.Coupon:
+		return t.CouponTable(pointer.WrapInSlice(d), wide)
+	case []*apiv1.Coupon:
+		return t.CouponTable(d, wide)
 	default:
 		return nil, nil, fmt.Errorf("unknown table printer for type: %T", d)
 	}
