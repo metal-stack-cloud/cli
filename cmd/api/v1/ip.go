@@ -31,7 +31,7 @@ func NewIPCmd(c *config.Config) *cobra.Command {
 		ListPrinter:     func() printers.Printer { return c.ListPrinter },
 		ListCmdMutateFn: func(cmd *cobra.Command) {
 			cmd.Flags().StringP("project", "", "", "project from where ips should be listed")
-			genericcli.Must(cmd.MarkFlagRequired("project"))
+			// genericcli.Must(cmd.MarkFlagRequired("project"))
 		},
 		CreateCmdMutateFn: func(cmd *cobra.Command) {
 			cmd.Flags().StringP("project", "", "", "project where the ip should be created")
@@ -40,7 +40,7 @@ func NewIPCmd(c *config.Config) *cobra.Command {
 			cmd.Flags().StringSliceP("tags", "", nil, "tags to add to the ip")
 			cmd.Flags().BoolP("static", "", false, "make this ip static")
 			cmd.Flags().StringP("network", "", "", "network for this ip")
-			cmd.MarkFlagsMutuallyExclusive("project", "file")
+			// cmd.MarkFlagsMutuallyExclusive("project", "file")
 		},
 		UpdateCmdMutateFn: func(cmd *cobra.Command) {
 			cmd.Flags().StringP("uuid", "", "", "uuid of the ip")
@@ -48,11 +48,11 @@ func NewIPCmd(c *config.Config) *cobra.Command {
 		},
 		DescribeCmdMutateFn: func(cmd *cobra.Command) {
 			cmd.Flags().StringP("project", "", "", "project of the ip")
-			genericcli.Must(cmd.MarkFlagRequired("project"))
+			// genericcli.Must(cmd.MarkFlagRequired("project"))
 		},
 		DeleteCmdMutateFn: func(cmd *cobra.Command) {
 			cmd.Flags().StringP("project", "", "", "project of the ip")
-			genericcli.Must(cmd.MarkFlagRequired("project"))
+			// genericcli.Must(cmd.MarkFlagRequired("project"))
 		},
 		CreateRequestFromCLI: func() (*connect.Request[apiv1.IPServiceAllocateRequest], error) {
 			ipar := &apiv1.IPServiceAllocateRequest{

@@ -101,6 +101,8 @@ func readConfigFile() error {
 	viper.SetConfigType("yaml")
 	cfgFile := viper.GetString("config")
 
+	viper.AutomaticEnv()
+
 	if cfgFile != "" {
 		viper.SetConfigFile(cfgFile)
 		if err := viper.ReadInConfig(); err != nil {
