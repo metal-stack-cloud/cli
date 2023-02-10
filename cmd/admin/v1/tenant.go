@@ -91,24 +91,20 @@ func newTenantCmd(c *config.Config) *cobra.Command {
 	return genericcli.NewCmds(cmdsConfig, admitCmd, revokeCmd)
 }
 
-// Create implements genericcli.CRUD
 func (c *tenant) Create(rq any) (*apiv1.Tenant, error) {
 	panic("unimplemented")
 }
 
-// Delete implements genericcli.CRUD
 func (c *tenant) Delete(id string) (*apiv1.Tenant, error) {
 	panic("unimplemented")
 }
 
-// Get implements genericcli.CRUD
 func (c *tenant) Get(id string) (*apiv1.Tenant, error) {
 	panic("unimplemented")
 }
 
 var nextpage *uint64
 
-// List implements genericcli.CRUD
 func (c *tenant) List() ([]*apiv1.Tenant, error) {
 	// FIXME implement filters and paging
 
@@ -153,17 +149,10 @@ func (c *tenant) List() ([]*apiv1.Tenant, error) {
 	return resp.Msg.Tenants, nil
 }
 
-// ToCreate implements genericcli.CRUD
-func (c *tenant) ToCreate(r *apiv1.Tenant) (any, error) {
-	panic("unimplemented")
-}
-
-// ToUpdate implements genericcli.CRUD
-func (c *tenant) ToUpdate(r *apiv1.Tenant) (any, error) {
-	panic("unimplemented")
-}
-
-// Update implements genericcli.CRUD
 func (c *tenant) Update(rq any) (*apiv1.Tenant, error) {
+	panic("unimplemented")
+}
+
+func (c *tenant) Convert(r *apiv1.Tenant) (string, any, any, error) {
 	panic("unimplemented")
 }

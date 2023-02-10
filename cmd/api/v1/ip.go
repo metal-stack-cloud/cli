@@ -95,7 +95,6 @@ func (c *ip) updateFromCLI(args []string) (*apiv1.IP, error) {
 	return ipToUpdate, nil
 }
 
-// Create implements genericcli.CRUD
 func (c *ip) Create(rq *connect.Request[apiv1.IPServiceAllocateRequest]) (*apiv1.IP, error) {
 	resp, err := c.c.Apiv1Client.IP().Allocate(c.c.Ctx, rq)
 	if err != nil {
@@ -104,7 +103,6 @@ func (c *ip) Create(rq *connect.Request[apiv1.IPServiceAllocateRequest]) (*apiv1
 	return resp.Msg.Ip, nil
 }
 
-// Delete implements genericcli.CRUD
 func (c *ip) Delete(id string) (*apiv1.IP, error) {
 	project := viper.GetString("project")
 	if project == "" {
@@ -121,7 +119,6 @@ func (c *ip) Delete(id string) (*apiv1.IP, error) {
 	return resp.Msg.Ip, nil
 }
 
-// Get implements genericcli.CRUD
 func (c *ip) Get(id string) (*apiv1.IP, error) {
 	project := viper.GetString("project")
 	if project == "" {
@@ -138,7 +135,6 @@ func (c *ip) Get(id string) (*apiv1.IP, error) {
 	return resp.Msg.Ip, nil
 }
 
-// List implements genericcli.CRUD
 func (c *ip) List() ([]*apiv1.IP, error) {
 	project := viper.GetString("project")
 	if project == "" {
@@ -156,17 +152,6 @@ func (c *ip) List() ([]*apiv1.IP, error) {
 	return resp.Msg.Ips, nil
 }
 
-// ToCreate implements genericcli.CRUD
-func (c *ip) ToCreate(r *apiv1.IP) (*connect.Request[apiv1.IPServiceAllocateRequest], error) {
-	return ipResponseToCreate(r), nil
-}
-
-// ToUpdate implements genericcli.CRUD
-func (c *ip) ToUpdate(r *apiv1.IP) (*apiv1.IP, error) {
-	return ipResponseToUpdate(r), nil
-}
-
-// Update implements genericcli.CRUD
 func (c *ip) Update(rq *apiv1.IP) (*apiv1.IP, error) {
 	resp, err := c.c.Apiv1Client.IP().Update(c.c.Ctx, &connect.Request[apiv1.IPServiceUpdateRequest]{
 		Msg: &apiv1.IPServiceUpdateRequest{
@@ -178,6 +163,10 @@ func (c *ip) Update(rq *apiv1.IP) (*apiv1.IP, error) {
 		return nil, err
 	}
 	return resp.Msg.Ip, nil
+}
+
+func (c *ip) Convert(r *apiv1.IP) (string, *connect.Request[apiv1.IPServiceAllocateRequest], *apiv1.IP, error) {
+	return r.Uuid, ipResponseToCreate(r), ipResponseToUpdate(r), nil
 }
 
 func ipResponseToCreate(r *apiv1.IP) *connect.Request[apiv1.IPServiceAllocateRequest] {
