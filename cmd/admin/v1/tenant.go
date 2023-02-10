@@ -16,17 +16,13 @@ import (
 )
 
 type tenant struct {
-	c               *config.Config
-	listPrinter     func() printers.Printer
-	describePrinter func() printers.Printer
+	c *config.Config
 }
 
 func newTenantCmd(c *config.Config) *cobra.Command {
 	w := &tenant{
 		c: c,
 	}
-	w.listPrinter = func() printers.Printer { return c.Pf.NewPrinter(c.Out) }
-	w.describePrinter = func() printers.Printer { return c.Pf.NewPrinterDefaultYAML(c.Out) }
 
 	cmdsConfig := &genericcli.CmdsConfig[any, any, *apiv1.Tenant]{
 		BinaryName:      config.BinaryName,
@@ -35,8 +31,8 @@ func newTenantCmd(c *config.Config) *cobra.Command {
 		Plural:          "tenants",
 		Description:     "a tenant of metal-stack cloud",
 		Sorter:          sorters.TenantSorter(),
-		DescribePrinter: w.describePrinter,
-		ListPrinter:     w.listPrinter,
+		DescribePrinter: func() printers.Printer { return c.DescribePrinter },
+		ListPrinter:     func() printers.Printer { return c.ListPrinter },
 		OnlyCmds:        genericcli.OnlyCmds(genericcli.ListCmd),
 		ListCmdMutateFn: func(cmd *cobra.Command) {
 			cmd.Flags().BoolP("admitted", "a", false, "filter by admitted tenant")
@@ -66,7 +62,7 @@ func newTenantCmd(c *config.Config) *cobra.Command {
 				return fmt.Errorf("failed to admit tenant: %w", err)
 			}
 
-			return c.Pf.NewPrinter(c.Out).Print(resp.Msg.Tenant)
+			return c.DescribePrinter.Print(resp.Msg.Tenant)
 		},
 	}
 	admitCmd.Flags().StringP("coupon-id", "", "", "optional add a coupon with given id, see coupon list for available coupons")
@@ -88,7 +84,7 @@ func newTenantCmd(c *config.Config) *cobra.Command {
 				return fmt.Errorf("failed to revoke tenant: %w", err)
 			}
 
-			return c.Pf.NewPrinter(c.Out).Print(resp.Msg.Tenant)
+			return c.DescribePrinter.Print(resp.Msg.Tenant)
 		},
 	}
 
@@ -139,7 +135,7 @@ func (c *tenant) List() ([]*apiv1.Tenant, error) {
 
 	nextpage = resp.Msg.NextPage
 	if nextpage != nil {
-		err = c.listPrinter().Print(resp.Msg.Tenants)
+		err = c.c.ListPrinter.Print(resp.Msg.Tenants)
 		if err != nil {
 			return nil, err
 		}

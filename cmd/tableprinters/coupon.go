@@ -1,4 +1,4 @@
-package printer
+package tableprinters
 
 import (
 	"fmt"

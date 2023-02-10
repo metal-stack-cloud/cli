@@ -18,7 +18,7 @@ func NewAssetCmd(c *config.Config) *cobra.Command {
 				return err
 			}
 
-			if err := c.Pf.NewPrinterDefaultYAML(c.Out).Print(resp.Msg); err != nil {
+			if err := c.ListPrinter.Print(resp.Msg); err != nil {
 				return err
 			}
 

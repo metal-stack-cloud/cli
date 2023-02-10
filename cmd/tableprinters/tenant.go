@@ -1,8 +1,7 @@
-package printer
+package tableprinters
 
 import (
 	"fmt"
-	"sort"
 	"strconv"
 	"strings"
 
@@ -21,7 +20,6 @@ func (t *TablePrinter) TenantTable(data []*apiv1.Tenant, wide bool) ([]string, [
 		header = []string{"ID", "Name", "Email", "Provider", "Registered", "Admitted", "Coupons"}
 	}
 
-	sort.SliceStable(data, func(i, j int) bool { return data[i].Login < data[j].Login })
 	for _, tenant := range data {
 		id := tenant.Login
 		name := tenant.Name

@@ -20,3 +20,58 @@ After that you can see the available admin subcommands with:
 ```bash
 bin/metal admin
 ```
+
+## Basic commands
+
+Documentation on how to interact with the CLI (maybe just necessary during development):
+
+### IP
+
+```bash
+# list ips
+$ bin/metal ip list --project <project-id>
+```
+
+```bash
+# create ip from cli
+$ bin/metal ip create --project <project-id> --name <name> --network <network>
+```
+
+```bash
+# create ip with file option
+#
+#
+# ip.yaml file:
+# name: <ip-name>
+# network: <network>
+# project: <project-id>
+# description: <description>
+# type: <ephemeral | static>
+#
+#
+
+$ bin/metal ip create -f <file-name>
+```
+
+```bash
+# describe ip
+$ bin/metal ip describe --project <project-id> <ip-uuid>
+```
+
+```bash
+# update command to make the ip static
+$ bin/metal ip update --project <project-id> --uuid <ip-uuid>
+```
+
+```bash
+# update ip with file option
+#
+#
+# ip.yaml file:
+# project: <project-id>
+# uuid: <ip-uuid>
+#
+#
+
+$ bin/metal ip update -f <file-name>
+```

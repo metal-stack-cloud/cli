@@ -13,17 +13,13 @@ import (
 )
 
 type coupon struct {
-	c               *config.Config
-	listPrinter     func() printers.Printer
-	describePrinter func() printers.Printer
+	c *config.Config
 }
 
 func newCouponCmd(c *config.Config) *cobra.Command {
 	w := &coupon{
 		c: c,
 	}
-	w.listPrinter = func() printers.Printer { return c.Pf.NewPrinter(c.Out) }
-	w.describePrinter = func() printers.Printer { return c.Pf.NewPrinterDefaultYAML(c.Out) }
 
 	cmdsConfig := &genericcli.CmdsConfig[any, any, *apiv1.Coupon]{
 		BinaryName:  config.BinaryName,
@@ -32,8 +28,8 @@ func newCouponCmd(c *config.Config) *cobra.Command {
 		Plural:      "coupons",
 		Description: "coupon related actions of metal-stack cloud",
 		// Sorter:          sorters.TenantSorter(),
-		DescribePrinter: w.describePrinter,
-		ListPrinter:     w.listPrinter,
+		DescribePrinter: func() printers.Printer { return c.DescribePrinter },
+		ListPrinter:     func() printers.Printer { return c.ListPrinter },
 		OnlyCmds:        genericcli.OnlyCmds(genericcli.ListCmd),
 	}
 	return genericcli.NewCmds(cmdsConfig)

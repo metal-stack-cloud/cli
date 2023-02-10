@@ -16,5 +16,5 @@ func TenantSorter() *multisort.Sorter[*apiv1.Tenant] {
 		"since": func(a, b *apiv1.Tenant, descending bool) multisort.CompareResult {
 			return multisort.Compare(a.CreatedAt.AsTime().UnixMilli(), b.CreatedAt.AsTime().UnixMilli(), descending)
 		},
-	}, multisort.Keys{{ID: "since"}, {ID: "name"}, {ID: "id"}})
+	}, multisort.Keys{{ID: "since", Descending: true}})
 }
