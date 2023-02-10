@@ -22,9 +22,9 @@ func NewIPCmd(c *config.Config) *cobra.Command {
 		c: c,
 	}
 
-	cmdsConfig := &genericcli.CmdsConfig[*connect.Request[apiv1.IPServiceAllocateRequest], *connect.Request[apiv1.IPServiceUpdateRequest], *apiv1.IP]{
+	cmdsConfig := &genericcli.CmdsConfig[*connect.Request[apiv1.IPServiceAllocateRequest], *apiv1.IP, *apiv1.IP]{
 		BinaryName:      config.BinaryName,
-		GenericCLI:      genericcli.NewGenericCLI[*connect.Request[apiv1.IPServiceAllocateRequest], *connect.Request[apiv1.IPServiceUpdateRequest], *apiv1.IP](w).WithFS(c.Fs),
+		GenericCLI:      genericcli.NewGenericCLI[*connect.Request[apiv1.IPServiceAllocateRequest], *apiv1.IP, *apiv1.IP](w).WithFS(c.Fs),
 		Singular:        "ip",
 		Plural:          "ips",
 		Description:     "an ip address of metal-stack cloud",
@@ -73,7 +73,7 @@ func NewIPCmd(c *config.Config) *cobra.Command {
 	return genericcli.NewCmds(cmdsConfig)
 }
 
-func (c *ip) updateFromCLI(args []string) (*connect.Request[apiv1.IPServiceUpdateRequest], error) {
+func (c *ip) updateFromCLI(args []string) (*apiv1.IP, error) {
 	ipToUpdate, err := c.Get(viper.GetString("uuid"))
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve ip: %w", err)
@@ -92,9 +92,7 @@ func (c *ip) updateFromCLI(args []string) (*connect.Request[apiv1.IPServiceUpdat
 		ipToUpdate.Tags = viper.GetStringSlice("tags")
 	}
 
-	return connect.NewRequest(&apiv1.IPServiceUpdateRequest{
-		Ip: ipToUpdate,
-	}), nil
+	return ipToUpdate, nil
 }
 
 // Create implements genericcli.CRUD
@@ -164,13 +162,18 @@ func (c *ip) ToCreate(r *apiv1.IP) (*connect.Request[apiv1.IPServiceAllocateRequ
 }
 
 // ToUpdate implements genericcli.CRUD
-func (c *ip) ToUpdate(r *apiv1.IP) (*connect.Request[apiv1.IPServiceUpdateRequest], error) {
+func (c *ip) ToUpdate(r *apiv1.IP) (*apiv1.IP, error) {
 	return ipResponseToUpdate(r), nil
 }
 
 // Update implements genericcli.CRUD
-func (c *ip) Update(rq *connect.Request[apiv1.IPServiceUpdateRequest]) (*apiv1.IP, error) {
-	resp, err := c.c.Apiv1Client.IP().Update(c.c.Ctx, rq)
+func (c *ip) Update(rq *apiv1.IP) (*apiv1.IP, error) {
+	resp, err := c.c.Apiv1Client.IP().Update(c.c.Ctx, &connect.Request[apiv1.IPServiceUpdateRequest]{
+		Msg: &apiv1.IPServiceUpdateRequest{
+			Project: rq.Project,
+			Ip:      rq,
+		},
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -190,12 +193,8 @@ func ipResponseToCreate(r *apiv1.IP) *connect.Request[apiv1.IPServiceAllocateReq
 	}
 }
 
-func ipResponseToUpdate(r *apiv1.IP) *connect.Request[apiv1.IPServiceUpdateRequest] {
-	return &connect.Request[apiv1.IPServiceUpdateRequest]{
-		Msg: &apiv1.IPServiceUpdateRequest{
-			Ip: r,
-		},
-	}
+func ipResponseToUpdate(r *apiv1.IP) *apiv1.IP {
+	return r
 }
 
 func ipStaticToType(b bool) apiv1.IPType {

@@ -267,6 +267,7 @@ IP        ID     PROJECT   NAME   DESCRIPTION     TYPE
 						},
 					}, nil)
 					m.On("Update", mock.Anything, testcommon.MatchByCmpDiff(t, connect.NewRequest(&apiv1.IPServiceUpdateRequest{
+						Project: "a",
 						Ip: &apiv1.IP{
 							Uuid:        "uuid",
 							Ip:          "1.1.1.1",
@@ -315,6 +316,7 @@ IP        ID     PROJECT   NAME   DESCRIPTION     TYPE
 			APIMocks: &apitests.Apiv1MockFns{
 				IP: func(m *mock.Mock) {
 					m.On("Update", mock.Anything, testcommon.MatchByCmpDiff(t, connect.NewRequest(&apiv1.IPServiceUpdateRequest{
+						Project: "a",
 						Ip: &apiv1.IP{
 							Uuid:        "uuid",
 							Ip:          "1.1.1.1",
