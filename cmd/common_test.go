@@ -192,7 +192,7 @@ type jsonOutputFormat[R any] struct {
 }
 
 func (o *jsonOutputFormat[R]) Args() []string {
-	return []string{"-o", "json"}
+	return []string{"-o", "jsonraw"}
 }
 
 func StrFmtPtrDateComparer() cmp.Option {
@@ -212,6 +212,7 @@ func StrFmtPtrDateComparer() cmp.Option {
 
 func (o *jsonOutputFormat[R]) Validate(t *testing.T, output []byte) {
 	var got R
+
 	err := json.Unmarshal(output, &got)
 	require.NoError(t, err, string(output))
 
@@ -225,7 +226,7 @@ type yamlOutputFormat[R any] struct {
 }
 
 func (o *yamlOutputFormat[R]) Args() []string {
-	return []string{"-o", "yaml"}
+	return []string{"-o", "yamlraw"}
 }
 
 func (o *yamlOutputFormat[R]) Validate(t *testing.T, output []byte) {

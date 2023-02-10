@@ -198,15 +198,15 @@ func ipResponseToUpdate(r *apiv1.IP) *connect.Request[apiv1.IPServiceUpdateReque
 	}
 }
 
-func ipStaticToType(b bool) string {
+func ipStaticToType(b bool) apiv1.IPType {
 	if b {
-		return "static"
+		return apiv1.IPType_IP_TYPE_STATIC
 	}
-	return "ephemeral"
+	return apiv1.IPType_IP_TYPE_EPHEMERAL
 }
 
-func ipTypeToStatic(s string) bool {
-	if s == "static" {
+func ipTypeToStatic(t apiv1.IPType) bool {
+	if t == apiv1.IPType_IP_TYPE_STATIC {
 		return true
 	}
 	return false

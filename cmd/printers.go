@@ -18,6 +18,10 @@ func newPrinterFromCLI(log *zap.SugaredLogger, out io.Writer) printers.Printer {
 		printer = printers.NewProtoYAMLPrinter().WithFallback(true).WithOut(out)
 	case "json":
 		printer = printers.NewProtoJSONPrinter().WithFallback(true).WithOut(out)
+	case "yamlraw":
+		printer = printers.NewYAMLPrinter().WithOut(out)
+	case "jsonraw":
+		printer = printers.NewJSONPrinter().WithOut(out)
 	case "table", "wide", "markdown":
 		tp := tableprinters.New()
 		cfg := &printers.TablePrinterConfig{

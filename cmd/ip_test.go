@@ -36,7 +36,7 @@ func Test_IPCmd_MultiResult(t *testing.T) {
 									Description: "b description",
 									Network:     "b-network",
 									Project:     "b",
-									Type:        "ephemeral",
+									Type:        apiv1.IPType_IP_TYPE_EPHEMERAL,
 									Tags:        []string{"a=b"},
 								},
 								{
@@ -46,7 +46,7 @@ func Test_IPCmd_MultiResult(t *testing.T) {
 									Description: "a description",
 									Network:     "a-network",
 									Project:     "a",
-									Type:        "ephemeral",
+									Type:        apiv1.IPType_IP_TYPE_EPHEMERAL,
 									Tags:        []string{"a=b"},
 								},
 							},
@@ -62,7 +62,7 @@ func Test_IPCmd_MultiResult(t *testing.T) {
 					Description: "a description",
 					Network:     "a-network",
 					Project:     "a",
-					Type:        "ephemeral",
+					Type:        apiv1.IPType_IP_TYPE_EPHEMERAL,
 					Tags:        []string{"a=b"},
 				},
 				{
@@ -72,19 +72,19 @@ func Test_IPCmd_MultiResult(t *testing.T) {
 					Description: "b description",
 					Network:     "b-network",
 					Project:     "b",
-					Type:        "ephemeral",
+					Type:        apiv1.IPType_IP_TYPE_EPHEMERAL,
 					Tags:        []string{"a=b"},
 				},
 			},
 			WantTable: pointer.Pointer(`
-IP        PROJECT
-1.1.1.1   a
-4.3.2.1   b
+IP        ID     PROJECT   NAME   DESCRIPTION     TYPE
+1.1.1.1   uuid   a         a      a description   ephemeral
+4.3.2.1   uuid   b         b      b description   ephemeral
 `),
 			WantWideTable: pointer.Pointer(`
-IP        PROJECT
-1.1.1.1   a
-4.3.2.1   b
+IP        ID     PROJECT   NAME   DESCRIPTION     TYPE
+1.1.1.1   uuid   a         a      a description   ephemeral
+4.3.2.1   uuid   b         b      b description   ephemeral
 `),
 			Template: pointer.Pointer("{{ .ip }} {{ .project }}"),
 			WantTemplate: pointer.Pointer(`
@@ -92,10 +92,10 @@ IP        PROJECT
 4.3.2.1 b
 			`),
 			WantMarkdown: pointer.Pointer(`
-|   IP    | PROJECT |
-|---------|---------|
-| 1.1.1.1 | a       |
-| 4.3.2.1 | b       |
+|   IP    |  ID  | PROJECT | NAME |  DESCRIPTION  |   TYPE    |
+|---------|------|---------|------|---------------|-----------|
+| 1.1.1.1 | uuid | a       | a    | a description | ephemeral |
+| 4.3.2.1 | uuid | b       | b    | b description | ephemeral |
 `),
 		},
 	}
@@ -125,7 +125,7 @@ func Test_IPCmd_SingleResult(t *testing.T) {
 								Description: "a description",
 								Network:     "a-network",
 								Project:     "a",
-								Type:        "ephemeral",
+								Type:        apiv1.IPType_IP_TYPE_EPHEMERAL,
 								Tags:        []string{"a=b"},
 							},
 						},
@@ -139,25 +139,25 @@ func Test_IPCmd_SingleResult(t *testing.T) {
 				Description: "a description",
 				Network:     "a-network",
 				Project:     "a",
-				Type:        "ephemeral",
+				Type:        apiv1.IPType_IP_TYPE_EPHEMERAL,
 				Tags:        []string{"a=b"},
 			},
 			WantTable: pointer.Pointer(`
-IP        PROJECT
-1.1.1.1   a
+IP        ID     PROJECT   NAME   DESCRIPTION     TYPE
+1.1.1.1   uuid   a         a      a description   ephemeral
 `),
 			WantWideTable: pointer.Pointer(`
-IP        PROJECT
-1.1.1.1   a
+IP        ID     PROJECT   NAME   DESCRIPTION     TYPE
+1.1.1.1   uuid   a         a      a description   ephemeral
 `),
 			Template: pointer.Pointer("{{ .ip }} {{ .project }}"),
 			WantTemplate: pointer.Pointer(`
 1.1.1.1 a
 			`),
 			WantMarkdown: pointer.Pointer(`
-|   IP    | PROJECT |
-|---------|---------|
-| 1.1.1.1 | a       |
+|   IP    |  ID  | PROJECT | NAME |  DESCRIPTION  |   TYPE    |
+|---------|------|---------|------|---------------|-----------|
+| 1.1.1.1 | uuid | a       | a    | a description | ephemeral |
 `),
 		},
 		{
@@ -179,7 +179,7 @@ IP        PROJECT
 								Description: "a description",
 								Network:     "a-network",
 								Project:     "a",
-								Type:        "ephemeral",
+								Type:        apiv1.IPType_IP_TYPE_EPHEMERAL,
 								Tags:        []string{"a=b"},
 							},
 						},
@@ -193,7 +193,7 @@ IP        PROJECT
 				Description: "a description",
 				Network:     "a-network",
 				Project:     "a",
-				Type:        "ephemeral",
+				Type:        apiv1.IPType_IP_TYPE_EPHEMERAL,
 				Tags:        []string{"a=b"},
 			},
 		},
@@ -222,7 +222,7 @@ IP        PROJECT
 								Description: "a description",
 								Network:     "a-network",
 								Project:     "a",
-								Type:        "ephemeral",
+								Type:        apiv1.IPType_IP_TYPE_EPHEMERAL,
 								Tags:        []string{"a=b"},
 							},
 						},
@@ -236,7 +236,7 @@ IP        PROJECT
 				Description: "a description",
 				Network:     "a-network",
 				Project:     "a",
-				Type:        "ephemeral",
+				Type:        apiv1.IPType_IP_TYPE_EPHEMERAL,
 				Tags:        []string{"a=b"},
 			},
 		},
@@ -261,7 +261,7 @@ IP        PROJECT
 								Description: "a description",
 								Network:     "a-network",
 								Project:     "a",
-								Type:        "ephemeral",
+								Type:        apiv1.IPType_IP_TYPE_EPHEMERAL,
 								Tags:        []string{"a=b"},
 							},
 						},
@@ -274,7 +274,7 @@ IP        PROJECT
 							Description: "b description",
 							Network:     "a-network",
 							Project:     "a",
-							Type:        "static",
+							Type:        apiv1.IPType_IP_TYPE_STATIC,
 							Tags:        []string{"c=d"},
 						},
 					}), cmpopts.IgnoreTypes(protoimpl.MessageState{}))).Return(&connect.Response[apiv1.IPServiceUpdateResponse]{
@@ -286,7 +286,7 @@ IP        PROJECT
 								Description: "b description",
 								Network:     "a-network",
 								Project:     "a",
-								Type:        "static",
+								Type:        apiv1.IPType_IP_TYPE_STATIC,
 								Tags:        []string{"c=d"},
 							},
 						},
@@ -300,7 +300,7 @@ IP        PROJECT
 				Description: "b description",
 				Network:     "a-network",
 				Project:     "a",
-				Type:        "static",
+				Type:        apiv1.IPType_IP_TYPE_STATIC,
 				Tags:        []string{"c=d"},
 			},
 		},
@@ -322,7 +322,7 @@ IP        PROJECT
 							Name:        "a",
 							Description: "a description",
 							Network:     "a-network",
-							Type:        "static",
+							Type:        apiv1.IPType_IP_TYPE_STATIC,
 							Tags:        []string{"a=b"},
 						},
 					}), cmpopts.IgnoreTypes(protoimpl.MessageState{}))).Return(&connect.Response[apiv1.IPServiceUpdateResponse]{
@@ -334,7 +334,7 @@ IP        PROJECT
 								Description: "a description",
 								Network:     "a-network",
 								Project:     "a",
-								Type:        "static",
+								Type:        apiv1.IPType_IP_TYPE_STATIC,
 								Tags:        []string{"a=b"},
 							},
 						},
@@ -348,7 +348,7 @@ IP        PROJECT
 				Description: "a description",
 				Network:     "a-network",
 				Project:     "a",
-				Type:        "static",
+				Type:        apiv1.IPType_IP_TYPE_STATIC,
 				Tags:        []string{"a=b"},
 			},
 		},
@@ -378,7 +378,7 @@ IP        PROJECT
 								Description: "a description",
 								Network:     "a-network",
 								Project:     "a",
-								Type:        "static",
+								Type:        apiv1.IPType_IP_TYPE_STATIC,
 								Tags:        []string{"a=b"},
 							},
 						},
@@ -392,7 +392,7 @@ IP        PROJECT
 				Description: "a description",
 				Network:     "a-network",
 				Project:     "a",
-				Type:        "static",
+				Type:        apiv1.IPType_IP_TYPE_STATIC,
 				Tags:        []string{"a=b"},
 			},
 		},
