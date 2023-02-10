@@ -1,6 +1,6 @@
 module github.com/metal-stack-cloud/cli
 
-go 1.19
+go 1.20
 
 require (
 	bou.ke/monkey v1.0.2
@@ -9,7 +9,7 @@ require (
 	github.com/fatih/color v1.14.1
 	github.com/go-openapi/strfmt v0.21.3
 	github.com/google/go-cmp v0.5.9
-	github.com/metal-stack-cloud/api v0.1.11
+	github.com/metal-stack-cloud/api v0.1.12
 	github.com/metal-stack/metal-lib v0.11.3
 	github.com/metal-stack/v v1.0.3
 	github.com/spf13/afero v1.9.3
@@ -61,7 +61,7 @@ require (
 	go.mongodb.org/mongo-driver v1.10.0 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/multierr v1.9.0 // indirect
-	golang.org/x/crypto v0.5.0 // indirect
+	golang.org/x/crypto v0.6.0 // indirect
 	golang.org/x/sys v0.5.0 // indirect
 	golang.org/x/text v0.7.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
