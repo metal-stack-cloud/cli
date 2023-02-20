@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/dustin/go-humanize"
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
 )
 
@@ -24,7 +25,7 @@ func (t *TablePrinter) CouponTable(data []*apiv1.Coupon, wide bool) ([]string, [
 		amount := fmt.Sprintf("%.2f %s", float64(coupon.AmountOff/100), coupon.Currency)
 		duration := fmt.Sprintf("%d month", coupon.DurationInMonth)
 		redeemed := fmt.Sprintf("%d/%d", coupon.TimesRedeemed, coupon.MaxRedemptions)
-		created := coupon.CreatedAt.AsTime().String()
+		created := humanize.Time(coupon.CreatedAt.AsTime())
 
 		if wide {
 			rows = append(rows, []string{id, name, amount, duration, redeemed, created})
