@@ -75,3 +75,19 @@ $ bin/metal ip update --project <project-id> --uuid <ip-uuid>
 
 $ bin/metal ip update -f <file-name>
 ```
+
+### Admin
+
+```bash
+# list all tenants
+$ bin/metal admin tenant list
+
+# admit a tenant
+$ bin/metal admin tenant admit <tenant-id>
+
+# revoke a tenant
+$ bin/metal admin tenant revoke <tenant-id>
+
+# list all coupons
+$ bin/metal admin coupon list
+```
