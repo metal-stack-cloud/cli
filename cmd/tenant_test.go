@@ -91,85 +91,82 @@ loginOne nameOne testone@mail.com 1 false
 		tt.TestCmd(t)
 	}
 }
-
-// TODO: improve single result tests
-
 func Test_TenantCmd_SingleResult(t *testing.T) {
 	tests := []*Test[*apiv1.Tenant]{
-	{
-		Name: "admit",
-		Cmd: func(want *apiv1.Tenant) []string {
-			return []string{"admin", "tenant", "admit", "someid"}
-		},
-		AdminMocks: &apitests.Adminv1MockFns{
-			Tenant: func(m *mock.Mock) {
-				m.On("Admit", mock.Anything, connect.NewRequest(&adminv1.TenantServiceAdmitRequest{
-					TenantId: "someid",
-				})).Return(&connect.Response[adminv1.TenantServiceAdmitResponse]{
-					Msg: &adminv1.TenantServiceAdmitResponse{
-						Tenant: &apiv1.Tenant{
-							Login:         "someid",
-							Name:          "somename",
-							Email:         "somename@mail.com",
-							AvatarUrl: 	   "https://avatars.githubusercontent.com/u/52534857?v=8",
-							OauthProvider: apiv1.OAuthProvider_O_AUTH_PROVIDER_AZURE,
-							Admitted:      true,
-							PhoneNumber:   "1234556",
-							EmailConsent:  true,
-							CreatedAt:     timestamppb.New(time.Now().Add(-1 * time.Minute)),
-						},
-					},
-				}, nil)
+		{
+			Name: "admit",
+			Cmd: func(want *apiv1.Tenant) []string {
+				return []string{"admin", "tenant", "admit", "someid"}
 			},
-		},
-		Want: &apiv1.Tenant{
+			AdminMocks: &apitests.Adminv1MockFns{
+				Tenant: func(m *mock.Mock) {
+					m.On("Admit", mock.Anything, connect.NewRequest(&adminv1.TenantServiceAdmitRequest{
+						TenantId: "someid",
+					})).Return(&connect.Response[adminv1.TenantServiceAdmitResponse]{
+						Msg: &adminv1.TenantServiceAdmitResponse{
+							Tenant: &apiv1.Tenant{
+								Login:         "someid",
+								Name:          "somename",
+								Email:         "somename@mail.com",
+								AvatarUrl:     "https://avatars.githubusercontent.com/u/52534857?v=8",
+								OauthProvider: apiv1.OAuthProvider_O_AUTH_PROVIDER_AZURE,
+								Admitted:      true,
+								PhoneNumber:   "1234556",
+								EmailConsent:  true,
+								CreatedAt:     timestamppb.New(time.Now().Add(-1 * time.Minute)),
+							},
+						},
+					}, nil)
+				},
+			},
+			Want: &apiv1.Tenant{
 				Login:         "someid",
 				Name:          "somename",
 				Email:         "somename@mail.com",
-				AvatarUrl: 	   "https://avatars.githubusercontent.com/u/52534857?v=8",
+				AvatarUrl:     "https://avatars.githubusercontent.com/u/52534857?v=8",
 				OauthProvider: apiv1.OAuthProvider_O_AUTH_PROVIDER_AZURE,
 				Admitted:      true,
 				PhoneNumber:   "1234556",
 				EmailConsent:  true,
 				CreatedAt:     timestamppb.New(time.Now().Add(-1 * time.Minute)),
-		},
-	},
-	{
-		Name: "revoke",
-		Cmd: func(want *apiv1.Tenant) []string {
-			return []string{"admin", "tenant", "revoke", "someid"}
-		},
-		AdminMocks: &apitests.Adminv1MockFns{
-			Tenant: func(m *mock.Mock) {
-				m.On("Revoke", mock.Anything, connect.NewRequest(&adminv1.TenantServiceRevokeRequest{
-					TenantId: "someid",
-				})).Return(&connect.Response[adminv1.TenantServiceRevokeResponse]{
-					Msg: &adminv1.TenantServiceRevokeResponse{
-						Tenant: &apiv1.Tenant{
-							Login:         "someid",
-							Name:          "somename",
-							Email:         "somename@mail.com",
-							AvatarUrl: 	   "https://avatars.githubusercontent.com/u/52534857?v=8",
-							OauthProvider: apiv1.OAuthProvider_O_AUTH_PROVIDER_AZURE,
-							PhoneNumber:   "1234556",
-							EmailConsent:  true,
-							CreatedAt:     timestamppb.New(time.Now().Add(-1 * time.Minute)),
-						},
-					},
-				}, nil)
 			},
 		},
-		Want: &apiv1.Tenant{
-			Login:         "someid",
-			Name:          "somename",
-			Email:         "somename@mail.com",
-			AvatarUrl: 	   "https://avatars.githubusercontent.com/u/52534857?v=8",
-			OauthProvider: apiv1.OAuthProvider_O_AUTH_PROVIDER_AZURE,
-			PhoneNumber:   "1234556",
-			EmailConsent:  true,
-			CreatedAt:     timestamppb.New(time.Now().Add(-1 * time.Minute)),
+		{
+			Name: "revoke",
+			Cmd: func(want *apiv1.Tenant) []string {
+				return []string{"admin", "tenant", "revoke", "someid"}
+			},
+			AdminMocks: &apitests.Adminv1MockFns{
+				Tenant: func(m *mock.Mock) {
+					m.On("Revoke", mock.Anything, connect.NewRequest(&adminv1.TenantServiceRevokeRequest{
+						TenantId: "someid",
+					})).Return(&connect.Response[adminv1.TenantServiceRevokeResponse]{
+						Msg: &adminv1.TenantServiceRevokeResponse{
+							Tenant: &apiv1.Tenant{
+								Login:         "someid",
+								Name:          "somename",
+								Email:         "somename@mail.com",
+								AvatarUrl:     "https://avatars.githubusercontent.com/u/52534857?v=8",
+								OauthProvider: apiv1.OAuthProvider_O_AUTH_PROVIDER_AZURE,
+								PhoneNumber:   "1234556",
+								EmailConsent:  true,
+								CreatedAt:     timestamppb.New(time.Now().Add(-1 * time.Minute)),
+							},
+						},
+					}, nil)
+				},
+			},
+			Want: &apiv1.Tenant{
+				Login:         "someid",
+				Name:          "somename",
+				Email:         "somename@mail.com",
+				AvatarUrl:     "https://avatars.githubusercontent.com/u/52534857?v=8",
+				OauthProvider: apiv1.OAuthProvider_O_AUTH_PROVIDER_AZURE,
+				PhoneNumber:   "1234556",
+				EmailConsent:  true,
+				CreatedAt:     timestamppb.New(time.Now().Add(-1 * time.Minute)),
+			},
 		},
-	},
 	}
 	for _, tt := range tests {
 		tt.TestCmd(t)
