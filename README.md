@@ -30,14 +30,10 @@ Documentation on how to interact with the CLI (maybe just necessary during devel
 ```bash
 # list ips
 $ bin/metal ip list --project <project-id>
-```
 
-```bash
 # create ip from cli
 $ bin/metal ip create --project <project-id> --name <name> --network <network>
-```
 
-```bash
 # create ip with file option
 #
 #
@@ -51,19 +47,15 @@ $ bin/metal ip create --project <project-id> --name <name> --network <network>
 #
 
 $ bin/metal ip create -f <file-name>
-```
+or
+$ bin/metal ip apply -f <file-name>
 
-```bash
 # describe ip
 $ bin/metal ip describe --project <project-id> <ip-uuid>
-```
 
-```bash
 # update command to make the ip static
 $ bin/metal ip update --project <project-id> --uuid <ip-uuid>
-```
 
-```bash
 # update ip with file option
 #
 #
@@ -74,6 +66,9 @@ $ bin/metal ip update --project <project-id> --uuid <ip-uuid>
 #
 
 $ bin/metal ip update -f <file-name>
+
+# delete an ip address
+$ bin/metal ip delete --project <project-id> <ip-uuid>
 ```
 
 ### Admin
@@ -90,4 +85,44 @@ $ bin/metal admin tenant revoke <tenant-id>
 
 # list all coupons
 $ bin/metal admin coupon list
+```
+
+### Cluster
+
+```bash
+# list all clusters
+$ bin/metal cluster list --project <project-id>
+
+# describe a cluster
+$ bin/metal cluster describe --project <project-id> <cluster-uuid>
+
+# delete a cluster
+$ bin/metal cluster delete --project <project-id> <cluster-uuid>
+
+# create a cluster
+$ bin/metal cluster create --name <cluster-name> --project <project-id> --partition <partition> --kubernetes <kubernetes-version> --workername <worker-name> --machinetype <machine-type> --minsize <min-worker> --maxsize <max-worker> --maintenancebegin <maintenance-begin> --maintenanceduration <maintenance-duration>
+
+# create a cluster with file option
+
+# cluster.yaml file
+# name: <cluster-name>
+# project: <project-id>
+# partition: <partition>
+# kubernetes:
+#   version: <kubernetes-version>
+# workers:
+#   - name: <worker-name>
+#     machinetype: <machine-type>
+#     minsize: <min-worker>
+#     maxsize: <max-worker>
+# maintenance:
+#   timewindow:
+#     begin:
+#       seconds: <maintenance-begin>
+#     duration:
+#       seconds: <maintenance-duration>
+
+$ bin/metal cluster create -f <file-name>
+or
+$ bin/metal cluster apply -f <file-name>
 ```
