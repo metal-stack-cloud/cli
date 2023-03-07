@@ -171,6 +171,7 @@ func (c *cluster) ToUpdate(r *apiv1.Cluster) (*apiv1.Cluster, error) {
 }
 
 func clusterResponseToCreate(r *apiv1.Cluster) *connect.Request[apiv1.ClusterServiceCreateRequest] {
+	// spew.Dump(r.Maintenance)
 	return &connect.Request[apiv1.ClusterServiceCreateRequest]{
 		Msg: &apiv1.ClusterServiceCreateRequest{
 			Name:        r.Name,
@@ -179,6 +180,17 @@ func clusterResponseToCreate(r *apiv1.Cluster) *connect.Request[apiv1.ClusterSer
 			Kubernetes:  r.Kubernetes,
 			Workers:     r.Workers,
 			Maintenance: r.Maintenance,
+			// Maintenance: &apiv1.Maintenance{
+			// 	TimeWindow: &apiv1.MaintenanceTimeWindow{
+			// 		Begin: &timestamppb.Timestamp{
+			// 			Seconds: r.Maintenance.TimeWindow.Begin.Seconds,
+
+			// 		},
+			// 		Duration: &durationpb.Duration{
+			// 			Seconds: r.Maintenance.TimeWindow.Duration.Seconds,
+			// 		},
+			// 	},
+			// },
 		},
 	}
 }

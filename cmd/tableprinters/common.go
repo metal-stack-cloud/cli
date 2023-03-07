@@ -34,6 +34,8 @@ func (t *TablePrinter) ToHeaderAndRows(data any, wide bool) ([]string, [][]strin
 		return t.CouponTable(pointer.WrapInSlice(d), wide)
 	case []*apiv1.Coupon:
 		return t.CouponTable(d, wide)
+	case []*apiv1.Cluster:
+		return t.ClusterTable(d, wide) // TODO: How to add the WrapInSlice() option?
 	default:
 		return nil, nil, fmt.Errorf("unknown table printer for type: %T", d)
 	}

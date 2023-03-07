@@ -80,6 +80,7 @@ apitoken: "alongtoken"
 	rootCmd.AddCommand(apiv1.NewAssetCmd(c))
 	rootCmd.AddCommand(apiv1.NewTokenCmd(c))
 	rootCmd.AddCommand(apiv1.NewIPCmd(c))
+	rootCmd.AddCommand(apiv1.NewClusterCmd(c))
 
 	// Admin subcommand, hidden by default
 	rootCmd.AddCommand(adminv1.NewAdminCmd(c))
