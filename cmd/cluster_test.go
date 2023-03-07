@@ -143,12 +143,8 @@ func Test_ClusterCmd_SingleResult(t *testing.T) {
 								},
 								Maintenance: &apiv1.Maintenance{
 									TimeWindow: &apiv1.MaintenanceTimeWindow{
-										Begin: &timestamppb.Timestamp{
-											Seconds: 2400,
-										},
-										Duration: &durationpb.Duration{
-											Seconds: 3600,
-										},
+										Begin:    timestamppb.New(testTime),
+										Duration: durationpb.New(1 * time.Hour),
 									},
 								},
 								Status: &apiv1.ClusterStatus{
@@ -177,12 +173,8 @@ func Test_ClusterCmd_SingleResult(t *testing.T) {
 				},
 				Maintenance: &apiv1.Maintenance{
 					TimeWindow: &apiv1.MaintenanceTimeWindow{
-						Begin: &timestamppb.Timestamp{
-							Seconds: 2400,
-						},
-						Duration: &durationpb.Duration{
-							Seconds: 3600,
-						},
+						Begin:    timestamppb.New(testTime),
+						Duration: durationpb.New(1 * time.Hour),
 					},
 				},
 				Status: &apiv1.ClusterStatus{
@@ -264,7 +256,7 @@ func Test_ClusterCmd_SingleResult(t *testing.T) {
 		{
 			Name: "create",
 			Cmd: func(want *apiv1.Cluster) []string {
-				args := []string{"cluster", "create", "--name", "abc", "--project", "a", "--partition", "part-1", "--kubernetes", "1.1.1", "--workername", "a-worker", "--machinetype", "ma-large", "--minsize", "1", "--maxsize", "3", "--maintenancebegin", "16200", "--maintenanceduration", "3600"}
+				args := []string{"cluster", "create", "--name", "abc", "--project", "a", "--partition", "part-1", "--kubernetes", "1.1.1", "--workername", "a-worker", "--machinetype", "ma-large", "--minsize", "1", "--maxsize", "3", "--maintenancebegin", "04:30pm", "--maintenanceduration", "1h"}
 				AssertExhaustiveArgs(t, args, "file")
 				return args
 			},
@@ -288,7 +280,7 @@ func Test_ClusterCmd_SingleResult(t *testing.T) {
 						Maintenance: &apiv1.Maintenance{
 							TimeWindow: &apiv1.MaintenanceTimeWindow{
 								Begin: &timestamppb.Timestamp{
-									Seconds: 16200,
+									Seconds: 59400,
 								},
 								Duration: &durationpb.Duration{
 									Seconds: 3600,
@@ -315,7 +307,7 @@ func Test_ClusterCmd_SingleResult(t *testing.T) {
 								Maintenance: &apiv1.Maintenance{
 									TimeWindow: &apiv1.MaintenanceTimeWindow{
 										Begin: &timestamppb.Timestamp{
-											Seconds: 16200,
+											Seconds: 59400,
 										},
 										Duration: &durationpb.Duration{
 											Seconds: 3600,
@@ -345,7 +337,7 @@ func Test_ClusterCmd_SingleResult(t *testing.T) {
 				Maintenance: &apiv1.Maintenance{
 					TimeWindow: &apiv1.MaintenanceTimeWindow{
 						Begin: &timestamppb.Timestamp{
-							Seconds: 16200,
+							Seconds: 59400,
 						},
 						Duration: &durationpb.Duration{
 							Seconds: 3600,
@@ -361,7 +353,6 @@ func Test_ClusterCmd_SingleResult(t *testing.T) {
 			},
 			FsMocks: func(fs afero.Fs, want *apiv1.Cluster) {
 				require.NoError(t, afero.WriteFile(fs, "/file.yaml", MustMarshal(t, want), 0755))
-				// fmt.Printf(string(MustMarshal(t, want)))
 			},
 			APIMocks: &apitests.Apiv1MockFns{
 				Cluster: func(m *mock.Mock) {
@@ -374,10 +365,10 @@ func Test_ClusterCmd_SingleResult(t *testing.T) {
 						},
 						Workers: []*apiv1.Worker{
 							{
-								Name: "a-worker",
-								// MachineType: "large", //TODO: Test with 'MachineType' not working!?
-								Minsize: 1,
-								Maxsize: 3,
+								Name:        "a-worker",
+								MachineType: "large",
+								Minsize:     1,
+								Maxsize:     3,
 							},
 						},
 						Maintenance: &apiv1.Maintenance{
@@ -397,10 +388,10 @@ func Test_ClusterCmd_SingleResult(t *testing.T) {
 								},
 								Workers: []*apiv1.Worker{
 									{
-										Name: "a-worker",
-										// MachineType: "large",
-										Minsize: 1,
-										Maxsize: 3,
+										Name:        "a-worker",
+										MachineType: "large",
+										Minsize:     1,
+										Maxsize:     3,
 									},
 								},
 								Maintenance: &apiv1.Maintenance{
@@ -423,10 +414,10 @@ func Test_ClusterCmd_SingleResult(t *testing.T) {
 				},
 				Workers: []*apiv1.Worker{
 					{
-						Name: "a-worker",
-						// MachineType: "large",
-						Minsize: 1,
-						Maxsize: 3,
+						Name:        "a-worker",
+						MachineType: "large",
+						Minsize:     1,
+						Maxsize:     3,
 					},
 				},
 				Maintenance: &apiv1.Maintenance{

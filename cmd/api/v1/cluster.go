@@ -2,6 +2,7 @@ package v1
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/bufbuild/connect-go"
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
@@ -54,6 +55,19 @@ func NewClusterCmd(c *config.Config) *cobra.Command {
 			cmd.Flags().StringP("project", "", "", "project of the cluster")
 		},
 		CreateRequestFromCLI: func() (*connect.Request[apiv1.ClusterServiceCreateRequest], error) {
+
+			maintenancebegin := viper.GetString("maintenancebegin")
+
+			const format = "Jan 2, 2006 at 3:04pm (MST)"
+			t, _ := time.Parse(format, "Jan 1, 1970 at "+maintenancebegin+" (PST)")
+			timeInUnix := t.Unix()
+			timeInUTC := time.Unix(timeInUnix, 0).UTC()
+			ts := timestamppb.New(timeInUTC)
+
+			maintenanceduration := viper.GetString("maintenanceduration")
+			hours, _ := time.ParseDuration(maintenanceduration)
+			duration := durationpb.New(time.Duration(hours))
+
 			clustercr := &apiv1.ClusterServiceCreateRequest{
 				Name:      viper.GetString("name"),
 				Project:   viper.GetString("project"),
@@ -71,12 +85,8 @@ func NewClusterCmd(c *config.Config) *cobra.Command {
 				},
 				Maintenance: &apiv1.Maintenance{
 					TimeWindow: &apiv1.MaintenanceTimeWindow{
-						Begin: &timestamppb.Timestamp{
-							Seconds: viper.GetInt64("maintenancebegin"),
-						},
-						Duration: &durationpb.Duration{
-							Seconds: viper.GetInt64("maintenanceduration"),
-						},
+						Begin:    ts,
+						Duration: duration,
 					},
 				},
 			}
@@ -144,7 +154,7 @@ func (c *cluster) List() ([]*apiv1.Cluster, error) {
 	return resp.Msg.Clusters, nil
 }
 
-// TODO
+// TODO implement update command and write tests
 func (c *cluster) Update(rq *apiv1.Cluster) (*apiv1.Cluster, error) {
 	resp, err := c.c.Apiv1Client.Cluster().Update(c.c.Ctx, &connect.Request[apiv1.ClusterServiceUpdateRequest]{
 		Msg: &apiv1.ClusterServiceUpdateRequest{
@@ -171,7 +181,6 @@ func (c *cluster) ToUpdate(r *apiv1.Cluster) (*apiv1.Cluster, error) {
 }
 
 func clusterResponseToCreate(r *apiv1.Cluster) *connect.Request[apiv1.ClusterServiceCreateRequest] {
-	// spew.Dump(r.Maintenance)
 	return &connect.Request[apiv1.ClusterServiceCreateRequest]{
 		Msg: &apiv1.ClusterServiceCreateRequest{
 			Name:        r.Name,
@@ -180,17 +189,6 @@ func clusterResponseToCreate(r *apiv1.Cluster) *connect.Request[apiv1.ClusterSer
 			Kubernetes:  r.Kubernetes,
 			Workers:     r.Workers,
 			Maintenance: r.Maintenance,
-			// Maintenance: &apiv1.Maintenance{
-			// 	TimeWindow: &apiv1.MaintenanceTimeWindow{
-			// 		Begin: &timestamppb.Timestamp{
-			// 			Seconds: r.Maintenance.TimeWindow.Begin.Seconds,
-
-			// 		},
-			// 		Duration: &durationpb.Duration{
-			// 			Seconds: r.Maintenance.TimeWindow.Duration.Seconds,
-			// 		},
-			// 	},
-			// },
 		},
 	}
 }
