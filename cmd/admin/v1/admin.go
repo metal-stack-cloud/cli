@@ -17,6 +17,7 @@ func NewAdminCmd(c *config.Config) *cobra.Command {
 
 	adminCmd.AddCommand(newTenantCmd(c))
 	adminCmd.AddCommand(newCouponCmd(c))
+	adminCmd.AddCommand(newStorageCmd(c))
 
 	return adminCmd
 }
