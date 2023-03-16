@@ -205,8 +205,5 @@ func ipStaticToType(b bool) apiv1.IPType {
 }
 
 func ipTypeToStatic(t apiv1.IPType) bool {
-	if t == apiv1.IPType_IP_TYPE_STATIC {
-		return true
-	}
-	return false
+	return t == apiv1.IPType_IP_TYPE_STATIC
 }

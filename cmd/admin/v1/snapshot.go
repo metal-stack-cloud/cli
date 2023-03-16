@@ -32,7 +32,6 @@ func newSnapshotCmd(c *config.Config) *cobra.Command {
 		// Sorter:          sorters.TenantSorter(),
 		DescribePrinter: func() printers.Printer { return c.DescribePrinter },
 		ListPrinter:     func() printers.Printer { return c.ListPrinter },
-		OnlyCmds:        genericcli.OnlyCmds(genericcli.ListCmd),
 		ListCmdMutateFn: func(cmd *cobra.Command) {
 			cmd.Flags().StringP("uuid", "", "", "filter by uuid")
 			cmd.Flags().StringP("name", "", "", "filter by name")
@@ -40,6 +39,7 @@ func newSnapshotCmd(c *config.Config) *cobra.Command {
 			cmd.Flags().StringP("project", "", "", "filter by project")
 			cmd.Flags().StringP("tenant", "", "", "filter by tenant")
 		},
+		OnlyCmds: genericcli.OnlyCmds(genericcli.ListCmd, genericcli.DescribeCmd),
 	}
 	return genericcli.NewCmds(cmdsConfig)
 }
