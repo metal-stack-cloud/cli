@@ -34,7 +34,7 @@ func newStorageCmd(c *config.Config) *cobra.Command {
 				return fmt.Errorf("failed to get clusterinfo: %w", err)
 			}
 
-			return c.DescribePrinter.Print(resp.Msg.Infos)
+			return c.ListPrinter.Print(resp.Msg.Infos)
 		},
 	}
 	clusterInfoCmd.Flags().StringP("partition", "", "", "optional partition to filter for storage cluster info")

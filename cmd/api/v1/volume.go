@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/bufbuild/connect-go"
-	adminv1 "github.com/metal-stack-cloud/api/go/admin/v1"
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
 	"github.com/metal-stack-cloud/cli/cmd/config"
 	"github.com/metal-stack/metal-lib/pkg/genericcli"
@@ -38,7 +37,14 @@ func newVolumeCmd(c *config.Config) *cobra.Command {
 			cmd.Flags().StringP("name", "", "", "filter by name")
 			cmd.Flags().StringP("partition", "", "", "filter by partition")
 			cmd.Flags().StringP("project", "", "", "filter by project")
-			cmd.Flags().StringP("tenant", "", "", "filter by tenant")
+		},
+		DeleteCmdMutateFn: func(cmd *cobra.Command) {
+			cmd.Flags().StringP("uuid", "", "", "filter by uuid")
+			cmd.Flags().StringP("project", "", "", "filter by project")
+		},
+		DescribeCmdMutateFn: func(cmd *cobra.Command) {
+			cmd.Flags().StringP("uuid", "", "", "filter by uuid")
+			cmd.Flags().StringP("project", "", "", "filter by project")
 		},
 	}
 	return genericcli.NewCmds(cmdsConfig)
@@ -51,27 +57,33 @@ func (v *volume) Create(rq any) (*apiv1.Volume, error) {
 
 // Delete implements genericcli.CRUD
 func (v *volume) Delete(id string) (*apiv1.Volume, error) {
-	panic("unimplemented")
+	req := &apiv1.VolumeServiceDeleteRequest{
+		Uuid:    id,
+		Project: viper.GetString("project"),
+	}
+	resp, err := v.c.Apiv1Client.Volume().Delete(v.c.Ctx, connect.NewRequest(req))
+	if err != nil {
+		return nil, fmt.Errorf("failed to delete volumes: %w", err)
+	}
+	return resp.Msg.Volume, nil
 }
 
 // Get implements genericcli.CRUD
 func (v *volume) Get(id string) (*apiv1.Volume, error) {
-	req := &adminv1.StorageServiceListVolumesRequest{
-		Uuid: &id,
+	req := &apiv1.VolumeServiceGetRequest{
+		Uuid:    id,
+		Project: viper.GetString("project"),
 	}
-	resp, err := v.c.Adminv1Client.Storage().ListVolumes(v.c.Ctx, connect.NewRequest(req))
+	resp, err := v.c.Apiv1Client.Volume().Get(v.c.Ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get volumes: %w", err)
 	}
-	if len(resp.Msg.Volumes) != 1 {
-		return nil, fmt.Errorf("no volume with ID:%s found", id)
-	}
-	return resp.Msg.Volumes[0], nil
+	return resp.Msg.Volume, nil
 }
 
 // List implements genericcli.CRUD
 func (v *volume) List() ([]*apiv1.Volume, error) {
-	req := &adminv1.StorageServiceListVolumesRequest{}
+	req := &apiv1.VolumeServiceListRequest{}
 	if viper.IsSet("uuid") {
 		req.Uuid = pointer.Pointer(viper.GetString("uuid"))
 	}
@@ -79,15 +91,12 @@ func (v *volume) List() ([]*apiv1.Volume, error) {
 		req.Name = pointer.Pointer(viper.GetString("name"))
 	}
 	if viper.IsSet("project") {
-		req.Project = pointer.Pointer(viper.GetString("project"))
+		req.Project = viper.GetString("project")
 	}
 	if viper.IsSet("partition") {
 		req.Partition = pointer.Pointer(viper.GetString("partition"))
 	}
-	if viper.IsSet("tenant") {
-		req.Tenant = pointer.Pointer(viper.GetString("tenant"))
-	}
-	resp, err := v.c.Adminv1Client.Storage().ListVolumes(v.c.Ctx, connect.NewRequest(req))
+	resp, err := v.c.Apiv1Client.Volume().List(v.c.Ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get volumes: %w", err)
 	}

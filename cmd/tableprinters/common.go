@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
+	adminv1 "github.com/metal-stack-cloud/api/go/admin/v1"
 	"github.com/metal-stack/metal-lib/pkg/genericcli/printers"
 	"github.com/metal-stack/metal-lib/pkg/pointer"
 )
@@ -38,6 +39,14 @@ func (t *TablePrinter) ToHeaderAndRows(data any, wide bool) ([]string, [][]strin
 		return t.VolumeTable(pointer.WrapInSlice(d), wide)
 	case []*apiv1.Volume:
 		return t.VolumeTable(d, wide)
+	case *apiv1.Snapshot:
+		return t.SnapshotTable(pointer.WrapInSlice(d), wide)
+	case []*apiv1.Snapshot:
+		return t.SnapshotTable(d, wide)
+	case *adminv1.StorageClusterInfo:
+		return t.StorageClusterInfoTable(pointer.WrapInSlice(d), wide)
+	case []*adminv1.StorageClusterInfo:
+		return t.StorageClusterInfoTable(d, wide)
 	default:
 		return nil, nil, fmt.Errorf("unknown table printer for type: %T", d)
 	}

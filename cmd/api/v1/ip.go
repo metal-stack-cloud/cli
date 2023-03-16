@@ -27,7 +27,7 @@ func NewIPCmd(c *config.Config) *cobra.Command {
 		GenericCLI:      genericcli.NewGenericCLI[*connect.Request[apiv1.IPServiceAllocateRequest], *apiv1.IP, *apiv1.IP](w).WithFS(c.Fs),
 		Singular:        "ip",
 		Plural:          "ips",
-		Description:     "an ip address of metal-stack cloud",
+		Description:     "an ip address of metalstack.cloud",
 		Sorter:          sorters.IPSorter(),
 		DescribePrinter: func() printers.Printer { return c.DescribePrinter },
 		ListPrinter:     func() printers.Printer { return c.ListPrinter },

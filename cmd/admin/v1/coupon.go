@@ -26,7 +26,7 @@ func newCouponCmd(c *config.Config) *cobra.Command {
 		GenericCLI:  genericcli.NewGenericCLI[any, any, *apiv1.Coupon](w).WithFS(c.Fs),
 		Singular:    "coupon",
 		Plural:      "coupons",
-		Description: "coupon related actions of metal-stack cloud",
+		Description: "coupon related actions of metalstack.cloud",
 		// Sorter:          sorters.TenantSorter(),
 		DescribePrinter: func() printers.Printer { return c.DescribePrinter },
 		ListPrinter:     func() printers.Printer { return c.ListPrinter },

@@ -29,7 +29,7 @@ func newTenantCmd(c *config.Config) *cobra.Command {
 		GenericCLI:      genericcli.NewGenericCLI[any, any, *apiv1.Tenant](w).WithFS(c.Fs),
 		Singular:        "tenant",
 		Plural:          "tenants",
-		Description:     "a tenant of metal-stack cloud",
+		Description:     "a tenant of metalstack.cloud",
 		Sorter:          sorters.TenantSorter(),
 		DescribePrinter: func() printers.Printer { return c.DescribePrinter },
 		ListPrinter:     func() printers.Printer { return c.ListPrinter },
