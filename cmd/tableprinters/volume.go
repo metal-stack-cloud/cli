@@ -49,7 +49,7 @@ func connectedHosts(vol *apiv1.Volume) []string {
 	for _, n := range vol.AttachedTo {
 		// nqn.2019-09.com.lightbitslabs:host:shoot--pddhz9--duros-tst9-group-0-6b7bb-2cnvs.node
 		parts := strings.Split(n, ":host:")
-		if len(parts) >= 1 {
+		if len(parts) > 1 {
 			node := strings.TrimSuffix(parts[1], ".node")
 			nodes = append(nodes, node)
 		}
