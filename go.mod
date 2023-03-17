@@ -10,16 +10,16 @@ require (
 	github.com/go-openapi/strfmt v0.21.3
 	github.com/google/go-cmp v0.5.9
 	github.com/metal-stack-cloud/api v0.1.12
-	github.com/metal-stack/metal-lib v0.11.3
+	github.com/metal-stack/metal-lib v0.11.5-0.20230307122143-287a4cd24a61
 	github.com/metal-stack/v v1.0.3
-	github.com/spf13/afero v1.9.3
+	github.com/spf13/afero v1.9.4
 	github.com/spf13/cobra v1.6.1
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.15.0
-	github.com/stretchr/testify v1.8.1
+	github.com/stretchr/testify v1.8.2
 	go.uber.org/zap v1.24.0
-	golang.org/x/exp v0.0.0-20230206171751-46f607a40771
-	golang.org/x/net v0.6.0
+	golang.org/x/exp v0.0.0-20230224173230-c95f2b4c22f2
+	golang.org/x/net v0.7.0
 	google.golang.org/protobuf v1.28.1
 	sigs.k8s.io/yaml v1.3.0
 )
@@ -58,7 +58,7 @@ require (
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/stretchr/objx v0.5.0 // indirect
 	github.com/subosito/gotenv v1.4.2 // indirect
-	go.mongodb.org/mongo-driver v1.10.0 // indirect
+	go.mongodb.org/mongo-driver v1.11.0 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/multierr v1.9.0 // indirect
 	golang.org/x/crypto v0.6.0 // indirect
@@ -69,4 +69,6 @@ require (
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
+	k8s.io/apimachinery v0.26.2 // indirect
+	sigs.k8s.io/json v0.0.0-20220713155537-f223a00ba0e2 // indirect
 )
