@@ -102,6 +102,10 @@ $ bin/metal cluster delete --project <project-id> <cluster-uuid>
 # create a cluster
 $ bin/metal cluster create --name <cluster-name> --project <project-id> --partition <partition> --kubernetes <kubernetes-version> --workername <worker-name> --machinetype <machine-type> --minsize <min-worker> --maxsize <max-worker> --maintenancebegin <maintenance-begin> --maintenanceduration <maintenance-duration>
 
+# example values for --maintenancebegin and -- maintenanceduration
+# ... --maintenancebegin 12:00pm ...
+# ... --maintenanceduration 1h ...
+
 # create a cluster with file option
 
 # cluster.yaml file
@@ -112,7 +116,7 @@ $ bin/metal cluster create --name <cluster-name> --project <project-id> --partit
 #   version: <kubernetes-version>
 # workers:
 #   - name: <worker-name>
-#     machinetype: <machine-type>
+#     machine_type: <machine-type>
 #     minsize: <min-worker>
 #     maxsize: <max-worker>
 # maintenance:
@@ -125,4 +129,10 @@ $ bin/metal cluster create --name <cluster-name> --project <project-id> --partit
 $ bin/metal cluster create -f <file-name>
 or
 $ bin/metal cluster apply -f <file-name>
+
+# update a cluster
+# TODO
+
+# update a cluster with file option
+# TODO
 ```
