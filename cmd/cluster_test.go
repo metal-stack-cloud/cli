@@ -39,9 +39,18 @@ func Test_ClusterCmd_MultiResult(t *testing.T) {
 									Kubernetes: &apiv1.KubernetesSpec{
 										Version: "1.23.1",
 									},
+									Workers: []*apiv1.Worker{
+										{
+											Name:        "a",
+											MachineType: "c1-large-x86",
+											Minsize:     4,
+											Maxsize:     7,
+										},
+									},
 									Status: &apiv1.ClusterStatus{
 										State: "Processing",
 									},
+									CreatedAt: timestamppb.New(time.Now().Add(-1 * time.Hour)),
 								},
 								{
 									Uuid:    "5-6-7-8",
@@ -50,9 +59,18 @@ func Test_ClusterCmd_MultiResult(t *testing.T) {
 									Kubernetes: &apiv1.KubernetesSpec{
 										Version: "1.23.1",
 									},
+									Workers: []*apiv1.Worker{
+										{
+											Name:        "b",
+											MachineType: "c1-large-x86",
+											Minsize:     1,
+											Maxsize:     3,
+										},
+									},
 									Status: &apiv1.ClusterStatus{
 										State: "Processing",
 									},
+									CreatedAt: timestamppb.New(time.Now().Add(-1 * time.Minute)),
 								},
 							},
 						},
@@ -61,48 +79,66 @@ func Test_ClusterCmd_MultiResult(t *testing.T) {
 			},
 			Want: []*apiv1.Cluster{
 				{
-					Uuid:    "1-2-3-4",
-					Name:    "a",
-					Project: "a",
-					Kubernetes: &apiv1.KubernetesSpec{
-						Version: "1.23.1",
-					},
-					Status: &apiv1.ClusterStatus{
-						State: "Processing",
-					},
-				},
-				{
 					Uuid:    "5-6-7-8",
 					Name:    "b",
 					Project: "a",
 					Kubernetes: &apiv1.KubernetesSpec{
 						Version: "1.23.1",
 					},
+					Workers: []*apiv1.Worker{
+						{
+							Name:        "b",
+							MachineType: "c1-large-x86",
+							Minsize:     1,
+							Maxsize:     3,
+						},
+					},
 					Status: &apiv1.ClusterStatus{
 						State: "Processing",
 					},
+					CreatedAt: timestamppb.New(time.Now().Add(-1 * time.Minute)),
+				},
+				{
+					Uuid:    "1-2-3-4",
+					Name:    "a",
+					Project: "a",
+					Kubernetes: &apiv1.KubernetesSpec{
+						Version: "1.23.1",
+					},
+					Workers: []*apiv1.Worker{
+						{
+							Name:        "a",
+							MachineType: "c1-large-x86",
+							Minsize:     4,
+							Maxsize:     7,
+						},
+					},
+					Status: &apiv1.ClusterStatus{
+						State: "Processing",
+					},
+					CreatedAt: timestamppb.New(time.Now().Add(-1 * time.Hour)),
 				},
 			},
 			WantTable: pointer.Pointer(`
-CLUSTERSTATUS   ID        NAME   PROJECT   KUBERNETESSPEC
-Processing      1-2-3-4   a      a         1.23.1
-Processing      5-6-7-8   b      a         1.23.1
+CLUSTERSTATUS   ID        NAME   PROJECT   KUBERNETES VERSION   NODES   UPTIME
+●               5-6-7-8   b      a         1.23.1               1 - 3   1 minute ago
+●               1-2-3-4   a      a         1.23.1               4 - 7   1 hour ago
 `),
 			WantWideTable: pointer.Pointer(`
-CLUSTERSTATUS   ID        NAME   PROJECT   KUBERNETESSPEC
-Processing      1-2-3-4   a      a         1.23.1
-Processing      5-6-7-8   b      a         1.23.1			
+CLUSTERSTATUS   ID        NAME   PROJECT   KUBERNETES VERSION   NODES   UPTIME
+●               5-6-7-8   b      a         1.23.1               1 - 3   1 minute ago
+●               1-2-3-4   a      a         1.23.1               4 - 7   1 hour ago
 `),
-			Template: pointer.Pointer("{{ .uuid }} {{ .name }} {{ .project }}"), //TODO How to work with status and kubernetes version here?
-			WantTemplate: pointer.Pointer(`
-1-2-3-4 a a
-5-6-7-8 b a
-`),
+			// 			Template: pointer.Pointer("{{ .status.state }} {{ .uuid }} {{ .name }} {{ .project }} {{ .kubernetes.version }} {{ .workers[0].minsize - .workers[0].maxsize}}"), // TODO How to do min and max size?
+			// 			WantTemplate: pointer.Pointer(`
+			// Processing 1-2-3-4 a a 1.23.1 4 - 7
+			// Processing 5-6-7-8 b a 1.23.1 1 - 3
+			// `),
 			WantMarkdown: pointer.Pointer(`
-| CLUSTERSTATUS |   ID    | NAME | PROJECT | KUBERNETESSPEC |
-|---------------|---------|------|---------|----------------|
-| Processing    | 1-2-3-4 | a    | a       | 1.23.1         |
-| Processing    | 5-6-7-8 | b    | a       | 1.23.1         |
+| CLUSTERSTATUS |   ID    | NAME | PROJECT | KUBERNETES VERSION | NODES |    UPTIME    |
+|---------------|---------|------|---------|--------------------|-------|--------------|
+| ●             | 5-6-7-8 | b    | a       | 1.23.1             | 1 - 3 | 1 minute ago |
+| ●             | 1-2-3-4 | a    | a       | 1.23.1             | 4 - 7 | 1 hour ago   |
 `),
 		},
 	}
@@ -183,8 +219,8 @@ func Test_ClusterCmd_SingleResult(t *testing.T) {
 			},
 			// TODO What is the problem with the tables?
 			// 			WantTable: pointer.Pointer(`
-			// CLUSTERSTATUS   ID        NAME     PROJECT   KUBERNETESSPEC
-			// Processing      1-2-3-4   name-a   proj-a    1.23.1
+			// CLUSTERSTATUS   ID        NAME     PROJECT   KUBERNETES VERSION
+			// ●               1-2-3-4   name-a   proj-a    1.23.1
 			// `),
 			// 			WantWideTable: pointer.Pointer(`
 			// CLUSTERSTATUS   ID        NAME   PROJECT   KUBERNETESSPEC
@@ -433,3 +469,5 @@ func Test_ClusterCmd_SingleResult(t *testing.T) {
 		tt.TestCmd(t)
 	}
 }
+
+// package cmd
