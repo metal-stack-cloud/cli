@@ -7,6 +7,7 @@ import (
 	"github.com/bufbuild/connect-go"
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
 	"github.com/metal-stack-cloud/cli/cmd/config"
+	"github.com/metal-stack-cloud/cli/cmd/sorters"
 	"github.com/metal-stack/metal-lib/pkg/genericcli"
 	"github.com/metal-stack/metal-lib/pkg/genericcli/printers"
 	"github.com/spf13/cobra"
@@ -25,12 +26,12 @@ func NewClusterCmd(c *config.Config) *cobra.Command {
 	}
 
 	cmdsConfig := &genericcli.CmdsConfig[*connect.Request[apiv1.ClusterServiceCreateRequest], *apiv1.Cluster, *apiv1.Cluster]{
-		BinaryName:  config.BinaryName,
-		GenericCLI:  genericcli.NewGenericCLI[*connect.Request[apiv1.ClusterServiceCreateRequest], *apiv1.Cluster, *apiv1.Cluster](w).WithFS(c.Fs),
-		Singular:    "cluster",
-		Plural:      "clusters",
-		Description: "a cluster of metal-stack cloud",
-		// Sorter: sorters., TODO implement sorter
+		BinaryName:      config.BinaryName,
+		GenericCLI:      genericcli.NewGenericCLI[*connect.Request[apiv1.ClusterServiceCreateRequest], *apiv1.Cluster, *apiv1.Cluster](w).WithFS(c.Fs),
+		Singular:        "cluster",
+		Plural:          "clusters",
+		Description:     "a cluster of metal-stack cloud",
+		Sorter:          sorters.ClusterSorter(),
 		DescribePrinter: func() printers.Printer { return c.DescribePrinter },
 		ListPrinter:     func() printers.Printer { return c.ListPrinter },
 		ListCmdMutateFn: func(cmd *cobra.Command) {
@@ -161,9 +162,7 @@ func (c *cluster) Update(rq *apiv1.Cluster) (*apiv1.Cluster, error) {
 			Uuid:       rq.Uuid,
 			Project:    rq.Project,
 			Kubernetes: rq.Kubernetes,
-			Workers: []*apiv1.WorkerUpdate{
-				&apiv1.WorkerUpdate{},
-			},
+			Workers:    []*apiv1.WorkerUpdate{},
 		},
 	})
 	if err != nil {
