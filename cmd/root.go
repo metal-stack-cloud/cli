@@ -69,7 +69,7 @@ apitoken: "alongtoken"
 	rootCmd.PersistentFlags().Bool("force-color", false, "force colored output even without tty")
 	rootCmd.PersistentFlags().Bool("debug", false, "debug output")
 
-	rootCmd.PersistentFlags().String("api-url", "", "the url to the metal-stack cloud api")
+	rootCmd.PersistentFlags().String("api-url", "", "the url to the metalstack.cloud api")
 	rootCmd.PersistentFlags().String("api-token", "", "the token used for api requests")
 	rootCmd.PersistentFlags().String("api-ca-file", "", "the path to the ca file of the api server")
 
@@ -81,6 +81,7 @@ apitoken: "alongtoken"
 	rootCmd.AddCommand(apiv1.NewTokenCmd(c))
 	rootCmd.AddCommand(apiv1.NewIPCmd(c))
 	rootCmd.AddCommand(apiv1.NewClusterCmd(c))
+	rootCmd.AddCommand(apiv1.NewStorageCmd(c))
 
 	// Admin subcommand, hidden by default
 	rootCmd.AddCommand(adminv1.NewAdminCmd(c))
