@@ -58,12 +58,9 @@ $ bin/metal ip update --project <project-id> --uuid <ip-uuid>
 
 # update ip with file option
 #
-#
 # ip.yaml file:
 # project: <project-id>
 # uuid: <ip-uuid>
-#
-#
 
 $ bin/metal ip update -f <file-name>
 
@@ -131,8 +128,26 @@ or
 $ bin/metal cluster apply -f <file-name>
 
 # update a cluster
-# TODO
+$ bin/metal cluster update --project <project-id> --uuid <cluster-uuid> ...
 
 # update a cluster with file option
-# TODO
+
+# cluster.yaml file
+# name: <cluster-name>
+# project: <project-id>
+# kubernetes:
+#   version: <kubernetes-version>
+# workers:
+#   - name: <worker-name>
+#     machine_type: <machine-type>
+#     minsize: <min-worker>
+#     maxsize: <max-worker>
+# maintenance:
+#   timewindow:
+#     begin:
+#       seconds: <maintenance-begin>
+#     duration:
+#       seconds: <maintenance-duration>
+
+$ bin/metal cluster update -f <file-name>
 ```
