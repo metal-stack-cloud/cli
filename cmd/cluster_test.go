@@ -469,5 +469,3 @@ func Test_ClusterCmd_SingleResult(t *testing.T) {
 		tt.TestCmd(t)
 	}
 }
-
-// package cmd
