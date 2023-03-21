@@ -129,11 +129,11 @@ CLUSTERSTATUS   ID        NAME   PROJECT   KUBERNETES VERSION   NODES   UPTIME
 ●               5-6-7-8   b      a         1.23.1               1 - 3   1 minute ago
 ●               1-2-3-4   a      a         1.23.1               4 - 7   1 hour ago
 `),
-			// 			Template: pointer.Pointer("{{ .status.state }} {{ .uuid }} {{ .name }} {{ .project }} {{ .kubernetes.version }} {{ .workers[0].minsize - .workers[0].maxsize}}"), // TODO How to do min and max size?
-			// 			WantTemplate: pointer.Pointer(`
-			// Processing 1-2-3-4 a a 1.23.1 4 - 7
-			// Processing 5-6-7-8 b a 1.23.1 1 - 3
-			// `),
+			Template: pointer.Pointer("{{ .status.state }} {{ .uuid }} {{ .name }} {{ .project }} {{ .kubernetes.version }} {{range $index, $element := .workers}} {{.minsize}} - {{.maxsize}} {{end}}"),
+			WantTemplate: pointer.Pointer(`
+Processing 5-6-7-8 b a 1.23.1  1 - 3 
+Processing 1-2-3-4 a a 1.23.1  4 - 7
+`),
 			WantMarkdown: pointer.Pointer(`
 | CLUSTERSTATUS |   ID    | NAME | PROJECT | KUBERNETES VERSION | NODES |    UPTIME    |
 |---------------|---------|------|---------|--------------------|-------|--------------|
@@ -217,24 +217,23 @@ func Test_ClusterCmd_SingleResult(t *testing.T) {
 					State: "Processing",
 				},
 			},
-			// TODO What is the problem with the tables?
-			// 			WantTable: pointer.Pointer(`
-			// CLUSTERSTATUS   ID        NAME     PROJECT   KUBERNETES VERSION
-			// ●               1-2-3-4   name-a   proj-a    1.23.1
-			// `),
-			// 			WantWideTable: pointer.Pointer(`
-			// CLUSTERSTATUS   ID        NAME   PROJECT   KUBERNETESSPEC
-			// Processing      1-2-3-4   a      a         1.23.1
-			// `),
-			// 			Template: pointer.Pointer("{{ .uuid }} {{ .name }} {{ .project }}"), //TODO How to work with status and kubernetes version here?
-			// 			WantTemplate: pointer.Pointer(`
-			// 1-2-3-4 a a
-			// `),
-			// 			WantMarkdown: pointer.Pointer(`
-			// | CLUSTERSTATUS |   ID    | NAME | PROJECT | KUBERNETESSPEC |
-			// |---------------|---------|------|---------|----------------|
-			// | Processing    | 1-2-3-4 | a    | a       | 1.23.1         |
-			// `),
+			WantTable: pointer.Pointer(`
+CLUSTERSTATUS   ID        NAME     PROJECT   KUBERNETES VERSION   NODES   UPTIME           
+●               1-2-3-4   name-a   proj-a    1.23.1               1 - 3   a long while ago
+`),
+			WantWideTable: pointer.Pointer(`
+CLUSTERSTATUS   ID        NAME     PROJECT   KUBERNETES VERSION   NODES   UPTIME           
+●               1-2-3-4   name-a   proj-a    1.23.1               1 - 3   a long while ago
+`),
+			Template: pointer.Pointer("{{ .status.state }} {{ .uuid }} {{ .name }} {{ .project }} {{ .kubernetes.version }} {{range $index, $element := .workers}} {{.minsize}} - {{.maxsize}} {{end}}"),
+			WantTemplate: pointer.Pointer(`
+Processing 1-2-3-4 name-a proj-a 1.23.1  1 - 3
+`),
+			WantMarkdown: pointer.Pointer(`
+| CLUSTERSTATUS |   ID    |  NAME  | PROJECT | KUBERNETES VERSION | NODES |      UPTIME      |
+|---------------|---------|--------|---------|--------------------|-------|------------------|
+| ●             | 1-2-3-4 | name-a | proj-a  | 1.23.1             | 1 - 3 | a long while ago |
+`),
 		},
 		{
 			Name: "delete",

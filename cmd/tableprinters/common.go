@@ -39,8 +39,10 @@ func (t *TablePrinter) ToHeaderAndRows(data any, wide bool) ([]string, [][]strin
 		return t.CouponTable(pointer.WrapInSlice(d), wide)
 	case []*apiv1.Coupon:
 		return t.CouponTable(d, wide)
+	case *apiv1.Cluster:
+		return t.ClusterTable(pointer.WrapInSlice(d), wide)
 	case []*apiv1.Cluster:
-		return t.ClusterTable(d, wide) // TODO: How to add the WrapInSlice() option?
+		return t.ClusterTable(d, wide)
 	case *apiv1.Volume:
 		return t.VolumeTable(pointer.WrapInSlice(d), wide)
 	case []*apiv1.Volume:
