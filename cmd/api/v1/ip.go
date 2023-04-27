@@ -40,7 +40,6 @@ func NewIPCmd(c *config.Config) *cobra.Command {
 			cmd.Flags().StringP("description", "", "", "description of the ip")
 			cmd.Flags().StringSliceP("tags", "", nil, "tags to add to the ip")
 			cmd.Flags().BoolP("static", "", false, "make this ip static")
-			cmd.Flags().StringP("network", "", "", "network for this ip")
 		},
 		UpdateCmdMutateFn: func(cmd *cobra.Command) {
 			cmd.Flags().String("uuid", "", "uuid of the ip")
@@ -63,7 +62,6 @@ func NewIPCmd(c *config.Config) *cobra.Command {
 				Description: viper.GetString("description"),
 				Tags:        viper.GetStringSlice("tags"),
 				Static:      viper.GetBool("static"),
-				Network:     viper.GetString("network"),
 			}
 			return connect.NewRequest(ipar), nil
 		},
@@ -186,7 +184,6 @@ func ipResponseToCreate(r *apiv1.IP) *connect.Request[apiv1.IPServiceAllocateReq
 			Project:     r.Project,
 			Name:        r.Name,
 			Description: r.Description,
-			Network:     r.Network,
 			Tags:        r.Tags,
 			Static:      ipTypeToStatic(r.Type),
 		},
