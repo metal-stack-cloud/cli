@@ -11,6 +11,7 @@ import (
 	"github.com/metal-stack/metal-lib/pkg/genericcli"
 	"github.com/metal-stack/metal-lib/pkg/genericcli/printers"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 type cluster struct {
@@ -32,9 +33,36 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 		DescribePrinter: func() printers.Printer { return c.DescribePrinter },
 		ListPrinter:     func() printers.Printer { return c.ListPrinter },
 		OnlyCmds:        genericcli.OnlyCmds(genericcli.DescribeCmd, genericcli.ListCmd),
+
+		DescribeCmdMutateFn: func(cmd *cobra.Command) {
+			cmd.Flags().BoolP("machines", "", false, "show machines of a cluster")
+		},
 	}
-	return genericcli.NewCmds(cmdsConfig)
+
+	kubeconfigCmd := &cobra.Command{
+		Use:   "kubeconfig",
+		Short: "fetch kubeconfig of a cluster",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			id, err := genericcli.GetExactlyOneArg(args)
+			if err != nil {
+				return err
+			}
+			req := &adminv1.ClusterServiceCredentialsRequest{
+				Uuid: id,
+			}
+			resp, err := c.Adminv1Client.Cluster().Credentials(c.Ctx, connect.NewRequest(req))
+			if err != nil {
+				return fmt.Errorf("failed to get cluster credentials: %w", err)
+			}
+
+			fmt.Println(resp.Msg.Kubeconfig)
+			return nil
+		},
+	}
+	return genericcli.NewCmds(cmdsConfig, kubeconfigCmd)
 }
+
+// TODO: implement GetCredentials, Logs, Operate, firewall ssh, machine/firewall list
 
 // Create implements genericcli.CRUD
 func (c *cluster) Create(rq any) (*apiv1.Cluster, error) {
@@ -48,14 +76,27 @@ func (c *cluster) Delete(id string) (*apiv1.Cluster, error) {
 
 // Get implements genericcli.CRUD
 func (c *cluster) Get(id string) (*apiv1.Cluster, error) {
+	showMachines := viper.GetBool("machines")
 	req := &adminv1.ClusterServiceGetRequest{
-		Uuid: id,
+		Uuid:         id,
+		WithMachines: showMachines,
 	}
 	resp, err := c.c.Adminv1Client.Cluster().Get(c.c.Ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get clusters: %w", err)
 	}
-	return resp.Msg.Cluster, nil
+	// FIXME refactor to use a Machine TablePrinter
+	if showMachines {
+		fmt.Println("Machines")
+		fmt.Println()
+		for _, m := range resp.Msg.Machines {
+			fmt.Printf("%s: %s %s\n", m.Role, m.Uuid, m.Hostname)
+		}
+		fmt.Println()
+	}
+
+	c.c.ListPrinter.Print(resp.Msg.Cluster)
+	return nil, nil
 }
 
 // List implements genericcli.CRUD

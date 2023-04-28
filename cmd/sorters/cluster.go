@@ -13,5 +13,8 @@ func ClusterSorter() *multisort.Sorter[*apiv1.Cluster] {
 		"name": func(a, b *apiv1.Cluster, descending bool) multisort.CompareResult {
 			return multisort.Compare(a.Name, b.Name, descending)
 		},
-	}, multisort.Keys{{ID: "uptime", Descending: true}})
+		"project": func(a, b *apiv1.Cluster, descending bool) multisort.CompareResult {
+			return multisort.Compare(a.Project, b.Project, descending)
+		},
+	}, multisort.Keys{{ID: "project", Descending: true}})
 }
