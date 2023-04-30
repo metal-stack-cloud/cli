@@ -2,6 +2,7 @@ package tableprinters
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/dustin/go-humanize"
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
@@ -41,6 +42,27 @@ func (t *TablePrinter) ClusterTable(data []*apiv1.Cluster, wide bool) ([]string,
 
 		rows = append(rows, []string{
 			cluster.Uuid, cluster.Tenant, cluster.Project, cluster.Name, cluster.Kubernetes.Version, cluster.Kubernetes.Version, operation, progress, api, control, nodes, system, nodesRange, humanize.Time(cluster.CreatedAt.AsTime()), cluster.Purpose})
+	}
+
+	return header, rows, nil
+
+}
+
+func (t *TablePrinter) ClusterStatusLastErrorTable(data []*apiv1.ClusterStatusLastError, wide bool) ([]string, [][]string, error) {
+
+	var (
+		rows   [][]string
+		header = []string{"Time", "Description", "Codes", "Task"}
+	)
+
+	for _, e := range data {
+		rows = append(rows, []string{
+			e.LastUpdateTime.String(),
+			e.Description,
+			strings.Join(e.Codes, ","),
+			*e.TaskId,
+		},
+		)
 	}
 
 	return header, rows, nil

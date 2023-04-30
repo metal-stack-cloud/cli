@@ -60,6 +60,25 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 		},
 	}
 
+	logsCmd := &cobra.Command{
+		Use:   "logs",
+		Short: "fetch logs of a cluster",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			id, err := genericcli.GetExactlyOneArg(args)
+			if err != nil {
+				return err
+			}
+			req := &adminv1.ClusterServiceGetRequest{
+				Uuid: id,
+			}
+			resp, err := c.Adminv1Client.Cluster().Get(c.Ctx, connect.NewRequest(req))
+			if err != nil {
+				return fmt.Errorf("failed to get cluster logs: %w", err)
+			}
+			return c.ListPrinter.Print(resp.Msg.Cluster.Status.LastErrors)
+		},
+	}
+
 	reconcileCmd := &cobra.Command{
 		Use:   "reconcile",
 		Short: "reconcile a cluster",
@@ -94,7 +113,7 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 	reconcileCmd.Flags().Bool("maintain", false, "trigger cluster maintain reconciliation")
 	reconcileCmd.Flags().Bool("retry", false, "trigger cluster retry reconciliation")
 
-	return genericcli.NewCmds(cmdsConfig, kubeconfigCmd, reconcileCmd)
+	return genericcli.NewCmds(cmdsConfig, kubeconfigCmd, reconcileCmd, logsCmd)
 }
 
 // TODO: implement GetCredentials, Logs, Operate, firewall ssh, machine/firewall list
