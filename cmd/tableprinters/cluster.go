@@ -12,7 +12,7 @@ func (t *TablePrinter) ClusterTable(data []*apiv1.Cluster, wide bool) ([]string,
 	var (
 		rows [][]string
 		// header = []string{"ClusterStatus", "ID", "Name", "Project", "Kubernetes Version", "Nodes", "Uptime"}
-		header = []string{"UID", "Tenant", "Project", "Name", "Version", "Partition", "Operation", "Progress", "Api", "Control", "Nodes", "System", "Size", "Age"}
+		header = []string{"UID", "Tenant", "Project", "Name", "Version", "Partition", "Operation", "Progress", "Api", "Control", "Nodes", "System", "Size", "Age", "Purpose"}
 	)
 
 	for _, cluster := range data {
@@ -40,7 +40,7 @@ func (t *TablePrinter) ClusterTable(data []*apiv1.Cluster, wide bool) ([]string,
 		}
 
 		rows = append(rows, []string{
-			cluster.Uuid, cluster.Tenant, cluster.Project, cluster.Name, cluster.Kubernetes.Version, cluster.Kubernetes.Version, operation, progress, api, control, nodes, system, nodesRange, humanize.Time(cluster.CreatedAt.AsTime())})
+			cluster.Uuid, cluster.Tenant, cluster.Project, cluster.Name, cluster.Kubernetes.Version, cluster.Kubernetes.Version, operation, progress, api, control, nodes, system, nodesRange, humanize.Time(cluster.CreatedAt.AsTime()), cluster.Purpose})
 	}
 
 	return header, rows, nil

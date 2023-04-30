@@ -59,7 +59,42 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 			return nil
 		},
 	}
-	return genericcli.NewCmds(cmdsConfig, kubeconfigCmd)
+
+	reconcileCmd := &cobra.Command{
+		Use:   "reconcile",
+		Short: "reconcile a cluster",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			id, err := genericcli.GetExactlyOneArg(args)
+			if err != nil {
+				return err
+			}
+
+			operation := adminv1.Operate_OPERATE_RECONCILE
+			if viper.GetBool("maintain") {
+				operation = adminv1.Operate_OPERATE_MAINTAIN
+			}
+			if viper.GetBool("retry") {
+				operation = adminv1.Operate_OPERATE_RETRY
+			}
+
+			req := &adminv1.ClusterServiceOperateRequest{
+				Uuid:    id,
+				Operate: operation,
+			}
+			resp, err := c.Adminv1Client.Cluster().Operate(c.Ctx, connect.NewRequest(req))
+			if err != nil {
+				return fmt.Errorf("failed to reconcile cluster: %w", err)
+			}
+
+			return c.ListPrinter.Print(resp.Msg.Cluster)
+		},
+	}
+
+	reconcileCmd.Flags().Bool("reconcile", true, "trigger cluster reconciliation")
+	reconcileCmd.Flags().Bool("maintain", false, "trigger cluster maintain reconciliation")
+	reconcileCmd.Flags().Bool("retry", false, "trigger cluster retry reconciliation")
+
+	return genericcli.NewCmds(cmdsConfig, kubeconfigCmd, reconcileCmd)
 }
 
 // TODO: implement GetCredentials, Logs, Operate, firewall ssh, machine/firewall list
