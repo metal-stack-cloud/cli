@@ -7,10 +7,10 @@ import (
 	"time"
 
 	client "github.com/metal-stack-cloud/api/go/client"
-	adminv1client "github.com/metal-stack-cloud/api/go/client/admin/v1"
-	apiv1client "github.com/metal-stack-cloud/api/go/client/api/v1"
+
 	adminv1 "github.com/metal-stack-cloud/cli/cmd/admin/v1"
 	apiv1 "github.com/metal-stack-cloud/cli/cmd/api/v1"
+	"github.com/metal-stack-cloud/cli/cmd/completion"
 	"github.com/metal-stack-cloud/cli/cmd/config"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
@@ -22,9 +22,10 @@ import (
 
 func Execute() {
 	cfg := &config.Config{
-		Ctx: context.Background(),
-		Fs:  afero.NewOsFs(),
-		Out: os.Stdout,
+		Ctx:        context.Background(),
+		Fs:         afero.NewOsFs(),
+		Out:        os.Stdout,
+		Completion: &completion.Completion{},
 	}
 
 	cmd := NewRootCmd(cfg)
@@ -151,11 +152,15 @@ func initConfigWithViperCtx(c *config.Config) {
 		Debug:     viper.GetBool("debug"),
 	}
 
-	apiclient := apiv1client.New(ctx, dialConfig)
-	adminclient := adminv1client.New(ctx, dialConfig)
+	mc := client.New(dialConfig)
 
+	apiclient := mc.Apiv1()
+	adminclient := mc.Adminv1()
 	c.Apiv1Client = apiclient
 	c.Adminv1Client = adminclient
+	c.Completion.Adminv1Client = adminclient
+	c.Completion.Apiv1Client = apiclient
+	c.Completion.Ctx = ctx
 }
 
 func newLogger() *zap.SugaredLogger {

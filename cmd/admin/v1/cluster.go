@@ -2,6 +2,7 @@ package v1
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/bufbuild/connect-go"
 	adminv1 "github.com/metal-stack-cloud/api/go/admin/v1"
@@ -10,6 +11,7 @@ import (
 	"github.com/metal-stack-cloud/cli/cmd/sorters"
 	"github.com/metal-stack/metal-lib/pkg/genericcli"
 	"github.com/metal-stack/metal-lib/pkg/genericcli/printers"
+	"github.com/metal-stack/metal-lib/pkg/pointer"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -18,6 +20,11 @@ type cluster struct {
 	c *config.Config
 }
 
+func must(err error) {
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+}
 func newClusterCmd(c *config.Config) *cobra.Command {
 	w := &cluster{
 		c: c,
@@ -30,12 +37,19 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 		Plural:          "clusters",
 		Description:     "cluster related actions of metalstack.cloud",
 		Sorter:          sorters.ClusterSorter(),
+		ValidArgsFn:     c.Completion.ClusterListCompletion,
 		DescribePrinter: func() printers.Printer { return c.DescribePrinter },
 		ListPrinter:     func() printers.Printer { return c.ListPrinter },
 		OnlyCmds:        genericcli.OnlyCmds(genericcli.DescribeCmd, genericcli.ListCmd),
 
 		DescribeCmdMutateFn: func(cmd *cobra.Command) {
 			cmd.Flags().BoolP("machines", "", false, "show machines of a cluster")
+		},
+		ListCmdMutateFn: func(cmd *cobra.Command) {
+			cmd.Flags().StringP("purpose", "", "", "filter by purpose")
+			// must(cmd.RegisterFlagCompletionFunc("id", c.Completion.ClusterListCompletion))
+
+			must(cmd.RegisterFlagCompletionFunc("purpose", c.Completion.ClusterPurposeCompletion))
 		},
 	}
 
@@ -58,6 +72,7 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 			fmt.Println(resp.Msg.Kubeconfig)
 			return nil
 		},
+		ValidArgsFunction: c.Completion.ClusterListCompletion,
 	}
 
 	logsCmd := &cobra.Command{
@@ -116,7 +131,7 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 	return genericcli.NewCmds(cmdsConfig, kubeconfigCmd, reconcileCmd, logsCmd)
 }
 
-// TODO: implement GetCredentials, Logs, Operate, firewall ssh, machine/firewall list
+// TODO: implement firewall ssh, machine/firewall list
 
 // Create implements genericcli.CRUD
 func (c *cluster) Create(rq any) (*apiv1.Cluster, error) {
@@ -158,6 +173,11 @@ func (c *cluster) List() ([]*apiv1.Cluster, error) {
 	// FIXME implement filters and paging
 
 	req := &adminv1.ClusterServiceListRequest{}
+
+	if viper.IsSet("purpose") {
+		req.Purpose = pointer.Pointer(viper.GetString("purpose"))
+	}
+
 	resp, err := c.c.Adminv1Client.Cluster().List(c.c.Ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get clusters: %w", err)

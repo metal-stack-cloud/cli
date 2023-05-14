@@ -4,8 +4,8 @@ import (
 	"context"
 	"io"
 
-	adminv1client "github.com/metal-stack-cloud/api/go/client/admin/v1"
-	apiv1client "github.com/metal-stack-cloud/api/go/client/api/v1"
+	"github.com/metal-stack-cloud/api/go/client"
+	"github.com/metal-stack-cloud/cli/cmd/completion"
 	"github.com/metal-stack/metal-lib/pkg/genericcli/printers"
 	"github.com/spf13/afero"
 	"go.uber.org/zap"
@@ -22,10 +22,11 @@ const (
 type Config struct {
 	Fs              afero.Fs
 	Out             io.Writer
-	Apiv1Client     apiv1client.Client
-	Adminv1Client   adminv1client.Client
+	Apiv1Client     client.Apiv1
+	Adminv1Client   client.Adminv1
 	Ctx             context.Context
 	Log             *zap.SugaredLogger
 	ListPrinter     printers.Printer
 	DescribePrinter printers.Printer
+	Completion      *completion.Completion
 }
