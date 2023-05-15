@@ -43,7 +43,7 @@ func (t *TablePrinter) ClusterTable(data []*apiv1.Cluster, wide bool) ([]string,
 		purpose := pointer.SafeDeref(cluster.Purpose)
 
 		rows = append(rows, []string{
-			cluster.Uuid, cluster.Tenant, cluster.Project, cluster.Name, cluster.Kubernetes.Version, cluster.Kubernetes.Version, operation, progress, api, control, nodes, system, nodesRange, humanize.Time(cluster.CreatedAt.AsTime()), purpose})
+			cluster.Uuid, cluster.Tenant, cluster.Project, cluster.Name, cluster.Kubernetes.Version, cluster.Partition, operation, progress, api, control, nodes, system, nodesRange, humanize.Time(cluster.CreatedAt.AsTime()), purpose})
 	}
 
 	return header, rows, nil
