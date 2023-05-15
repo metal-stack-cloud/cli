@@ -3,6 +3,7 @@ package v1
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/bufbuild/connect-go"
 	adminv1 "github.com/metal-stack-cloud/api/go/admin/v1"
@@ -14,6 +15,7 @@ import (
 	"github.com/metal-stack/metal-lib/pkg/pointer"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"google.golang.org/protobuf/types/known/durationpb"
 )
 
 type cluster struct {
@@ -61,9 +63,12 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 			if err != nil {
 				return err
 			}
+			expiration := viper.GetDuration("expiration")
 			req := &adminv1.ClusterServiceCredentialsRequest{
-				Uuid: id,
+				Uuid:       id,
+				Expiration: durationpb.New(expiration),
 			}
+
 			resp, err := c.Adminv1Client.Cluster().Credentials(c.Ctx, connect.NewRequest(req))
 			if err != nil {
 				return fmt.Errorf("failed to get cluster credentials: %w", err)
@@ -74,6 +79,7 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 		},
 		ValidArgsFunction: c.Completion.ClusterListCompletion,
 	}
+	kubeconfigCmd.Flags().DurationP("expiration", "", 8*time.Hour, "kubeconfig will expire after given time")
 
 	logsCmd := &cobra.Command{
 		Use:   "logs",
