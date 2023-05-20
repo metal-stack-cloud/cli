@@ -100,6 +100,27 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 		},
 	}
 
+	monitoringCmd := &cobra.Command{
+		Use:   "monitoring",
+		Short: "fetch monitoring details of a cluster",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			id, err := genericcli.GetExactlyOneArg(args)
+			if err != nil {
+				return err
+			}
+			req := &adminv1.ClusterServiceGetRequest{
+				Uuid: id,
+			}
+
+			resp, err := c.Adminv1Client.Cluster().Get(c.Ctx, connect.NewRequest(req))
+			if err != nil {
+				return fmt.Errorf("failed to get cluster monitoring: %w", err)
+			}
+			return c.DescribePrinter.Print(resp.Msg.Cluster.Monitoring)
+		},
+		ValidArgsFunction: c.Completion.ClusterListCompletion,
+	}
+
 	reconcileCmd := &cobra.Command{
 		Use:   "reconcile",
 		Short: "reconcile a cluster",
@@ -134,7 +155,7 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 	reconcileCmd.Flags().Bool("maintain", false, "trigger cluster maintain reconciliation")
 	reconcileCmd.Flags().Bool("retry", false, "trigger cluster retry reconciliation")
 
-	return genericcli.NewCmds(cmdsConfig, kubeconfigCmd, reconcileCmd, logsCmd)
+	return genericcli.NewCmds(cmdsConfig, kubeconfigCmd, reconcileCmd, logsCmd, monitoringCmd)
 }
 
 // TODO: implement firewall ssh, machine/firewall list
