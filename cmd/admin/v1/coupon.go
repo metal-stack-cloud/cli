@@ -62,13 +62,8 @@ func (c *coupon) List() ([]*apiv1.Coupon, error) {
 	return resp.Msg.Coupons, nil
 }
 
-// ToCreate implements genericcli.CRUD
-func (c *coupon) ToCreate(r *apiv1.Coupon) (any, error) {
-	panic("unimplemented")
-}
-
-// ToUpdate implements genericcli.CRUD
-func (c *coupon) ToUpdate(r *apiv1.Coupon) (any, error) {
+// Convert implements genericcli.CRUD
+func (c *coupon) Convert(r *apiv1.Coupon) (string, any, any, error) {
 	panic("unimplemented")
 }
 

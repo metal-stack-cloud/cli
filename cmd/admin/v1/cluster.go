@@ -212,13 +212,8 @@ func (c *cluster) List() ([]*apiv1.Cluster, error) {
 	return resp.Msg.Clusters, nil
 }
 
-// ToCreate implements genericcli.CRUD
-func (c *cluster) ToCreate(r *apiv1.Cluster) (any, error) {
-	panic("unimplemented")
-}
-
-// ToUpdate implements genericcli.CRUD
-func (c *cluster) ToUpdate(r *apiv1.Cluster) (any, error) {
+// Convert implements genericcli.CRUD
+func (c *cluster) Convert(r *apiv1.Cluster) (string, any, any, error) {
 	panic("unimplemented")
 }
 

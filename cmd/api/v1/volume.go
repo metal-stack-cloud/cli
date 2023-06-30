@@ -132,13 +132,8 @@ func (v *volume) List() ([]*apiv1.Volume, error) {
 	return resp.Msg.Volumes, nil
 }
 
-// ToCreate implements genericcli.CRUD
-func (v *volume) ToCreate(r *apiv1.Volume) (any, error) {
-	panic("unimplemented")
-}
-
-// ToUpdate implements genericcli.CRUD
-func (v *volume) ToUpdate(r *apiv1.Volume) (any, error) {
+// Convert implements genericcli.CRUD
+func (v *volume) Convert(r *apiv1.Volume) (string, any, any, error) {
 	panic("unimplemented")
 }
 

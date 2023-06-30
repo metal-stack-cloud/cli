@@ -103,13 +103,8 @@ func (s *snapshot) List() ([]*apiv1.Snapshot, error) {
 	return resp.Msg.Snapshots, nil
 }
 
-// ToCreate implements genericcli.CRUD
-func (s *snapshot) ToCreate(r *apiv1.Snapshot) (any, error) {
-	panic("unimplemented")
-}
-
-// ToUpdate implements genericcli.CRUD
-func (s *snapshot) ToUpdate(r *apiv1.Snapshot) (any, error) {
+// Convert implements genericcli.CRUD
+func (s *snapshot) Convert(r *apiv1.Snapshot) (string, any, any, error) {
 	panic("unimplemented")
 }
 
