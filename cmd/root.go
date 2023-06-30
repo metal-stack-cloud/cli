@@ -12,6 +12,7 @@ import (
 	adminv1 "github.com/metal-stack-cloud/cli/cmd/admin/v1"
 	apiv1 "github.com/metal-stack-cloud/cli/cmd/api/v1"
 	"github.com/metal-stack-cloud/cli/cmd/config"
+	"github.com/metal-stack-cloud/cli/cmd/plugins"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -27,9 +28,16 @@ func Execute() {
 		Out: os.Stdout,
 	}
 
-	cmd := NewRootCmd(cfg)
+	cmd, err := NewRootCmd(cfg)
+	if err != nil {
+		if viper.GetBool("debug") {
+			panic(err)
+		}
+		fmt.Printf("%+v\n", err)
+		os.Exit(1)
+	}
 
-	err := cmd.Execute()
+	err = cmd.Execute()
 	if err != nil {
 		if viper.GetBool("debug") {
 			panic(err)
@@ -39,7 +47,7 @@ func Execute() {
 	}
 }
 
-func NewRootCmd(c *config.Config) *cobra.Command {
+func NewRootCmd(c *config.Config) (*cobra.Command, error) {
 	rootCmd := &cobra.Command{
 		Use:          config.BinaryName,
 		Aliases:      []string{"m"},
@@ -85,7 +93,12 @@ apitoken: "alongtoken"
 	// Admin subcommand, hidden by default
 	rootCmd.AddCommand(adminv1.NewAdminCmd(c))
 
-	return rootCmd
+	err := plugins.AddPlugins(rootCmd)
+	if err != nil {
+		return nil, err
+	}
+
+	return rootCmd, nil
 }
 
 func must(err error) {

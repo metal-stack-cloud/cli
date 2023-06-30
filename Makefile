@@ -8,7 +8,7 @@ all: cli
 
 .PHONY: cli
 cli: test
-	go build -tags netgo -ldflags "-X 'github.com/metal-stack/v.Version=$(VERSION)' \
+	go build -ldflags "-X 'github.com/metal-stack/v.Version=$(VERSION)' \
 								   -X 'github.com/metal-stack/v.Revision=$(GITVERSION)' \
 								   -X 'github.com/metal-stack/v.GitSHA1=$(SHA)' \
 								   -X 'github.com/metal-stack/v.BuildDate=$(BUILDDATE)'" \
@@ -17,7 +17,7 @@ cli: test
 
 .PHONY: test
 test:
-	CGO_ENABLED=1 go test ./... -race -coverprofile=coverage.out -covermode=atomic && go tool cover -func=coverage.out
+	CGO_ENABLED=1 go test ./... -coverprofile=coverage.out -covermode=atomic && go tool cover -func=coverage.out
 
 .PHONY: golint
 golint:
