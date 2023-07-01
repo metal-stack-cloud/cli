@@ -33,7 +33,6 @@ func AddPlugins(cmd *cobra.Command) error {
 
 	err = filepath.WalkDir(pluginDir, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
-			fmt.Printf("prevent panic by handling failure accessing a path %q: %v\n", path, err)
 			return err
 		}
 
