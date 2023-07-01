@@ -23,7 +23,7 @@ func AddPlugins(cmd *cobra.Command) error {
 		return err
 	}
 
-	pluginDir := path.Join(h, "."+config.ConfigDir, "plugins")
+	pluginDir := path.Join(h, "."+config.ConfigDir, config.PluginDir)
 	if _, err := os.Stat(pluginDir); err != nil {
 		if os.IsNotExist(err) {
 			// no plugins
@@ -37,17 +37,19 @@ func AddPlugins(cmd *cobra.Command) error {
 			return err
 		}
 
-		if strings.HasSuffix(d.Name(), "-plugin.so") {
-			cmdName, _, _ := strings.Cut(d.Name(), "-plugin.so")
-			cmdName = cases.Title(language.English).String(cmdName)
-			fmt.Printf("adding plugin from path:%q name:%q\n", path, cmdName)
-
-			pluginCmd, err := getCmd(path, cmdName)
-			if err != nil {
-				return fmt.Errorf("unable to load plugin %q error %w", path, err)
-			}
-			cmd.AddCommand(pluginCmd)
+		if !strings.HasSuffix(d.Name(), config.PluginSuffix) {
+			return nil
 		}
+
+		cmdName, _, _ := strings.Cut(d.Name(), config.PluginSuffix)
+		cmdName = cases.Title(language.English).String(cmdName)
+		fmt.Printf("adding plugin from path:%q name:%q\n", path, cmdName)
+
+		pluginCmd, err := getCmd(path, cmdName)
+		if err != nil {
+			return fmt.Errorf("unable to load plugin %q error %w", path, err)
+		}
+		cmd.AddCommand(pluginCmd)
 		return nil
 	})
 
