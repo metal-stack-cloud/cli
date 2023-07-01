@@ -16,17 +16,55 @@ import (
 	"github.com/spf13/cobra"
 )
 
+func NewPluginCommand() *cobra.Command {
+	pluginCmd := &cobra.Command{
+		Use:   "plugin",
+		Short: "print the configured plugins",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			ps, err := getPlugins(nil)
+			if err != nil {
+				return err
+			}
+			for _, p := range ps {
+				fmt.Printf("%s:%q version: %q\n", p.name, p.path, p.version)
+			}
+			return nil
+		},
+	}
+	return pluginCmd
+}
+
 func AddPlugins(cmd *cobra.Command, cfg *config.Config) error {
-	h, err := os.UserHomeDir()
+	ps, err := getPlugins(cfg)
 	if err != nil {
 		return err
+	}
+	for _, p := range ps {
+		cmd.AddCommand(p.command)
+	}
+	return nil
+}
+
+type cliplugin struct {
+	name    string
+	command *cobra.Command
+	path    string
+	version string
+}
+
+func getPlugins(cfg *config.Config) ([]cliplugin, error) {
+	var ps []cliplugin
+
+	h, err := os.UserHomeDir()
+	if err != nil {
+		return ps, err
 	}
 
 	pluginDir := path.Join(h, "."+config.ConfigDir, config.PluginDir)
 	if _, err := os.Stat(pluginDir); err != nil {
 		if os.IsNotExist(err) {
 			// no plugins
-			return nil
+			return ps, nil
 		}
 	}
 
@@ -41,33 +79,46 @@ func AddPlugins(cmd *cobra.Command, cfg *config.Config) error {
 
 		cmdName, _, _ := strings.Cut(d.Name(), config.PluginSuffix)
 		cmdName = cases.Title(language.English).String(cmdName)
-		fmt.Printf("adding plugin from path:%q name:%q\n", path, cmdName)
 
-		pluginCmd, err := getCmd(path, cmdName, cfg)
+		pluginCmd, version, err := getCmd(path, cmdName, cfg)
 		if err != nil {
 			return fmt.Errorf("unable to load plugin %q error %w", path, err)
 		}
-		cmd.AddCommand(pluginCmd)
+		ps = append(ps, cliplugin{
+			name:    cmdName,
+			command: pluginCmd,
+			path:    path,
+			version: version,
+		})
 		return nil
 	})
 
-	return err
+	return ps, err
 }
 
-func getCmd(pluginPath, cmdName string, cfg *config.Config) (*cobra.Command, error) {
+func getCmd(pluginPath, cmdName string, cfg *config.Config) (*cobra.Command, string, error) {
 	p, err := plugin.Open(pluginPath)
 	if err != nil {
-		return nil, err
+		return nil, "unknown", err
 	}
 	b, err := p.Lookup(cmdName)
 	if err != nil {
-		return nil, err
+		return nil, "unknown", err
 	}
 	c, err := p.Lookup("Config")
 	if err != nil {
-		return nil, err
+		return nil, "unknown", err
 	}
-	*c.(*config.Config) = *cfg
+	if cfg != nil {
+		*c.(*config.Config) = *cfg
+	}
 
-	return *b.(**cobra.Command), nil
+	v, err := p.Lookup("V")
+	if err != nil {
+		return nil, "unknown", err
+	}
+
+	version := *v.(*string)
+
+	return *b.(**cobra.Command), version, nil
 }

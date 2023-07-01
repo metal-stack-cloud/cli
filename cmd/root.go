@@ -78,6 +78,8 @@ apitoken: "alongtoken"
 
 	apiv1.AddCmds(rootCmd, c)
 
+	rootCmd.AddCommand(plugins.NewPluginCommand())
+
 	// Read Config again to have it initialized for the Plugins
 	must(readConfigFile())
 	initConfigWithViperCtx(c)
