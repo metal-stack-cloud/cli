@@ -59,7 +59,7 @@ func (c *Test[R]) TestCmd(t *testing.T) {
 	if c.WantErr != nil {
 		_, _, conf := c.newMockConfig(t)
 
-		cmd := NewRootCmd(conf)
+		cmd := newRootCmd(conf)
 		os.Args = append([]string{config.BinaryName}, c.Cmd(c.Want)...)
 
 		err := cmd.Execute()
@@ -73,7 +73,7 @@ func (c *Test[R]) TestCmd(t *testing.T) {
 		t.Run(fmt.Sprintf("%v", format.Args()), func(t *testing.T) {
 			_, out, conf := c.newMockConfig(t)
 
-			cmd := NewRootCmd(conf)
+			cmd := newRootCmd(conf)
 			os.Args = append([]string{config.BinaryName}, c.Cmd(c.Want)...)
 			os.Args = append(os.Args, format.Args()...)
 
@@ -123,7 +123,7 @@ func AssertExhaustiveArgs(t *testing.T, args []string, exclude ...string) {
 		return fmt.Errorf("not exhaustive: does not contain " + prefix)
 	}
 
-	root := NewRootCmd(&config.Config{})
+	root := newRootCmd(&config.Config{})
 	cmd, args, err := root.Find(args)
 	require.NoError(t, err)
 

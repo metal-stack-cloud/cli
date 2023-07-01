@@ -8,7 +8,6 @@ import (
 
 	client "github.com/metal-stack-cloud/api/go/client"
 
-	adminv1 "github.com/metal-stack-cloud/cli/cmd/admin/v1"
 	apiv1 "github.com/metal-stack-cloud/cli/cmd/api/v1"
 	"github.com/metal-stack-cloud/cli/cmd/completion"
 	"github.com/metal-stack-cloud/cli/cmd/config"
@@ -29,7 +28,7 @@ func Execute() {
 		Completion: &completion.Completion{},
 	}
 
-	cmd := NewRootCmd(cfg)
+	cmd := newRootCmd(cfg)
 
 	err := cmd.Execute()
 	if err != nil {
@@ -41,7 +40,7 @@ func Execute() {
 	}
 }
 
-func NewRootCmd(c *config.Config) *cobra.Command {
+func newRootCmd(c *config.Config) *cobra.Command {
 	rootCmd := &cobra.Command{
 		Use:          config.BinaryName,
 		Aliases:      []string{"m"},
@@ -79,10 +78,12 @@ apitoken: "alongtoken"
 
 	apiv1.AddCmds(rootCmd, c)
 
-	// Admin subcommand, hidden by default
-	// FIXME should be replaced by the plugin mechanism
-	plugins.AddPlugins(rootCmd)
-	rootCmd.AddCommand(adminv1.NewAdminCmd(c))
+	// Read Config again to have it initialized for the Plugins
+	must(readConfigFile())
+	initConfigWithViperCtx(c)
+
+	// Register Plugins
+	plugins.AddPlugins(rootCmd, c)
 
 	return rootCmd
 }

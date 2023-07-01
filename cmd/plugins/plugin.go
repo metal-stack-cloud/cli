@@ -16,8 +16,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func AddPlugins(cmd *cobra.Command) error {
-	// rootCmd.AddCommand(getCmd("/home/stefan/dev/github.com/metal-stack-cloud/cli-plugin/cli-plugin.so", "MainCmd"))
+func AddPlugins(cmd *cobra.Command, cfg *config.Config) error {
 	h, err := os.UserHomeDir()
 	if err != nil {
 		return err
@@ -44,7 +43,7 @@ func AddPlugins(cmd *cobra.Command) error {
 		cmdName = cases.Title(language.English).String(cmdName)
 		fmt.Printf("adding plugin from path:%q name:%q\n", path, cmdName)
 
-		pluginCmd, err := getCmd(path, cmdName)
+		pluginCmd, err := getCmd(path, cmdName, cfg)
 		if err != nil {
 			return fmt.Errorf("unable to load plugin %q error %w", path, err)
 		}
@@ -55,7 +54,7 @@ func AddPlugins(cmd *cobra.Command) error {
 	return err
 }
 
-func getCmd(pluginPath, cmdName string) (*cobra.Command, error) {
+func getCmd(pluginPath, cmdName string, cfg *config.Config) (*cobra.Command, error) {
 	p, err := plugin.Open(pluginPath)
 	if err != nil {
 		return nil, err
@@ -64,9 +63,11 @@ func getCmd(pluginPath, cmdName string) (*cobra.Command, error) {
 	if err != nil {
 		return nil, err
 	}
-	f, err := p.Lookup("Init" + cmdName)
-	if err == nil {
-		f.(func())()
+	c, err := p.Lookup("Config")
+	if err != nil {
+		return nil, err
 	}
+	*c.(*config.Config) = *cfg
+
 	return *b.(**cobra.Command), nil
 }
