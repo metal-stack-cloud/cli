@@ -25,6 +25,9 @@ func NewPluginCommand() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			if len(ps) < 1 {
+				fmt.Println("no plugins available")
+			}
 			for _, p := range ps {
 				fmt.Printf("%s:%q version: %q\n", p.name, p.path, p.version)
 			}
