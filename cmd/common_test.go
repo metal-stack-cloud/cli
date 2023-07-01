@@ -105,10 +105,10 @@ func (c *Test[R]) newMockConfig(t *testing.T) (any, *bytes.Buffer, *config.Confi
 		}
 	)
 
-	if c.DisableMockClient {
-		// config.Apiv1Client = nil
-		// config.Adminv1Client = nil
-	}
+	// if c.DisableMockClient {
+	// config.Apiv1Client = nil
+	// config.Adminv1Client = nil
+	// }
 
 	return nil, &out, config
 }

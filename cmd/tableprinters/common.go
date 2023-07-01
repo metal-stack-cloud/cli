@@ -9,10 +9,6 @@ import (
 	"github.com/metal-stack/metal-lib/pkg/pointer"
 )
 
-const (
-	dot = "●"
-)
-
 type TablePrinter struct {
 	t *printers.TablePrinter
 }

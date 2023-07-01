@@ -83,7 +83,7 @@ apitoken: "alongtoken"
 	initConfigWithViperCtx(c)
 
 	// Register Plugins
-	plugins.AddPlugins(rootCmd, c)
+	must(plugins.AddPlugins(rootCmd, c))
 
 	return rootCmd
 }
