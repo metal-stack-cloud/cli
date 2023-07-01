@@ -9,7 +9,7 @@ require (
 	github.com/fatih/color v1.15.0
 	github.com/go-openapi/strfmt v0.21.7
 	github.com/google/go-cmp v0.5.9
-	github.com/metal-stack-cloud/api v0.5.11
+	github.com/metal-stack-cloud/api v0.5.12-0.20230701071052-57a9b5a49487
 	github.com/metal-stack/metal-lib v0.12.3
 	github.com/metal-stack/v v1.0.3
 	github.com/spf13/afero v1.9.5
@@ -20,6 +20,7 @@ require (
 	go.uber.org/zap v1.24.0
 	golang.org/x/exp v0.0.0-20230626212559-97b1e661b5df
 	golang.org/x/net v0.11.0
+	golang.org/x/text v0.10.0
 	google.golang.org/protobuf v1.31.0
 	k8s.io/api v0.27.3
 	k8s.io/apimachinery v0.27.3
@@ -73,7 +74,6 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.10.0 // indirect
 	golang.org/x/sys v0.9.0 // indirect
-	golang.org/x/text v0.10.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect

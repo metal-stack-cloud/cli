@@ -57,7 +57,7 @@ func newTenantCmd(c *config.Config) *cobra.Command {
 			if viper.IsSet("coupon-id") {
 				req.CouponId = pointer.Pointer(viper.GetString("coupon-id"))
 			}
-			resp, err := c.Adminv1Client.Tenant().Admit(c.Ctx, connect.NewRequest(req))
+			resp, err := c.Client.Adminv1().Tenant().Admit(c.Ctx, connect.NewRequest(req))
 			if err != nil {
 				return fmt.Errorf("failed to admit tenant: %w", err)
 			}
@@ -79,7 +79,7 @@ func newTenantCmd(c *config.Config) *cobra.Command {
 			req := &adminv1.TenantServiceRevokeRequest{
 				TenantId: id,
 			}
-			resp, err := c.Adminv1Client.Tenant().Revoke(c.Ctx, connect.NewRequest(req))
+			resp, err := c.Client.Adminv1().Tenant().Revoke(c.Ctx, connect.NewRequest(req))
 			if err != nil {
 				return fmt.Errorf("failed to revoke tenant: %w", err)
 			}
@@ -128,7 +128,7 @@ func (c *tenant) List() ([]*apiv1.Tenant, error) {
 	if viper.IsSet("email") {
 		return nil, fmt.Errorf("unimplemented filter by provider")
 	}
-	resp, err := c.c.Adminv1Client.Tenant().List(c.c.Ctx, connect.NewRequest(req))
+	resp, err := c.c.Client.Adminv1().Tenant().List(c.c.Ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get tenants: %w", err)
 	}

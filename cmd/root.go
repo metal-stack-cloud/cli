@@ -12,6 +12,7 @@ import (
 	apiv1 "github.com/metal-stack-cloud/cli/cmd/api/v1"
 	"github.com/metal-stack-cloud/cli/cmd/completion"
 	"github.com/metal-stack-cloud/cli/cmd/config"
+	"github.com/metal-stack-cloud/cli/cmd/plugins"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -76,14 +77,11 @@ apitoken: "alongtoken"
 
 	must(viper.BindPFlags(rootCmd.PersistentFlags()))
 
-	rootCmd.AddCommand(apiv1.NewVersionCmd(c))
-	rootCmd.AddCommand(apiv1.NewHealthCmd(c))
-	rootCmd.AddCommand(apiv1.NewAssetCmd(c))
-	rootCmd.AddCommand(apiv1.NewTokenCmd(c))
-	rootCmd.AddCommand(apiv1.NewIPCmd(c))
-	rootCmd.AddCommand(apiv1.NewStorageCmd(c))
+	apiv1.AddCmds(rootCmd, c)
 
 	// Admin subcommand, hidden by default
+	// FIXME should be replaced by the plugin mechanism
+	plugins.AddPlugins(rootCmd)
 	rootCmd.AddCommand(adminv1.NewAdminCmd(c))
 
 	return rootCmd
@@ -137,7 +135,7 @@ func initConfigWithViperCtx(c *config.Config) {
 	c.ListPrinter = newPrinterFromCLI(c.Log, c.Out)
 	c.DescribePrinter = defaultToYAMLPrinter(c.Log, c.Out)
 
-	if c.Adminv1Client != nil && c.Apiv1Client != nil {
+	if c.Client != nil {
 		return
 	}
 
@@ -154,12 +152,8 @@ func initConfigWithViperCtx(c *config.Config) {
 
 	mc := client.New(dialConfig)
 
-	apiclient := mc.Apiv1()
-	adminclient := mc.Adminv1()
-	c.Apiv1Client = apiclient
-	c.Adminv1Client = adminclient
-	c.Completion.Adminv1Client = adminclient
-	c.Completion.Apiv1Client = apiclient
+	c.Client = mc
+	c.Completion.Client = mc
 	c.Completion.Ctx = ctx
 }
 

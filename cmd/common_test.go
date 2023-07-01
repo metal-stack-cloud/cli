@@ -15,6 +15,7 @@ import (
 	"github.com/go-openapi/strfmt"
 	"github.com/google/go-cmp/cmp"
 	apitests "github.com/metal-stack-cloud/api/go/tests"
+	"github.com/metal-stack-cloud/cli/cmd/completion"
 	"github.com/metal-stack-cloud/cli/cmd/config"
 	"github.com/metal-stack/metal-lib/pkg/pointer"
 	"github.com/metal-stack/metal-lib/pkg/testcommon"
@@ -85,7 +86,7 @@ func (c *Test[R]) TestCmd(t *testing.T) {
 }
 
 func (c *Test[R]) newMockConfig(t *testing.T) (any, *bytes.Buffer, *config.Config) {
-	mock := apitests.New(t)
+	// mock := apitests.New(t)
 
 	fs := afero.NewMemMapFs()
 	if c.FsMocks != nil {
@@ -95,17 +96,18 @@ func (c *Test[R]) newMockConfig(t *testing.T) (any, *bytes.Buffer, *config.Confi
 	var (
 		out    bytes.Buffer
 		config = &config.Config{
-			Fs:            fs,
-			Out:           &out,
-			Log:           zaptest.NewLogger(t).Sugar(),
-			Apiv1Client:   mock.Apiv1(c.APIMocks),
-			Adminv1Client: mock.Adminv1(c.AdminMocks),
+			Fs:         fs,
+			Out:        &out,
+			Log:        zaptest.NewLogger(t).Sugar(),
+			Completion: &completion.Completion{},
+			// Apiv1Client:   mock.Apiv1(c.APIMocks),
+			// Adminv1Client: mock.Adminv1(c.AdminMocks),
 		}
 	)
 
 	if c.DisableMockClient {
-		config.Apiv1Client = nil
-		config.Adminv1Client = nil
+		// config.Apiv1Client = nil
+		// config.Adminv1Client = nil
 	}
 
 	return nil, &out, config

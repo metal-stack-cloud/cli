@@ -90,7 +90,7 @@ func (v *volume) Delete(id string) (*apiv1.Volume, error) {
 		Uuid:    id,
 		Project: viper.GetString("project"),
 	}
-	resp, err := v.c.Apiv1Client.Volume().Delete(v.c.Ctx, connect.NewRequest(req))
+	resp, err := v.c.Client.Apiv1().Volume().Delete(v.c.Ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to delete volumes: %w", err)
 	}
@@ -103,7 +103,7 @@ func (v *volume) Get(id string) (*apiv1.Volume, error) {
 		Uuid:    id,
 		Project: viper.GetString("project"),
 	}
-	resp, err := v.c.Apiv1Client.Volume().Get(v.c.Ctx, connect.NewRequest(req))
+	resp, err := v.c.Client.Apiv1().Volume().Get(v.c.Ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get volumes: %w", err)
 	}
@@ -125,7 +125,7 @@ func (v *volume) List() ([]*apiv1.Volume, error) {
 	if viper.IsSet("partition") {
 		req.Partition = pointer.Pointer(viper.GetString("partition"))
 	}
-	resp, err := v.c.Apiv1Client.Volume().List(v.c.Ctx, connect.NewRequest(req))
+	resp, err := v.c.Client.Apiv1().Volume().List(v.c.Ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get volumes: %w", err)
 	}

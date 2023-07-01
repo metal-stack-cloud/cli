@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func NewTokenCmd(c *config.Config) *cobra.Command {
+func newTokenCmd(c *config.Config) *cobra.Command {
 	tokenCmd := &cobra.Command{
 		Use:   "token",
 		Short: "token commands",
@@ -26,7 +26,7 @@ func NewTokenCmd(c *config.Config) *cobra.Command {
 					},
 				},
 			}
-			resp, err := c.Apiv1Client.Token().Create(c.Ctx, connect.NewRequest(tcr))
+			resp, err := c.Client.Apiv1().Token().Create(c.Ctx, connect.NewRequest(tcr))
 			if err != nil {
 				return err
 			}

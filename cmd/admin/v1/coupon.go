@@ -55,7 +55,7 @@ func (c *coupon) List() ([]*apiv1.Coupon, error) {
 	// FIXME implement filters and paging
 
 	req := &adminv1.PaymentServiceListCouponsRequest{}
-	resp, err := c.c.Adminv1Client.Payment().ListCoupons(c.c.Ctx, connect.NewRequest(req))
+	resp, err := c.c.Client.Adminv1().Payment().ListCoupons(c.c.Ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get coupons: %w", err)
 	}

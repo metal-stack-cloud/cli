@@ -9,13 +9,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func NewHealthCmd(c *config.Config) *cobra.Command {
+func newHealthCmd(c *config.Config) *cobra.Command {
 	healthCmd := &cobra.Command{
 		Use:   "health",
 		Short: "print the client and server health information",
 		Long:  "print the client and server health information",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			resp, err := c.Apiv1Client.Health().Get(c.Ctx, connect.NewRequest(&v1.HealthServiceGetRequest{}))
+			resp, err := c.Client.Apiv1().Health().Get(c.Ctx, connect.NewRequest(&v1.HealthServiceGetRequest{}))
 			if err != nil {
 				return fmt.Errorf("failed to get health: %w", err)
 			}

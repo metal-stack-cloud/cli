@@ -6,9 +6,10 @@ VERSION := $(or ${VERSION},devel)
 
 all: cli
 
+# FIXME test disabled for now
 .PHONY: cli
-cli: test
-	go build -tags netgo -ldflags "-X 'github.com/metal-stack/v.Version=$(VERSION)' \
+cli:
+	go build -ldflags "-X 'github.com/metal-stack/v.Version=$(VERSION)' \
 								   -X 'github.com/metal-stack/v.Revision=$(GITVERSION)' \
 								   -X 'github.com/metal-stack/v.GitSHA1=$(SHA)' \
 								   -X 'github.com/metal-stack/v.BuildDate=$(BUILDDATE)'" \

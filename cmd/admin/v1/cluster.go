@@ -69,7 +69,7 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 				Expiration: durationpb.New(expiration),
 			}
 
-			resp, err := c.Adminv1Client.Cluster().Credentials(c.Ctx, connect.NewRequest(req))
+			resp, err := c.Client.Adminv1().Cluster().Credentials(c.Ctx, connect.NewRequest(req))
 			if err != nil {
 				return fmt.Errorf("failed to get cluster credentials: %w", err)
 			}
@@ -92,7 +92,7 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 			req := &adminv1.ClusterServiceGetRequest{
 				Uuid: id,
 			}
-			resp, err := c.Adminv1Client.Cluster().Get(c.Ctx, connect.NewRequest(req))
+			resp, err := c.Client.Adminv1().Cluster().Get(c.Ctx, connect.NewRequest(req))
 			if err != nil {
 				return fmt.Errorf("failed to get cluster logs: %w", err)
 			}
@@ -112,7 +112,7 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 				Uuid: id,
 			}
 
-			resp, err := c.Adminv1Client.Cluster().Get(c.Ctx, connect.NewRequest(req))
+			resp, err := c.Client.Adminv1().Cluster().Get(c.Ctx, connect.NewRequest(req))
 			if err != nil {
 				return fmt.Errorf("failed to get cluster monitoring: %w", err)
 			}
@@ -142,7 +142,7 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 				Uuid:    id,
 				Operate: operation,
 			}
-			resp, err := c.Adminv1Client.Cluster().Operate(c.Ctx, connect.NewRequest(req))
+			resp, err := c.Client.Adminv1().Cluster().Operate(c.Ctx, connect.NewRequest(req))
 			if err != nil {
 				return fmt.Errorf("failed to reconcile cluster: %w", err)
 			}
@@ -177,7 +177,7 @@ func (c *cluster) Get(id string) (*apiv1.Cluster, error) {
 		Uuid:         id,
 		WithMachines: showMachines,
 	}
-	resp, err := c.c.Adminv1Client.Cluster().Get(c.c.Ctx, connect.NewRequest(req))
+	resp, err := c.c.Client.Adminv1().Cluster().Get(c.c.Ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get clusters: %w", err)
 	}
@@ -205,7 +205,7 @@ func (c *cluster) List() ([]*apiv1.Cluster, error) {
 		req.Purpose = pointer.Pointer(viper.GetString("purpose"))
 	}
 
-	resp, err := c.c.Adminv1Client.Cluster().List(c.c.Ctx, connect.NewRequest(req))
+	resp, err := c.c.Client.Adminv1().Cluster().List(c.c.Ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get clusters: %w", err)
 	}

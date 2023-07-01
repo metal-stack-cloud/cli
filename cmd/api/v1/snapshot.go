@@ -61,7 +61,7 @@ func (s *snapshot) Delete(id string) (*apiv1.Snapshot, error) {
 		Uuid:    id,
 		Project: viper.GetString("project"),
 	}
-	resp, err := s.c.Apiv1Client.Snapshot().Delete(s.c.Ctx, connect.NewRequest(req))
+	resp, err := s.c.Client.Apiv1().Snapshot().Delete(s.c.Ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to delete snapshots: %w", err)
 	}
@@ -74,7 +74,7 @@ func (s *snapshot) Get(id string) (*apiv1.Snapshot, error) {
 		Uuid:    id,
 		Project: viper.GetString("project"),
 	}
-	resp, err := s.c.Apiv1Client.Snapshot().Get(s.c.Ctx, connect.NewRequest(req))
+	resp, err := s.c.Client.Apiv1().Snapshot().Get(s.c.Ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get snapshots: %w", err)
 	}
@@ -96,7 +96,7 @@ func (s *snapshot) List() ([]*apiv1.Snapshot, error) {
 	if viper.IsSet("partition") {
 		req.Partition = pointer.Pointer(viper.GetString("partition"))
 	}
-	resp, err := s.c.Apiv1Client.Snapshot().List(s.c.Ctx, connect.NewRequest(req))
+	resp, err := s.c.Client.Apiv1().Snapshot().List(s.c.Ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get snapshots: %w", err)
 	}

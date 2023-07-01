@@ -15,7 +15,7 @@ type version struct {
 	Server *v1.Version
 }
 
-func NewVersionCmd(c *config.Config) *cobra.Command {
+func newVersionCmd(c *config.Config) *cobra.Command {
 	versionCmd := &cobra.Command{
 		Use:   "version",
 		Short: "print the client and server version information",
@@ -25,7 +25,7 @@ func NewVersionCmd(c *config.Config) *cobra.Command {
 				Client: v.V.String(),
 			}
 
-			resp, err := c.Apiv1Client.Version().Get(c.Ctx, connect.NewRequest(&v1.VersionServiceGetRequest{}))
+			resp, err := c.Client.Apiv1().Version().Get(c.Ctx, connect.NewRequest(&v1.VersionServiceGetRequest{}))
 			if err == nil {
 				v.Server = resp.Msg.Version
 			}

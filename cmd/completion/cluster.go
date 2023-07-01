@@ -10,7 +10,7 @@ import (
 
 func (c *Completion) ClusterListCompletion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	req := &adminv1.ClusterServiceListRequest{}
-	resp, err := c.Adminv1Client.Cluster().List(c.Ctx, connect.NewRequest(req))
+	resp, err := c.Client.Adminv1().Cluster().List(c.Ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, cobra.ShellCompDirectiveError
 	}

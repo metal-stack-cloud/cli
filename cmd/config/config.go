@@ -16,14 +16,15 @@ const (
 	BinaryName = "metal"
 	// ConfigDir is the directory in either the homedir or in /etc where the cli searches for a file config.yaml
 	// also used as prefix for environment based configuration, e.g. METAL_STACK_CLOUD_ will be the variable prefix.
-	ConfigDir = "metal-stack-cloud"
+	ConfigDir    = "metal-stack-cloud"
+	PluginDir    = "plugins"
+	PluginSuffix = "-plugin.so"
 )
 
 type Config struct {
 	Fs              afero.Fs
 	Out             io.Writer
-	Apiv1Client     client.Apiv1
-	Adminv1Client   client.Adminv1
+	Client          client.Client
 	Ctx             context.Context
 	Log             *zap.SugaredLogger
 	ListPrinter     printers.Printer
