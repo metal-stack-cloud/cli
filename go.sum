@@ -184,8 +184,8 @@ github.com/jszwec/csvutil v1.8.0/go.mod h1:/E4ONrmGkwmWsk9ae9jpXnv9QT8pLHEPcCirM
 github.com/kisielk/errcheck v1.5.0/go.mod h1:pFxgyoBC7bSaBwPgfKdkLd5X25qrDl4LWUI2bnpBCr8=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
 github.com/klauspost/compress v1.13.6/go.mod h1:/3/Vjq9QcHkK5uEr5lBEmyoZ1iFhe47etQ6QUkpK6sk=
-github.com/klauspost/compress v1.16.6 h1:91SKEy4K37vkp255cJ8QesJhjyRO0hn9i9G0GoUwLsk=
-github.com/klauspost/compress v1.16.6/go.mod h1:ntbaceVETuRiXiv4DpjP66DpAtAGkEQskQzEyD//IeE=
+github.com/klauspost/compress v1.16.7 h1:2mk3MPGNzKyxErAw8YaohYh69+pa4sIQSC0fPGCFR9I=
+github.com/klauspost/compress v1.16.7/go.mod h1:ntbaceVETuRiXiv4DpjP66DpAtAGkEQskQzEyD//IeE=
 github.com/klauspost/connect-compress v1.0.0 h1:ta/pUrREWnlm9VzmNKDAyn09pQnEsQPta6No9gWmtb4=
 github.com/klauspost/connect-compress v1.0.0/go.mod h1:cATACCZtbGMcHcyqT3dqbJh6CDmyUNcE/sE2Qa6CVLw=
 github.com/kr/fs v0.1.0/go.mod h1:FFnZGqtBN9Gxj7eW1uZ42v5BccTP0vu6NEaFoC2HwRg=
@@ -205,8 +205,8 @@ github.com/mattn/go-isatty v0.0.19/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D
 github.com/mattn/go-runewidth v0.0.9/go.mod h1:H031xJmbD/WCDINGzjvQ9THkh0rPKHF+m2gUSrubnMI=
 github.com/mattn/go-runewidth v0.0.14 h1:+xnbZSEeDbOIg5/mE6JF0w6n9duR1l3/WmbinWVwUuU=
 github.com/mattn/go-runewidth v0.0.14/go.mod h1:Jdepj2loyihRzMpdS35Xk/zdY8IAYHsh153qUoGf23w=
-github.com/metal-stack-cloud/api v0.5.12-0.20230701071052-57a9b5a49487 h1:pqBrm4tmFbeXduZBmkyl+/ca78QMDsQpuawK8R+LVJs=
-github.com/metal-stack-cloud/api v0.5.12-0.20230701071052-57a9b5a49487/go.mod h1:/zSm2uzbIZwm0lrvlg/vmaUPWGWfZ5ANMWs9lgi2NV4=
+github.com/metal-stack-cloud/api v0.5.12 h1:J3RU4VDxbGRxxJxK+Be3eJb9v6S3xrgl/Uv+AXCCPbg=
+github.com/metal-stack-cloud/api v0.5.12/go.mod h1:1U+AGPhdV2fSoBLrjJkFyi1a84Q2lnOt16GjUCQbUng=
 github.com/metal-stack/metal-lib v0.12.3 h1:IsurXFoLpgJ/9GG3zsAYmk72tukcJSw40UvPYI47rEI=
 github.com/metal-stack/metal-lib v0.12.3/go.mod h1:j9I8YAqxS8AFZ6z0T113hlwy2MHpb0ExQsGhi6zlteI=
 github.com/metal-stack/v v1.0.3 h1:Sh2oBlnxrCUD+mVpzfC8HiqL045YWkxs0gpTvkjppqs=

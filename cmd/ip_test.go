@@ -22,34 +22,36 @@ func Test_IPCmd_MultiResult(t *testing.T) {
 			Cmd: func(want []*apiv1.IP) []string {
 				return []string{"ip", "list", "--project", "a"}
 			},
-			APIMocks: &apitests.Apiv1MockFns{
-				IP: func(m *mock.Mock) {
-					m.On("List", mock.Anything, connect.NewRequest(&apiv1.IPServiceListRequest{
-						Project: "a",
-					})).Return(&connect.Response[apiv1.IPServiceListResponse]{
-						Msg: &apiv1.IPServiceListResponse{
-							Ips: []*apiv1.IP{
-								{
-									Uuid:        "uuid",
-									Ip:          "4.3.2.1",
-									Name:        "b",
-									Description: "b description",
-									Project:     "b",
-									Type:        apiv1.IPType_IP_TYPE_EPHEMERAL,
-									Tags:        []string{"a=b"},
-								},
-								{
-									Uuid:        "uuid",
-									Ip:          "1.1.1.1",
-									Name:        "a",
-									Description: "a description",
-									Project:     "a",
-									Type:        apiv1.IPType_IP_TYPE_EPHEMERAL,
-									Tags:        []string{"a=b"},
+			ClientMocks: &apitests.ClientMockFns{
+				Apiv1Mocks: &apitests.Apiv1MockFns{
+					IP: func(m *mock.Mock) {
+						m.On("List", mock.Anything, connect.NewRequest(&apiv1.IPServiceListRequest{
+							Project: "a",
+						})).Return(&connect.Response[apiv1.IPServiceListResponse]{
+							Msg: &apiv1.IPServiceListResponse{
+								Ips: []*apiv1.IP{
+									{
+										Uuid:        "uuid",
+										Ip:          "4.3.2.1",
+										Name:        "b",
+										Description: "b description",
+										Project:     "b",
+										Type:        apiv1.IPType_IP_TYPE_EPHEMERAL,
+										Tags:        []string{"a=b"},
+									},
+									{
+										Uuid:        "uuid",
+										Ip:          "1.1.1.1",
+										Name:        "a",
+										Description: "a description",
+										Project:     "a",
+										Type:        apiv1.IPType_IP_TYPE_EPHEMERAL,
+										Tags:        []string{"a=b"},
+									},
 								},
 							},
-						},
-					}, nil)
+						}, nil)
+					},
 				},
 			},
 			Want: []*apiv1.IP{
@@ -107,24 +109,26 @@ func Test_IPCmd_SingleResult(t *testing.T) {
 			Cmd: func(want *apiv1.IP) []string {
 				return []string{"ip", "describe", "--project", "a", "uuid"}
 			},
-			APIMocks: &apitests.Apiv1MockFns{
-				IP: func(m *mock.Mock) {
-					m.On("Get", mock.Anything, testcommon.MatchByCmpDiff(t, connect.NewRequest(&apiv1.IPServiceGetRequest{
-						Project: "a",
-						Uuid:    "uuid",
-					}), cmpopts.IgnoreTypes(protoimpl.MessageState{}))).Return(&connect.Response[apiv1.IPServiceGetResponse]{
-						Msg: &apiv1.IPServiceGetResponse{
-							Ip: &apiv1.IP{
-								Uuid:        "uuid",
-								Ip:          "1.1.1.1",
-								Name:        "a",
-								Description: "a description",
-								Project:     "a",
-								Type:        apiv1.IPType_IP_TYPE_EPHEMERAL,
-								Tags:        []string{"a=b"},
+			ClientMocks: &apitests.ClientMockFns{
+				Apiv1Mocks: &apitests.Apiv1MockFns{
+					IP: func(m *mock.Mock) {
+						m.On("Get", mock.Anything, testcommon.MatchByCmpDiff(t, connect.NewRequest(&apiv1.IPServiceGetRequest{
+							Project: "a",
+							Uuid:    "uuid",
+						}), cmpopts.IgnoreTypes(protoimpl.MessageState{}))).Return(&connect.Response[apiv1.IPServiceGetResponse]{
+							Msg: &apiv1.IPServiceGetResponse{
+								Ip: &apiv1.IP{
+									Uuid:        "uuid",
+									Ip:          "1.1.1.1",
+									Name:        "a",
+									Description: "a description",
+									Project:     "a",
+									Type:        apiv1.IPType_IP_TYPE_EPHEMERAL,
+									Tags:        []string{"a=b"},
+								},
 							},
-						},
-					}, nil)
+						}, nil)
+					},
 				},
 			},
 			Want: &apiv1.IP{
@@ -159,24 +163,26 @@ IP        ID     PROJECT   NAME   DESCRIPTION     TYPE
 			Cmd: func(want *apiv1.IP) []string {
 				return []string{"ip", "rm", "--project", "a", "uuid"}
 			},
-			APIMocks: &apitests.Apiv1MockFns{
-				IP: func(m *mock.Mock) {
-					m.On("Delete", mock.Anything, testcommon.MatchByCmpDiff(t, connect.NewRequest(&apiv1.IPServiceDeleteRequest{
-						Project: "a",
-						Uuid:    "uuid",
-					}), cmpopts.IgnoreTypes(protoimpl.MessageState{}))).Return(&connect.Response[apiv1.IPServiceDeleteResponse]{
-						Msg: &apiv1.IPServiceDeleteResponse{
-							Ip: &apiv1.IP{
-								Uuid:        "uuid",
-								Ip:          "1.1.1.1",
-								Name:        "a",
-								Description: "a description",
-								Project:     "a",
-								Type:        apiv1.IPType_IP_TYPE_EPHEMERAL,
-								Tags:        []string{"a=b"},
+			ClientMocks: &apitests.ClientMockFns{
+				Apiv1Mocks: &apitests.Apiv1MockFns{
+					IP: func(m *mock.Mock) {
+						m.On("Delete", mock.Anything, testcommon.MatchByCmpDiff(t, connect.NewRequest(&apiv1.IPServiceDeleteRequest{
+							Project: "a",
+							Uuid:    "uuid",
+						}), cmpopts.IgnoreTypes(protoimpl.MessageState{}))).Return(&connect.Response[apiv1.IPServiceDeleteResponse]{
+							Msg: &apiv1.IPServiceDeleteResponse{
+								Ip: &apiv1.IP{
+									Uuid:        "uuid",
+									Ip:          "1.1.1.1",
+									Name:        "a",
+									Description: "a description",
+									Project:     "a",
+									Type:        apiv1.IPType_IP_TYPE_EPHEMERAL,
+									Tags:        []string{"a=b"},
+								},
 							},
-						},
-					}, nil)
+						}, nil)
+					},
 				},
 			},
 			Want: &apiv1.IP{
@@ -196,27 +202,30 @@ IP        ID     PROJECT   NAME   DESCRIPTION     TYPE
 				AssertExhaustiveArgs(t, args, "file")
 				return args
 			},
-			APIMocks: &apitests.Apiv1MockFns{
-				IP: func(m *mock.Mock) {
-					m.On("Allocate", mock.Anything, testcommon.MatchByCmpDiff(t, connect.NewRequest(&apiv1.IPServiceAllocateRequest{
-						Project:     "a",
-						Name:        "a",
-						Description: "a description",
-						Static:      true,
-						Tags:        []string{"a=b"},
-					}), cmpopts.IgnoreTypes(protoimpl.MessageState{}))).Return(&connect.Response[apiv1.IPServiceAllocateResponse]{
-						Msg: &apiv1.IPServiceAllocateResponse{
-							Ip: &apiv1.IP{
-								Uuid:        "uuid",
-								Ip:          "1.1.1.1",
-								Name:        "a",
-								Description: "a description",
-								Project:     "a",
-								Type:        apiv1.IPType_IP_TYPE_EPHEMERAL,
-								Tags:        []string{"a=b"},
+			ClientMocks: &apitests.ClientMockFns{
+
+				Apiv1Mocks: &apitests.Apiv1MockFns{
+					IP: func(m *mock.Mock) {
+						m.On("Allocate", mock.Anything, testcommon.MatchByCmpDiff(t, connect.NewRequest(&apiv1.IPServiceAllocateRequest{
+							Project:     "a",
+							Name:        "a",
+							Description: "a description",
+							Static:      true,
+							Tags:        []string{"a=b"},
+						}), cmpopts.IgnoreTypes(protoimpl.MessageState{}))).Return(&connect.Response[apiv1.IPServiceAllocateResponse]{
+							Msg: &apiv1.IPServiceAllocateResponse{
+								Ip: &apiv1.IP{
+									Uuid:        "uuid",
+									Ip:          "1.1.1.1",
+									Name:        "a",
+									Description: "a description",
+									Project:     "a",
+									Type:        apiv1.IPType_IP_TYPE_EPHEMERAL,
+									Tags:        []string{"a=b"},
+								},
 							},
-						},
-					}, nil)
+						}, nil)
+					},
 				},
 			},
 			Want: &apiv1.IP{
@@ -236,37 +245,27 @@ IP        ID     PROJECT   NAME   DESCRIPTION     TYPE
 				AssertExhaustiveArgs(t, args, "file")
 				return args
 			},
-			APIMocks: &apitests.Apiv1MockFns{
-				IP: func(m *mock.Mock) {
-					m.On("Get", mock.Anything, testcommon.MatchByCmpDiff(t, connect.NewRequest(&apiv1.IPServiceGetRequest{
-						Uuid:    "uuid",
-						Project: "a",
-					}), cmpopts.IgnoreTypes(protoimpl.MessageState{}))).Return(&connect.Response[apiv1.IPServiceGetResponse]{
-						Msg: &apiv1.IPServiceGetResponse{
-							Ip: &apiv1.IP{
-								Uuid:        "uuid",
-								Ip:          "1.1.1.1",
-								Name:        "a",
-								Description: "a description",
-								Project:     "a",
-								Type:        apiv1.IPType_IP_TYPE_EPHEMERAL,
-								Tags:        []string{"a=b"},
+			ClientMocks: &apitests.ClientMockFns{
+				Apiv1Mocks: &apitests.Apiv1MockFns{
+					IP: func(m *mock.Mock) {
+						m.On("Get", mock.Anything, testcommon.MatchByCmpDiff(t, connect.NewRequest(&apiv1.IPServiceGetRequest{
+							Uuid:    "uuid",
+							Project: "a",
+						}), cmpopts.IgnoreTypes(protoimpl.MessageState{}))).Return(&connect.Response[apiv1.IPServiceGetResponse]{
+							Msg: &apiv1.IPServiceGetResponse{
+								Ip: &apiv1.IP{
+									Uuid:        "uuid",
+									Ip:          "1.1.1.1",
+									Name:        "a",
+									Description: "a description",
+									Project:     "a",
+									Type:        apiv1.IPType_IP_TYPE_EPHEMERAL,
+									Tags:        []string{"a=b"},
+								},
 							},
-						},
-					}, nil)
-					m.On("Update", mock.Anything, testcommon.MatchByCmpDiff(t, connect.NewRequest(&apiv1.IPServiceUpdateRequest{
-						Project: "a",
-						Ip: &apiv1.IP{
-							Uuid:        "uuid",
-							Ip:          "1.1.1.1",
-							Name:        "b",
-							Description: "b description",
-							Project:     "a",
-							Type:        apiv1.IPType_IP_TYPE_STATIC,
-							Tags:        []string{"c=d"},
-						},
-					}), cmpopts.IgnoreTypes(protoimpl.MessageState{}))).Return(&connect.Response[apiv1.IPServiceUpdateResponse]{
-						Msg: &apiv1.IPServiceUpdateResponse{
+						}, nil)
+						m.On("Update", mock.Anything, testcommon.MatchByCmpDiff(t, connect.NewRequest(&apiv1.IPServiceUpdateRequest{
+							Project: "a",
 							Ip: &apiv1.IP{
 								Uuid:        "uuid",
 								Ip:          "1.1.1.1",
@@ -276,8 +275,20 @@ IP        ID     PROJECT   NAME   DESCRIPTION     TYPE
 								Type:        apiv1.IPType_IP_TYPE_STATIC,
 								Tags:        []string{"c=d"},
 							},
-						},
-					}, nil)
+						}), cmpopts.IgnoreTypes(protoimpl.MessageState{}))).Return(&connect.Response[apiv1.IPServiceUpdateResponse]{
+							Msg: &apiv1.IPServiceUpdateResponse{
+								Ip: &apiv1.IP{
+									Uuid:        "uuid",
+									Ip:          "1.1.1.1",
+									Name:        "b",
+									Description: "b description",
+									Project:     "a",
+									Type:        apiv1.IPType_IP_TYPE_STATIC,
+									Tags:        []string{"c=d"},
+								},
+							},
+						}, nil)
+					},
 				},
 			},
 			Want: &apiv1.IP{
@@ -298,32 +309,35 @@ IP        ID     PROJECT   NAME   DESCRIPTION     TYPE
 			FsMocks: func(fs afero.Fs, want *apiv1.IP) {
 				require.NoError(t, afero.WriteFile(fs, "/file.yaml", MustMarshal(t, want), 0755))
 			},
-			APIMocks: &apitests.Apiv1MockFns{
-				IP: func(m *mock.Mock) {
-					m.On("Update", mock.Anything, testcommon.MatchByCmpDiff(t, connect.NewRequest(&apiv1.IPServiceUpdateRequest{
-						Project: "a",
-						Ip: &apiv1.IP{
-							Uuid:        "uuid",
-							Ip:          "1.1.1.1",
-							Project:     "a",
-							Name:        "a",
-							Description: "a description",
-							Type:        apiv1.IPType_IP_TYPE_STATIC,
-							Tags:        []string{"a=b"},
-						},
-					}), cmpopts.IgnoreTypes(protoimpl.MessageState{}))).Return(&connect.Response[apiv1.IPServiceUpdateResponse]{
-						Msg: &apiv1.IPServiceUpdateResponse{
+
+			ClientMocks: &apitests.ClientMockFns{
+				Apiv1Mocks: &apitests.Apiv1MockFns{
+					IP: func(m *mock.Mock) {
+						m.On("Update", mock.Anything, testcommon.MatchByCmpDiff(t, connect.NewRequest(&apiv1.IPServiceUpdateRequest{
+							Project: "a",
 							Ip: &apiv1.IP{
 								Uuid:        "uuid",
 								Ip:          "1.1.1.1",
+								Project:     "a",
 								Name:        "a",
 								Description: "a description",
-								Project:     "a",
 								Type:        apiv1.IPType_IP_TYPE_STATIC,
 								Tags:        []string{"a=b"},
 							},
-						},
-					}, nil)
+						}), cmpopts.IgnoreTypes(protoimpl.MessageState{}))).Return(&connect.Response[apiv1.IPServiceUpdateResponse]{
+							Msg: &apiv1.IPServiceUpdateResponse{
+								Ip: &apiv1.IP{
+									Uuid:        "uuid",
+									Ip:          "1.1.1.1",
+									Name:        "a",
+									Description: "a description",
+									Project:     "a",
+									Type:        apiv1.IPType_IP_TYPE_STATIC,
+									Tags:        []string{"a=b"},
+								},
+							},
+						}, nil)
+					},
 				},
 			},
 			Want: &apiv1.IP{
@@ -344,27 +358,29 @@ IP        ID     PROJECT   NAME   DESCRIPTION     TYPE
 			FsMocks: func(fs afero.Fs, want *apiv1.IP) {
 				require.NoError(t, afero.WriteFile(fs, "/file.yaml", MustMarshal(t, want), 0755))
 			},
-			APIMocks: &apitests.Apiv1MockFns{
-				IP: func(m *mock.Mock) {
-					m.On("Allocate", mock.Anything, testcommon.MatchByCmpDiff(t, connect.NewRequest(&apiv1.IPServiceAllocateRequest{
-						Project:     "a",
-						Name:        "a",
-						Description: "a description",
-						Static:      true,
-						Tags:        []string{"a=b"},
-					}), cmpopts.IgnoreTypes(protoimpl.MessageState{}))).Return(&connect.Response[apiv1.IPServiceAllocateResponse]{
-						Msg: &apiv1.IPServiceAllocateResponse{
-							Ip: &apiv1.IP{
-								Uuid:        "uuid",
-								Ip:          "1.1.1.1",
-								Name:        "a",
-								Description: "a description",
-								Project:     "a",
-								Type:        apiv1.IPType_IP_TYPE_STATIC,
-								Tags:        []string{"a=b"},
+			ClientMocks: &apitests.ClientMockFns{
+				Apiv1Mocks: &apitests.Apiv1MockFns{
+					IP: func(m *mock.Mock) {
+						m.On("Allocate", mock.Anything, testcommon.MatchByCmpDiff(t, connect.NewRequest(&apiv1.IPServiceAllocateRequest{
+							Project:     "a",
+							Name:        "a",
+							Description: "a description",
+							Static:      true,
+							Tags:        []string{"a=b"},
+						}), cmpopts.IgnoreTypes(protoimpl.MessageState{}))).Return(&connect.Response[apiv1.IPServiceAllocateResponse]{
+							Msg: &apiv1.IPServiceAllocateResponse{
+								Ip: &apiv1.IP{
+									Uuid:        "uuid",
+									Ip:          "1.1.1.1",
+									Name:        "a",
+									Description: "a description",
+									Project:     "a",
+									Type:        apiv1.IPType_IP_TYPE_STATIC,
+									Tags:        []string{"a=b"},
+								},
 							},
-						},
-					}, nil)
+						}, nil)
+					},
 				},
 			},
 			Want: &apiv1.IP{

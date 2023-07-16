@@ -28,7 +28,7 @@ func Execute() {
 		Completion: &completion.Completion{},
 	}
 
-	cmd := newRootCmd(cfg)
+	cmd := newRootCmd(cfg, false)
 
 	err := cmd.Execute()
 	if err != nil {
@@ -40,7 +40,7 @@ func Execute() {
 	}
 }
 
-func newRootCmd(c *config.Config) *cobra.Command {
+func newRootCmd(c *config.Config, disablePlugins bool) *cobra.Command {
 	rootCmd := &cobra.Command{
 		Use:          config.BinaryName,
 		Aliases:      []string{"m"},
@@ -80,12 +80,14 @@ apitoken: "alongtoken"
 
 	rootCmd.AddCommand(plugins.NewPluginCommand())
 
-	// Read Config again to have it initialized for the Plugins
-	must(readConfigFile())
-	initConfigWithViperCtx(c)
+	if !disablePlugins {
+		// Read Config again to have it initialized for the Plugins
+		must(readConfigFile())
+		initConfigWithViperCtx(c)
 
-	// Register Plugins
-	must(plugins.AddPlugins(rootCmd, c))
+		// Register Plugins
+		must(plugins.AddPlugins(rootCmd, c))
+	}
 
 	return rootCmd
 }

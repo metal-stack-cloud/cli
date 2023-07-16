@@ -37,9 +37,8 @@ type Test[R any] struct {
 	Name string
 	Cmd  func(want R) []string
 
-	APIMocks   *apitests.Apiv1MockFns
-	AdminMocks *apitests.Adminv1MockFns
-	FsMocks    func(fs afero.Fs, want R)
+	ClientMocks *apitests.ClientMockFns
+	FsMocks     func(fs afero.Fs, want R)
 
 	DisableMockClient bool // can switch off mock client creation
 
@@ -59,7 +58,7 @@ func (c *Test[R]) TestCmd(t *testing.T) {
 	if c.WantErr != nil {
 		_, _, conf := c.newMockConfig(t)
 
-		cmd := newRootCmd(conf)
+		cmd := newRootCmd(conf, true)
 		os.Args = append([]string{config.BinaryName}, c.Cmd(c.Want)...)
 
 		err := cmd.Execute()
@@ -73,7 +72,7 @@ func (c *Test[R]) TestCmd(t *testing.T) {
 		t.Run(fmt.Sprintf("%v", format.Args()), func(t *testing.T) {
 			_, out, conf := c.newMockConfig(t)
 
-			cmd := newRootCmd(conf)
+			cmd := newRootCmd(conf, true)
 			os.Args = append([]string{config.BinaryName}, c.Cmd(c.Want)...)
 			os.Args = append(os.Args, format.Args()...)
 
@@ -86,7 +85,7 @@ func (c *Test[R]) TestCmd(t *testing.T) {
 }
 
 func (c *Test[R]) newMockConfig(t *testing.T) (any, *bytes.Buffer, *config.Config) {
-	// mock := apitests.New(t)
+	mock := apitests.New(t)
 
 	fs := afero.NewMemMapFs()
 	if c.FsMocks != nil {
@@ -100,15 +99,13 @@ func (c *Test[R]) newMockConfig(t *testing.T) (any, *bytes.Buffer, *config.Confi
 			Out:        &out,
 			Log:        zaptest.NewLogger(t).Sugar(),
 			Completion: &completion.Completion{},
-			// Apiv1Client:   mock.Apiv1(c.APIMocks),
-			// Adminv1Client: mock.Adminv1(c.AdminMocks),
+			Client:     mock.Client(c.ClientMocks),
 		}
 	)
 
-	// if c.DisableMockClient {
-	// config.Apiv1Client = nil
-	// config.Adminv1Client = nil
-	// }
+	if c.DisableMockClient {
+		config.Client = nil
+	}
 
 	return nil, &out, config
 }
@@ -123,7 +120,7 @@ func AssertExhaustiveArgs(t *testing.T, args []string, exclude ...string) {
 		return fmt.Errorf("not exhaustive: does not contain " + prefix)
 	}
 
-	root := newRootCmd(&config.Config{})
+	root := newRootCmd(&config.Config{}, true)
 	cmd, args, err := root.Find(args)
 	require.NoError(t, err)
 
