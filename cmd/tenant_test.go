@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/bufbuild/connect-go"
+	"connectrpc.com/connect"
 	adminv1 "github.com/metal-stack-cloud/api/go/admin/v1"
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
 	apitests "github.com/metal-stack-cloud/api/go/tests"
@@ -20,30 +20,32 @@ func Test_TenantCmd_MultiResult(t *testing.T) {
 			Cmd: func(want []*apiv1.Tenant) []string {
 				return []string{"admin", "tenant", "list"}
 			},
-			AdminMocks: &apitests.Adminv1MockFns{
-				Tenant: func(m *mock.Mock) {
-					m.On("List", mock.Anything, connect.NewRequest(&adminv1.TenantServiceListRequest{})).Return(&connect.Response[adminv1.TenantServiceListResponse]{
-						Msg: &adminv1.TenantServiceListResponse{
-							Tenants: []*apiv1.Tenant{
-								{
-									Login:         "loginOne",
-									Name:          "nameOne",
-									Email:         "testone@mail.com",
-									OauthProvider: apiv1.OAuthProvider_O_AUTH_PROVIDER_GITHUB,
-									Admitted:      false,
-									CreatedAt:     timestamppb.New(time.Now().Add(-1 * time.Hour)),
-								},
-								{
-									Login:         "loginTwo",
-									Name:          "nameTwo",
-									Email:         "testtwo@mail.com",
-									OauthProvider: apiv1.OAuthProvider_O_AUTH_PROVIDER_AZURE,
-									Admitted:      true,
-									CreatedAt:     timestamppb.New(time.Now().Add(-1 * time.Minute)),
+			ClientMocks: &apitests.ClientMockFns{
+				Adminv1Mocks: &apitests.Adminv1MockFns{
+					Tenant: func(m *mock.Mock) {
+						m.On("List", mock.Anything, connect.NewRequest(&adminv1.TenantServiceListRequest{})).Return(&connect.Response[adminv1.TenantServiceListResponse]{
+							Msg: &adminv1.TenantServiceListResponse{
+								Tenants: []*apiv1.Tenant{
+									{
+										Login:         "loginOne",
+										Name:          "nameOne",
+										Email:         "testone@mail.com",
+										OauthProvider: apiv1.OAuthProvider_O_AUTH_PROVIDER_GITHUB,
+										Admitted:      false,
+										CreatedAt:     timestamppb.New(time.Now().Add(-1 * time.Hour)),
+									},
+									{
+										Login:         "loginTwo",
+										Name:          "nameTwo",
+										Email:         "testtwo@mail.com",
+										OauthProvider: apiv1.OAuthProvider_O_AUTH_PROVIDER_AZURE,
+										Admitted:      true,
+										CreatedAt:     timestamppb.New(time.Now().Add(-1 * time.Minute)),
+									},
 								},
 							},
-						},
-					}, nil)
+						}, nil)
+					},
 				},
 			},
 			Want: []*apiv1.Tenant{
@@ -98,25 +100,27 @@ func Test_TenantCmd_SingleResult(t *testing.T) {
 			Cmd: func(want *apiv1.Tenant) []string {
 				return []string{"admin", "tenant", "admit", "someid"}
 			},
-			AdminMocks: &apitests.Adminv1MockFns{
-				Tenant: func(m *mock.Mock) {
-					m.On("Admit", mock.Anything, connect.NewRequest(&adminv1.TenantServiceAdmitRequest{
-						TenantId: "someid",
-					})).Return(&connect.Response[adminv1.TenantServiceAdmitResponse]{
-						Msg: &adminv1.TenantServiceAdmitResponse{
-							Tenant: &apiv1.Tenant{
-								Login:         "someid",
-								Name:          "somename",
-								Email:         "somename@mail.com",
-								AvatarUrl:     "https://avatars.githubusercontent.com/u/52534857?v=8",
-								OauthProvider: apiv1.OAuthProvider_O_AUTH_PROVIDER_AZURE,
-								Admitted:      true,
-								PhoneNumber:   "1234556",
-								EmailConsent:  true,
-								CreatedAt:     timestamppb.New(time.Now().Add(-1 * time.Minute)),
+			ClientMocks: &apitests.ClientMockFns{
+				Adminv1Mocks: &apitests.Adminv1MockFns{
+					Tenant: func(m *mock.Mock) {
+						m.On("Admit", mock.Anything, connect.NewRequest(&adminv1.TenantServiceAdmitRequest{
+							TenantId: "someid",
+						})).Return(&connect.Response[adminv1.TenantServiceAdmitResponse]{
+							Msg: &adminv1.TenantServiceAdmitResponse{
+								Tenant: &apiv1.Tenant{
+									Login:         "someid",
+									Name:          "somename",
+									Email:         "somename@mail.com",
+									AvatarUrl:     "https://avatars.githubusercontent.com/u/52534857?v=8",
+									OauthProvider: apiv1.OAuthProvider_O_AUTH_PROVIDER_AZURE,
+									Admitted:      true,
+									PhoneNumber:   "1234556",
+									EmailConsent:  true,
+									CreatedAt:     timestamppb.New(time.Now().Add(-1 * time.Minute)),
+								},
 							},
-						},
-					}, nil)
+						}, nil)
+					},
 				},
 			},
 			Want: &apiv1.Tenant{
@@ -136,26 +140,28 @@ func Test_TenantCmd_SingleResult(t *testing.T) {
 			Cmd: func(want *apiv1.Tenant) []string {
 				return []string{"admin", "tenant", "revoke", "someid"}
 			},
-			AdminMocks: &apitests.Adminv1MockFns{
-				Tenant: func(m *mock.Mock) {
-					m.On("Revoke", mock.Anything, connect.NewRequest(&adminv1.TenantServiceRevokeRequest{
-						TenantId: "someid",
-					})).Return(&connect.Response[adminv1.TenantServiceRevokeResponse]{
-						Msg: &adminv1.TenantServiceRevokeResponse{
-							Tenant: &apiv1.Tenant{
-								Login:         "someid",
-								Name:          "somename",
-								Email:         "somename@mail.com",
-								AvatarUrl:     "https://avatars.githubusercontent.com/u/52534857?v=8",
-								OauthProvider: apiv1.OAuthProvider_O_AUTH_PROVIDER_AZURE,
-								PhoneNumber:   "1234556",
-								EmailConsent:  true,
-								CreatedAt:     timestamppb.New(time.Now().Add(-1 * time.Minute)),
+			ClientMocks: &apitests.ClientMockFns{
+				Adminv1Mocks: &apitests.Adminv1MockFns{
+					Tenant: func(m *mock.Mock) {
+						m.On("Revoke", mock.Anything, connect.NewRequest(&adminv1.TenantServiceRevokeRequest{
+							TenantId: "someid",
+						})).Return(&connect.Response[adminv1.TenantServiceRevokeResponse]{
+							Msg: &adminv1.TenantServiceRevokeResponse{
+								Tenant: &apiv1.Tenant{
+									Login:         "someid",
+									Name:          "somename",
+									Email:         "somename@mail.com",
+									AvatarUrl:     "https://avatars.githubusercontent.com/u/52534857?v=8",
+									OauthProvider: apiv1.OAuthProvider_O_AUTH_PROVIDER_AZURE,
+									PhoneNumber:   "1234556",
+									EmailConsent:  true,
+									CreatedAt:     timestamppb.New(time.Now().Add(-1 * time.Minute)),
+								},
 							},
-						},
-					}, nil)
-				},
-			},
+						}, nil)
+					},
+				}},
+
 			Want: &apiv1.Tenant{
 				Login:         "someid",
 				Name:          "somename",

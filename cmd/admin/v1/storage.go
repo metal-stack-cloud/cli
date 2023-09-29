@@ -3,7 +3,7 @@ package v1
 import (
 	"fmt"
 
-	"github.com/bufbuild/connect-go"
+	"connectrpc.com/connect"
 	adminv1 "github.com/metal-stack-cloud/api/go/admin/v1"
 	"github.com/metal-stack-cloud/cli/cmd/config"
 	"github.com/metal-stack/metal-lib/pkg/pointer"
@@ -29,7 +29,7 @@ func newStorageCmd(c *config.Config) *cobra.Command {
 			if viper.IsSet("partition") {
 				req.Partition = pointer.Pointer(viper.GetString("partition"))
 			}
-			resp, err := c.Adminv1Client.Storage().ClusterInfo(c.Ctx, connect.NewRequest(req))
+			resp, err := c.Client.Adminv1().Storage().ClusterInfo(c.Ctx, connect.NewRequest(req))
 			if err != nil {
 				return fmt.Errorf("failed to get clusterinfo: %w", err)
 			}

@@ -4,11 +4,8 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"time"
 
-	client "github.com/metal-stack-cloud/api/go/client"
-	adminv1client "github.com/metal-stack-cloud/api/go/client/admin/v1"
-	apiv1client "github.com/metal-stack-cloud/api/go/client/api/v1"
+	apiclient "github.com/metal-stack-cloud/api/go/client"
 	adminv1 "github.com/metal-stack-cloud/cli/cmd/admin/v1"
 	apiv1 "github.com/metal-stack-cloud/cli/cmd/api/v1"
 	"github.com/metal-stack-cloud/cli/cmd/config"
@@ -27,7 +24,7 @@ func Execute() {
 		Out: os.Stdout,
 	}
 
-	cmd := NewRootCmd(cfg)
+	cmd := newRootCmd(cfg)
 
 	err := cmd.Execute()
 	if err != nil {
@@ -39,7 +36,7 @@ func Execute() {
 	}
 }
 
-func NewRootCmd(c *config.Config) *cobra.Command {
+func newRootCmd(c *config.Config) *cobra.Command {
 	rootCmd := &cobra.Command{
 		Use:          config.BinaryName,
 		Aliases:      []string{"m"},
@@ -136,14 +133,11 @@ func initConfigWithViperCtx(c *config.Config) {
 	c.ListPrinter = newPrinterFromCLI(c.Log, c.Out)
 	c.DescribePrinter = defaultToYAMLPrinter(c.Log, c.Out)
 
-	if c.Adminv1Client != nil && c.Apiv1Client != nil {
+	if c.Client != nil {
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	dialConfig := client.DialConfig{
+	dialConfig := apiclient.DialConfig{
 		BaseURL:   viper.GetString("api-url"),
 		Token:     viper.GetString("api-token"),
 		UserAgent: "metal-stack-cloud-cli",
@@ -151,11 +145,8 @@ func initConfigWithViperCtx(c *config.Config) {
 		Debug:     viper.GetBool("debug"),
 	}
 
-	apiclient := apiv1client.New(ctx, dialConfig)
-	adminclient := adminv1client.New(ctx, dialConfig)
-
-	c.Apiv1Client = apiclient
-	c.Adminv1Client = adminclient
+	client := apiclient.New(dialConfig)
+	c.Client = client
 }
 
 func newLogger() *zap.SugaredLogger {

@@ -3,7 +3,7 @@ package v1
 import (
 	"fmt"
 
-	"github.com/bufbuild/connect-go"
+	"connectrpc.com/connect"
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
 	"github.com/metal-stack-cloud/cli/cmd/config"
 	"github.com/metal-stack/metal-lib/pkg/genericcli"
@@ -55,13 +55,18 @@ func (s *snapshot) Create(rq any) (*apiv1.Snapshot, error) {
 	panic("unimplemented")
 }
 
+// Convert implements genericcli.CRUD
+func (s *snapshot) Convert(snapshot *apiv1.Snapshot) (string, any, any, error) {
+	panic("unimplemented")
+}
+
 // Delete implements genericcli.CRUD
 func (s *snapshot) Delete(id string) (*apiv1.Snapshot, error) {
 	req := &apiv1.SnapshotServiceDeleteRequest{
 		Uuid:    id,
 		Project: viper.GetString("project"),
 	}
-	resp, err := s.c.Apiv1Client.Snapshot().Delete(s.c.Ctx, connect.NewRequest(req))
+	resp, err := s.c.Client.Apiv1().Snapshot().Delete(s.c.Ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to delete snapshots: %w", err)
 	}
@@ -74,7 +79,7 @@ func (s *snapshot) Get(id string) (*apiv1.Snapshot, error) {
 		Uuid:    id,
 		Project: viper.GetString("project"),
 	}
-	resp, err := s.c.Apiv1Client.Snapshot().Get(s.c.Ctx, connect.NewRequest(req))
+	resp, err := s.c.Client.Apiv1().Snapshot().Get(s.c.Ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get snapshots: %w", err)
 	}
@@ -96,7 +101,7 @@ func (s *snapshot) List() ([]*apiv1.Snapshot, error) {
 	if viper.IsSet("partition") {
 		req.Partition = pointer.Pointer(viper.GetString("partition"))
 	}
-	resp, err := s.c.Apiv1Client.Snapshot().List(s.c.Ctx, connect.NewRequest(req))
+	resp, err := s.c.Client.Apiv1().Snapshot().List(s.c.Ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get snapshots: %w", err)
 	}

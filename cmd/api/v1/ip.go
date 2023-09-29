@@ -3,7 +3,7 @@ package v1
 import (
 	"fmt"
 
-	"github.com/bufbuild/connect-go"
+	"connectrpc.com/connect"
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
 	"github.com/metal-stack-cloud/cli/cmd/config"
 	"github.com/metal-stack-cloud/cli/cmd/sorters"
@@ -63,7 +63,6 @@ func NewIPCmd(c *config.Config) *cobra.Command {
 				Description: viper.GetString("description"),
 				Tags:        viper.GetStringSlice("tags"),
 				Static:      viper.GetBool("static"),
-				Network:     viper.GetString("network"),
 			}
 			return connect.NewRequest(ipar), nil
 		},
@@ -97,7 +96,7 @@ func (c *ip) updateFromCLI(args []string) (*apiv1.IP, error) {
 
 // Create implements genericcli.CRUD
 func (c *ip) Create(rq *connect.Request[apiv1.IPServiceAllocateRequest]) (*apiv1.IP, error) {
-	resp, err := c.c.Apiv1Client.IP().Allocate(c.c.Ctx, rq)
+	resp, err := c.c.Client.Apiv1().IP().Allocate(c.c.Ctx, rq)
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +110,7 @@ func (c *ip) Delete(id string) (*apiv1.IP, error) {
 		return nil, fmt.Errorf("project must be provided")
 	}
 
-	resp, err := c.c.Apiv1Client.IP().Delete(c.c.Ctx, connect.NewRequest(&apiv1.IPServiceDeleteRequest{
+	resp, err := c.c.Client.Apiv1().IP().Delete(c.c.Ctx, connect.NewRequest(&apiv1.IPServiceDeleteRequest{
 		Project: project,
 		Uuid:    id,
 	}))
@@ -128,7 +127,7 @@ func (c *ip) Get(id string) (*apiv1.IP, error) {
 		return nil, fmt.Errorf("project must be provided")
 	}
 
-	resp, err := c.c.Apiv1Client.IP().Get(c.c.Ctx, connect.NewRequest(&apiv1.IPServiceGetRequest{
+	resp, err := c.c.Client.Apiv1().IP().Get(c.c.Ctx, connect.NewRequest(&apiv1.IPServiceGetRequest{
 		Project: project,
 		Uuid:    id,
 	}))
@@ -146,7 +145,7 @@ func (c *ip) List() ([]*apiv1.IP, error) {
 	}
 
 	// FIXME implement filters and paging
-	resp, err := c.c.Apiv1Client.IP().List(c.c.Ctx, connect.NewRequest(&apiv1.IPServiceListRequest{
+	resp, err := c.c.Client.Apiv1().IP().List(c.c.Ctx, connect.NewRequest(&apiv1.IPServiceListRequest{
 		Project: project,
 	}))
 	if err != nil {
@@ -168,7 +167,7 @@ func (c *ip) ToUpdate(r *apiv1.IP) (*apiv1.IP, error) {
 
 // Update implements genericcli.CRUD
 func (c *ip) Update(rq *apiv1.IP) (*apiv1.IP, error) {
-	resp, err := c.c.Apiv1Client.IP().Update(c.c.Ctx, &connect.Request[apiv1.IPServiceUpdateRequest]{
+	resp, err := c.c.Client.Apiv1().IP().Update(c.c.Ctx, &connect.Request[apiv1.IPServiceUpdateRequest]{
 		Msg: &apiv1.IPServiceUpdateRequest{
 			Project: rq.Project,
 			Ip:      rq,
@@ -180,13 +179,17 @@ func (c *ip) Update(rq *apiv1.IP) (*apiv1.IP, error) {
 	return resp.Msg.Ip, nil
 }
 
+// Convert implements genericcli.CRUD
+func (c *ip) Convert(ip *apiv1.IP) (string, *connect.Request[apiv1.IPServiceAllocateRequest], *apiv1.IP, error) {
+	panic("unimplemented")
+}
+
 func ipResponseToCreate(r *apiv1.IP) *connect.Request[apiv1.IPServiceAllocateRequest] {
 	return &connect.Request[apiv1.IPServiceAllocateRequest]{
 		Msg: &apiv1.IPServiceAllocateRequest{
 			Project:     r.Project,
 			Name:        r.Name,
 			Description: r.Description,
-			Network:     r.Network,
 			Tags:        r.Tags,
 			Static:      ipTypeToStatic(r.Type),
 		},

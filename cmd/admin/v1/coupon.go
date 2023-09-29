@@ -3,7 +3,7 @@ package v1
 import (
 	"fmt"
 
-	"github.com/bufbuild/connect-go"
+	"connectrpc.com/connect"
 	adminv1 "github.com/metal-stack-cloud/api/go/admin/v1"
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
 	"github.com/metal-stack-cloud/cli/cmd/config"
@@ -50,12 +50,17 @@ func (c *coupon) Get(id string) (*apiv1.Coupon, error) {
 	panic("unimplemented")
 }
 
+// Convert implements genericcli.CRUD
+func (c *coupon) Convert(coupon *apiv1.Coupon) (string, any, any, error) {
+	panic("unimplemented")
+}
+
 // List implements genericcli.CRUD
 func (c *coupon) List() ([]*apiv1.Coupon, error) {
 	// FIXME implement filters and paging
 
 	req := &adminv1.PaymentServiceListCouponsRequest{}
-	resp, err := c.c.Adminv1Client.Payment().ListCoupons(c.c.Ctx, connect.NewRequest(req))
+	resp, err := c.c.Client.Adminv1().Payment().ListCoupons(c.c.Ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get coupons: %w", err)
 	}

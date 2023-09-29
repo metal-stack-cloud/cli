@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/bufbuild/connect-go"
+	"connectrpc.com/connect"
 	adminv1 "github.com/metal-stack-cloud/api/go/admin/v1"
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
 	apitests "github.com/metal-stack-cloud/api/go/tests"
@@ -20,36 +20,39 @@ func Test_CouponCmd_MultiResult(t *testing.T) {
 			Cmd: func(want []*apiv1.Coupon) []string {
 				return []string{"admin", "coupon", "list"}
 			},
-			AdminMocks: &apitests.Adminv1MockFns{
-				Payment: func(m *mock.Mock) {
-					m.On("ListCoupons", mock.Anything, connect.NewRequest(&adminv1.PaymentServiceListCouponsRequest{})).Return(&connect.Response[adminv1.PaymentServiceListCouponsResponse]{
-						Msg: &adminv1.PaymentServiceListCouponsResponse{
-							Coupons: []*apiv1.Coupon{
-								{
-									Id:              "someidone",
-									Name:            "somenameone",
-									AmountOff:       150,
-									DurationInMonth: 4,
-									TimesRedeemed:   1,
-									MaxRedemptions:  30,
-									Currency:        "eur",
-									CreatedAt:       timestamppb.New(time.Now().Add(-1 * time.Hour)),
-								},
-								{
-									Id:              "someidtwo",
-									Name:            "somenametwo",
-									AmountOff:       50,
-									DurationInMonth: 3,
-									TimesRedeemed:   2,
-									MaxRedemptions:  150,
-									Currency:        "eur",
-									CreatedAt:       timestamppb.New(time.Now().Add(-1 * time.Hour)),
+			ClientMocks: &apitests.ClientMockFns{
+				Adminv1Mocks: &apitests.Adminv1MockFns{
+					Payment: func(m *mock.Mock) {
+						m.On("ListCoupons", mock.Anything, connect.NewRequest(&adminv1.PaymentServiceListCouponsRequest{})).Return(&connect.Response[adminv1.PaymentServiceListCouponsResponse]{
+							Msg: &adminv1.PaymentServiceListCouponsResponse{
+								Coupons: []*apiv1.Coupon{
+									{
+										Id:              "someidone",
+										Name:            "somenameone",
+										AmountOff:       150,
+										DurationInMonth: 4,
+										TimesRedeemed:   1,
+										MaxRedemptions:  30,
+										Currency:        "eur",
+										CreatedAt:       timestamppb.New(time.Now().Add(-1 * time.Hour)),
+									},
+									{
+										Id:              "someidtwo",
+										Name:            "somenametwo",
+										AmountOff:       50,
+										DurationInMonth: 3,
+										TimesRedeemed:   2,
+										MaxRedemptions:  150,
+										Currency:        "eur",
+										CreatedAt:       timestamppb.New(time.Now().Add(-1 * time.Hour)),
+									},
 								},
 							},
-						},
-					}, nil)
+						}, nil)
+					},
 				},
 			},
+
 			Want: []*apiv1.Coupon{
 				{
 					Id:              "someidone",

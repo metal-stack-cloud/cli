@@ -3,7 +3,7 @@ package v1
 import (
 	"fmt"
 
-	"github.com/bufbuild/connect-go"
+	"connectrpc.com/connect"
 	v1 "github.com/metal-stack-cloud/api/go/api/v1"
 	"github.com/metal-stack-cloud/cli/cmd/config"
 	"github.com/spf13/cobra"
@@ -26,7 +26,7 @@ func NewTokenCmd(c *config.Config) *cobra.Command {
 					},
 				},
 			}
-			resp, err := c.Apiv1Client.Token().Create(c.Ctx, connect.NewRequest(tcr))
+			resp, err := c.Client.Apiv1().Token().Create(c.Ctx, connect.NewRequest(tcr))
 			if err != nil {
 				return err
 			}
