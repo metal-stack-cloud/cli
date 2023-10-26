@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"connectrpc.com/connect"
+	adminv1 "github.com/metal-stack-cloud/api/go/admin/v1"
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
 	"github.com/metal-stack-cloud/cli/cmd/config"
 	"github.com/metal-stack/metal-lib/pkg/genericcli"
@@ -36,16 +37,9 @@ func newSnapshotCmd(c *config.Config) *cobra.Command {
 			cmd.Flags().StringP("name", "", "", "filter by name")
 			cmd.Flags().StringP("partition", "", "", "filter by partition")
 			cmd.Flags().StringP("project", "", "", "filter by project")
+			cmd.Flags().StringP("tenant", "", "", "filter by tenant")
 		},
-		DeleteCmdMutateFn: func(cmd *cobra.Command) {
-			cmd.Flags().StringP("uuid", "", "", "filter by uuid")
-			cmd.Flags().StringP("project", "", "", "filter by project")
-		},
-		DescribeCmdMutateFn: func(cmd *cobra.Command) {
-			cmd.Flags().StringP("uuid", "", "", "filter by uuid")
-			cmd.Flags().StringP("project", "", "", "filter by project")
-		},
-		OnlyCmds: genericcli.OnlyCmds(genericcli.ListCmd, genericcli.DeleteCmd, genericcli.DescribeCmd),
+		OnlyCmds: genericcli.OnlyCmds(genericcli.ListCmd, genericcli.DescribeCmd),
 	}
 	return genericcli.NewCmds(cmdsConfig)
 }
@@ -57,33 +51,27 @@ func (s *snapshot) Create(rq any) (*apiv1.Snapshot, error) {
 
 // Delete implements genericcli.CRUD
 func (s *snapshot) Delete(id string) (*apiv1.Snapshot, error) {
-	req := &apiv1.SnapshotServiceDeleteRequest{
-		Uuid:    id,
-		Project: viper.GetString("project"),
-	}
-	resp, err := s.c.Client.Apiv1().Snapshot().Delete(s.c.Ctx, connect.NewRequest(req))
-	if err != nil {
-		return nil, fmt.Errorf("failed to delete snapshots: %w", err)
-	}
-	return resp.Msg.Snapshot, nil
+	panic("unimplemented")
 }
 
 // Get implements genericcli.CRUD
 func (s *snapshot) Get(id string) (*apiv1.Snapshot, error) {
-	req := &apiv1.SnapshotServiceGetRequest{
-		Uuid:    id,
-		Project: viper.GetString("project"),
+	req := &adminv1.StorageServiceListSnapshotsRequest{
+		Uuid: &id,
 	}
-	resp, err := s.c.Client.Apiv1().Snapshot().Get(s.c.Ctx, connect.NewRequest(req))
+	resp, err := s.c.Client.Adminv1().Storage().ListSnapshots(s.c.Ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get snapshots: %w", err)
 	}
-	return resp.Msg.Snapshot, nil
+	if len(resp.Msg.Snapshots) != 1 {
+		return nil, fmt.Errorf("no snapshot with ID:%s found", id)
+	}
+	return resp.Msg.Snapshots[0], nil
 }
 
 // List implements genericcli.CRUD
 func (s *snapshot) List() ([]*apiv1.Snapshot, error) {
-	req := &apiv1.SnapshotServiceListRequest{}
+	req := &adminv1.StorageServiceListSnapshotsRequest{}
 	if viper.IsSet("uuid") {
 		req.Uuid = pointer.Pointer(viper.GetString("uuid"))
 	}
@@ -91,12 +79,15 @@ func (s *snapshot) List() ([]*apiv1.Snapshot, error) {
 		req.Name = pointer.Pointer(viper.GetString("name"))
 	}
 	if viper.IsSet("project") {
-		req.Project = viper.GetString("project")
+		req.Project = pointer.Pointer(viper.GetString("project"))
 	}
 	if viper.IsSet("partition") {
 		req.Partition = pointer.Pointer(viper.GetString("partition"))
 	}
-	resp, err := s.c.Client.Apiv1().Snapshot().List(s.c.Ctx, connect.NewRequest(req))
+	if viper.IsSet("tenant") {
+		req.Tenant = pointer.Pointer(viper.GetString("tenant"))
+	}
+	resp, err := s.c.Client.Adminv1().Storage().ListSnapshots(s.c.Ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get snapshots: %w", err)
 	}

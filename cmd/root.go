@@ -8,10 +8,10 @@ import (
 
 	client "github.com/metal-stack-cloud/api/go/client"
 
+	adminv1 "github.com/metal-stack-cloud/cli/cmd/admin/v1"
 	apiv1 "github.com/metal-stack-cloud/cli/cmd/api/v1"
 	"github.com/metal-stack-cloud/cli/cmd/completion"
 	"github.com/metal-stack-cloud/cli/cmd/config"
-	"github.com/metal-stack-cloud/cli/cmd/plugins"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -28,7 +28,7 @@ func Execute() {
 		Completion: &completion.Completion{},
 	}
 
-	cmd := newRootCmd(cfg, false)
+	cmd := newRootCmd(cfg)
 
 	err := cmd.Execute()
 	if err != nil {
@@ -40,7 +40,7 @@ func Execute() {
 	}
 }
 
-func newRootCmd(c *config.Config, disablePlugins bool) *cobra.Command {
+func newRootCmd(c *config.Config) *cobra.Command {
 	rootCmd := &cobra.Command{
 		Use:          config.BinaryName,
 		Aliases:      []string{"m"},
@@ -76,18 +76,8 @@ apitoken: "alongtoken"
 
 	must(viper.BindPFlags(rootCmd.PersistentFlags()))
 
+	adminv1.AddCmds(rootCmd, c)
 	apiv1.AddCmds(rootCmd, c)
-
-	rootCmd.AddCommand(plugins.NewPluginCommand())
-
-	if !disablePlugins {
-		// Read Config again to have it initialized for the Plugins
-		must(readConfigFile())
-		initConfigWithViperCtx(c)
-
-		// Register Plugins
-		must(plugins.AddPlugins(rootCmd, c))
-	}
 
 	return rootCmd
 }
@@ -151,7 +141,6 @@ func initConfigWithViperCtx(c *config.Config) {
 		BaseURL:   viper.GetString("api-url"),
 		Token:     viper.GetString("api-token"),
 		UserAgent: "metal-stack-cloud-cli",
-		Log:       c.Log,
 		Debug:     viper.GetBool("debug"),
 	}
 

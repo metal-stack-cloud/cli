@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"golang.org/x/exp/slices"
+	"slices"
 
 	"bou.ke/monkey"
 	"github.com/go-openapi/strfmt"
@@ -58,7 +58,7 @@ func (c *Test[R]) TestCmd(t *testing.T) {
 	if c.WantErr != nil {
 		_, _, conf := c.newMockConfig(t)
 
-		cmd := newRootCmd(conf, true)
+		cmd := newRootCmd(conf)
 		os.Args = append([]string{config.BinaryName}, c.Cmd(c.Want)...)
 
 		err := cmd.Execute()
@@ -72,12 +72,12 @@ func (c *Test[R]) TestCmd(t *testing.T) {
 		t.Run(fmt.Sprintf("%v", format.Args()), func(t *testing.T) {
 			_, out, conf := c.newMockConfig(t)
 
-			cmd := newRootCmd(conf, true)
+			cmd := newRootCmd(conf)
 			os.Args = append([]string{config.BinaryName}, c.Cmd(c.Want)...)
 			os.Args = append(os.Args, format.Args()...)
 
 			err := cmd.Execute()
-			assert.NoError(t, err)
+			require.NoError(t, err)
 
 			format.Validate(t, out.Bytes())
 		})
@@ -120,7 +120,7 @@ func AssertExhaustiveArgs(t *testing.T, args []string, exclude ...string) {
 		return fmt.Errorf("not exhaustive: does not contain " + prefix)
 	}
 
-	root := newRootCmd(&config.Config{}, true)
+	root := newRootCmd(&config.Config{})
 	cmd, args, err := root.Find(args)
 	require.NoError(t, err)
 
@@ -128,7 +128,7 @@ func AssertExhaustiveArgs(t *testing.T, args []string, exclude ...string) {
 		if slices.Contains(exclude, f.Name) {
 			return
 		}
-		assert.NoError(t, assertContainsPrefix(args, "--"+f.Name), "please ensure you all available args are used in order to increase coverage or exclude them explicitly")
+		require.NoError(t, assertContainsPrefix(args, "--"+f.Name), "please ensure you all available args are used in order to increase coverage or exclude them explicitly")
 	})
 }
 
