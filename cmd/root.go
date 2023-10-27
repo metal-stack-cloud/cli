@@ -7,6 +7,7 @@ import (
 	"time"
 
 	client "github.com/metal-stack-cloud/api/go/client"
+	"github.com/metal-stack/metal-lib/pkg/genericcli"
 
 	adminv1 "github.com/metal-stack-cloud/cli/cmd/admin/v1"
 	apiv1 "github.com/metal-stack-cloud/cli/cmd/api/v1"
@@ -48,10 +49,10 @@ func newRootCmd(c *config.Config) *cobra.Command {
 		Long:         "",
 		SilenceUsage: true,
 		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
-			must(viper.BindPFlags(cmd.Flags()))
-			must(viper.BindPFlags(cmd.PersistentFlags()))
+			genericcli.Must(viper.BindPFlags(cmd.Flags()))
+			genericcli.Must(viper.BindPFlags(cmd.PersistentFlags()))
 
-			must(readConfigFile())
+			genericcli.Must(readConfigFile())
 			initConfigWithViperCtx(c)
 
 			return nil
@@ -65,7 +66,7 @@ apitoken: "alongtoken"
 ...
 `)
 	rootCmd.PersistentFlags().StringP("output-format", "o", "table", "output format (table|wide|markdown|json|yaml|template|jsonraw|yamlraw), wide is a table with more columns, jsonraw and yamlraw do not translate proto enums into string types but leave the original int32 values intact.")
-	must(rootCmd.RegisterFlagCompletionFunc("output-format", cobra.FixedCompletions([]string{"table", "wide", "markdown", "json", "yaml", "template"}, cobra.ShellCompDirectiveNoFileComp)))
+	genericcli.Must(rootCmd.RegisterFlagCompletionFunc("output-format", cobra.FixedCompletions([]string{"table", "wide", "markdown", "json", "yaml", "template"}, cobra.ShellCompDirectiveNoFileComp)))
 	rootCmd.PersistentFlags().StringP("template", "", "", `output template for template output-format, go template format. For property names inspect the output of -o json or -o yaml for reference.`)
 	rootCmd.PersistentFlags().Bool("force-color", false, "force colored output even without tty")
 	rootCmd.PersistentFlags().Bool("debug", false, "debug output")
@@ -74,18 +75,12 @@ apitoken: "alongtoken"
 	rootCmd.PersistentFlags().String("api-token", "", "the token used for api requests")
 	rootCmd.PersistentFlags().String("api-ca-file", "", "the path to the ca file of the api server")
 
-	must(viper.BindPFlags(rootCmd.PersistentFlags()))
+	genericcli.Must(viper.BindPFlags(rootCmd.PersistentFlags()))
 
 	adminv1.AddCmds(rootCmd, c)
 	apiv1.AddCmds(rootCmd, c)
 
 	return rootCmd
-}
-
-func must(err error) {
-	if err != nil {
-		panic(err)
-	}
 }
 
 func readConfigFile() error {

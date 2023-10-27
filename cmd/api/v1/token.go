@@ -74,6 +74,55 @@ func newTokenCmd(c *config.Config) *cobra.Command {
 			cmd.Flags().StringSlice("permissions", nil, "the permissions to associate with the api token in the form <project>=<methods-colon-separated>")
 			cmd.Flags().StringSlice("roles", nil, "the roles to associate with the api token in the form <subject>:<role>")
 			cmd.Flags().Duration("expires", 8*time.Hour, "the duration how long the api token is valid")
+
+			genericcli.Must(cmd.RegisterFlagCompletionFunc("permissions", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+				methods, err := c.Client.Apiv1().Method().TokenScopedList(c.Ctx, connect.NewRequest(&apiv1.MethodServiceTokenScopedListRequest{}))
+				if err != nil {
+					return nil, cobra.ShellCompDirectiveError
+				}
+
+				subject := ""
+				if s, _, ok := strings.Cut(toComplete, "="); ok {
+					subject = s
+				}
+
+				if subject == "" {
+					var perms []string
+
+					for _, p := range methods.Msg.Permissions {
+						perms = append(perms, p.Project)
+					}
+
+					return perms, cobra.ShellCompDirectiveNoFileComp
+				}
+
+				// FIXME: completion does not work at this point, investigate why
+
+				var perms []string
+
+				for _, p := range methods.Msg.Permissions {
+					for _, m := range p.Methods {
+						perms = append(perms, m)
+					}
+				}
+
+				return perms, cobra.ShellCompDirectiveDefault
+			}))
+			genericcli.Must(cmd.RegisterFlagCompletionFunc("roles", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+				methods, err := c.Client.Apiv1().Method().TokenScopedList(c.Ctx, connect.NewRequest(&apiv1.MethodServiceTokenScopedListRequest{}))
+				if err != nil {
+					return nil, cobra.ShellCompDirectiveError
+				}
+
+				var roles []string
+
+				for _, r := range methods.Msg.Roles {
+					roles = append(roles, r.Subject+":"+r.Role)
+				}
+
+				return roles, cobra.ShellCompDirectiveNoFileComp
+			}))
+
 		},
 		DeleteCmdMutateFn: func(cmd *cobra.Command) {
 			cmd.Aliases = append(cmd.Aliases, "revoke")
