@@ -50,9 +50,9 @@ func newTokenCmd(c *config.Config) *cobra.Command {
 
 			var roles []*apiv1.TokenRole
 			for _, r := range viper.GetStringSlice("roles") {
-				subject, role, ok := strings.Cut(r, ":")
+				subject, role, ok := strings.Cut(r, "=")
 				if !ok {
-					return nil, fmt.Errorf("roles must be provided in the form <subject>:<role>")
+					return nil, fmt.Errorf("roles must be provided in the form <subject>=<role>")
 				}
 
 				roles = append(roles, &apiv1.TokenRole{
@@ -72,7 +72,7 @@ func newTokenCmd(c *config.Config) *cobra.Command {
 		CreateCmdMutateFn: func(cmd *cobra.Command) {
 			cmd.Flags().String("description", "", "a short description for the intention to use this token for")
 			cmd.Flags().StringSlice("permissions", nil, "the permissions to associate with the api token in the form <project>=<methods-colon-separated>")
-			cmd.Flags().StringSlice("roles", nil, "the roles to associate with the api token in the form <subject>:<role>")
+			cmd.Flags().StringSlice("roles", nil, "the roles to associate with the api token in the form <subject>=<role>")
 			cmd.Flags().Duration("expires", 8*time.Hour, "the duration how long the api token is valid")
 
 			genericcli.Must(cmd.RegisterFlagCompletionFunc("permissions", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
