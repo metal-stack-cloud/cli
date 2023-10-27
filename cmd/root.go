@@ -35,7 +35,7 @@ func Execute() {
 		if viper.GetBool("debug") {
 			panic(err)
 		}
-		fmt.Printf("%+v\n", err)
+
 		os.Exit(1)
 	}
 }
