@@ -98,6 +98,7 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 			}
 			return c.ListPrinter.Print(resp.Msg.Cluster.Status.LastErrors)
 		},
+		ValidArgsFunction: c.Completion.ClusterListCompletion,
 	}
 
 	monitoringCmd := &cobra.Command{
@@ -149,6 +150,7 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 
 			return c.ListPrinter.Print(resp.Msg.Cluster)
 		},
+		ValidArgsFunction: c.Completion.ClusterListCompletion,
 	}
 
 	reconcileCmd.Flags().Bool("reconcile", true, "trigger cluster reconciliation")

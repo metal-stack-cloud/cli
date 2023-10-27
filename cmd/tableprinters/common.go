@@ -51,6 +51,10 @@ func (t *TablePrinter) ToHeaderAndRows(data any, wide bool) ([]string, [][]strin
 		return t.SnapshotTable(pointer.WrapInSlice(d), wide)
 	case []*apiv1.Snapshot:
 		return t.SnapshotTable(d, wide)
+	case *apiv1.Token:
+		return t.TokenTable(pointer.WrapInSlice(d), wide)
+	case []*apiv1.Token:
+		return t.TokenTable(d, wide)
 	case *adminv1.StorageClusterInfo:
 		return t.StorageClusterInfoTable(pointer.WrapInSlice(d), wide)
 	case []*adminv1.StorageClusterInfo:
