@@ -37,14 +37,14 @@ func newTokenCmd(c *config.Config) *cobra.Command {
 		CreateRequestFromCLI: func() (*apiv1.TokenServiceCreateRequest, error) {
 			var permissions []*apiv1.ProjectPermission
 			for _, r := range viper.GetStringSlice("permissions") {
-				project, semicolonSeparatedPerms, ok := strings.Cut(r, "=")
+				project, semicolonSeparatedMethods, ok := strings.Cut(r, "=")
 				if !ok {
-					return nil, fmt.Errorf("permissions must be provided in the form <project>=<permissions-colon-separated>")
+					return nil, fmt.Errorf("permissions must be provided in the form <project>=<methods-colon-separated>")
 				}
 
 				permissions = append(permissions, &apiv1.ProjectPermission{
-					Project:     project,
-					Permissions: strings.Split(semicolonSeparatedPerms, ":"),
+					Project: project,
+					Methods: strings.Split(semicolonSeparatedMethods, ":"),
 				})
 			}
 
@@ -63,7 +63,7 @@ func newTokenCmd(c *config.Config) *cobra.Command {
 
 			return &apiv1.TokenServiceCreateRequest{
 				// TODO: api should have an endpoint to list possible permissions and roles
-				// TODO: api needs description field
+				Description: viper.GetString("description"),
 				Permissions: permissions,
 				Roles:       roles,
 				Expires:     durationpb.New(viper.GetDuration("expires")),
@@ -71,7 +71,7 @@ func newTokenCmd(c *config.Config) *cobra.Command {
 		},
 		CreateCmdMutateFn: func(cmd *cobra.Command) {
 			cmd.Flags().String("description", "", "a short description for the intention to use this token for")
-			cmd.Flags().StringSlice("permissions", nil, "the permissions to associate with the api token in the form <project>=<permissions-colon-separated>")
+			cmd.Flags().StringSlice("permissions", nil, "the permissions to associate with the api token in the form <project>=<methods-colon-separated>")
 			cmd.Flags().StringSlice("roles", nil, "the roles to associate with the api token in the form <subject>:<role>")
 			cmd.Flags().Duration("expires", 8*time.Hour, "the duration how long the api token is valid")
 		},
@@ -132,7 +132,7 @@ func (t *token) Delete(id string) (*apiv1.Token, error) {
 
 func (t *token) Convert(r *apiv1.Token) (string, *apiv1.TokenServiceCreateRequest, any, error) {
 	return r.Uuid, &apiv1.TokenServiceCreateRequest{
-		Subject:     r.GetUserId(),
+		Description: r.GetDescription(),
 		Permissions: r.GetPermissions(),
 		Roles:       r.GetRoles(),
 		Expires:     durationpb.New(time.Until(r.GetExpires().AsTime())),
@@ -142,15 +142,3 @@ func (t *token) Convert(r *apiv1.Token) (string, *apiv1.TokenServiceCreateReques
 func (t *token) Update(rq any) (*apiv1.Token, error) {
 	panic("unimplemented")
 }
-
-// tcr := &v1.TokenServiceCreateRequest{
-// 	Subject: "get-pi",
-// 	Permissions: []*v1.ProjectPermission{
-// 		{
-// 			Project: "08fba2f7-69c5-45e7-b774-eb0b40c2db89",
-// 			Permissions: []string{
-// 				"Get",
-// 			},
-// 		},
-// 	},
-// }

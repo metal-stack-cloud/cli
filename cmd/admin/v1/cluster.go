@@ -74,7 +74,8 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 				return fmt.Errorf("failed to get cluster credentials: %w", err)
 			}
 
-			fmt.Println(resp.Msg.Kubeconfig)
+			fmt.Fprintln(w.c.Out, resp.Msg.Kubeconfig)
+
 			return nil
 		},
 		ValidArgsFunction: c.Completion.ClusterListCompletion,
