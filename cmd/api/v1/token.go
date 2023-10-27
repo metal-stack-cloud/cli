@@ -76,8 +76,7 @@ func newTokenCmd(c *config.Config) *cobra.Command {
 			cmd.Flags().Duration("expires", 8*time.Hour, "the duration how long the api token is valid")
 		},
 		DeleteCmdMutateFn: func(cmd *cobra.Command) {
-			cmd.Use = "revoke"
-			cmd.Short = "revokes the token"
+			cmd.Aliases = append(cmd.Aliases, "revoke")
 		},
 		OnlyCmds:    genericcli.OnlyCmds(genericcli.ListCmd, genericcli.DeleteCmd, genericcli.CreateCmd),
 		ValidArgsFn: w.c.Completion.TokenListCompletion,
