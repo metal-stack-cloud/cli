@@ -21,4 +21,4 @@ test:
 
 .PHONY: golint
 golint:
-	golangci-lint run -p bugs -p unused
+	golangci-lint run -p bugs -p unused -D protogetter
