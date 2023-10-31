@@ -35,15 +35,15 @@ func newTokenCmd(c *config.Config) *cobra.Command {
 		DescribePrinter: func() printers.Printer { return c.DescribePrinter },
 		ListPrinter:     func() printers.Printer { return c.ListPrinter },
 		CreateRequestFromCLI: func() (*apiv1.TokenServiceCreateRequest, error) {
-			var permissions []*apiv1.ProjectPermission
+			var permissions []*apiv1.MethodPermission
 			for _, r := range viper.GetStringSlice("permissions") {
 				project, semicolonSeparatedMethods, ok := strings.Cut(r, "=")
 				if !ok {
 					return nil, fmt.Errorf("permissions must be provided in the form <project>=<methods-colon-separated>")
 				}
 
-				permissions = append(permissions, &apiv1.ProjectPermission{
-					Project: project,
+				permissions = append(permissions, &apiv1.MethodPermission{
+					Subject: project,
 					Methods: strings.Split(semicolonSeparatedMethods, ":"),
 				})
 			}
@@ -90,7 +90,7 @@ func newTokenCmd(c *config.Config) *cobra.Command {
 					var perms []string
 
 					for _, p := range methods.Msg.Permissions {
-						perms = append(perms, p.Project)
+						perms = append(perms, p.Subject)
 					}
 
 					return perms, cobra.ShellCompDirectiveNoFileComp
@@ -101,9 +101,7 @@ func newTokenCmd(c *config.Config) *cobra.Command {
 				var perms []string
 
 				for _, p := range methods.Msg.Permissions {
-					for _, m := range p.Methods {
-						perms = append(perms, m)
-					}
+					perms = append(perms, p.Methods...)
 				}
 
 				return perms, cobra.ShellCompDirectiveDefault
