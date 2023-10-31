@@ -10,6 +10,7 @@ import (
 	"github.com/metal-stack-cloud/cli/cmd/sorters"
 	"github.com/metal-stack/metal-lib/pkg/genericcli"
 	"github.com/metal-stack/metal-lib/pkg/genericcli/printers"
+	"github.com/metal-stack/metal-lib/pkg/pointer"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -32,6 +33,9 @@ func newTokenCmd(c *config.Config) *cobra.Command {
 		Sorter:          sorters.TokenSorter(),
 		DescribePrinter: func() printers.Printer { return c.DescribePrinter },
 		ListPrinter:     func() printers.Printer { return c.ListPrinter },
+		ListCmdMutateFn: func(cmd *cobra.Command) {
+			cmd.Flags().String("user", "", "the uuid of the user to list the tokens for")
+		},
 		DeleteCmdMutateFn: func(cmd *cobra.Command) {
 			cmd.Flags().String("user", "", "the uuid of the user who owns the token")
 
@@ -49,6 +53,10 @@ func (t *token) Get(id string) (*apiv1.Token, error) {
 
 func (t *token) List() ([]*apiv1.Token, error) {
 	req := &adminv1.TokenServiceListRequest{}
+
+	if viper.IsSet("user") {
+		req.UserId = pointer.Pointer(viper.GetString("user"))
+	}
 
 	resp, err := t.c.Client.Adminv1().Token().List(t.c.Ctx, connect.NewRequest(req))
 	if err != nil {
