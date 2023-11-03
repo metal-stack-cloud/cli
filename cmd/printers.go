@@ -55,5 +55,5 @@ func defaultToYAMLPrinter(log *zap.SugaredLogger, out io.Writer) printers.Printe
 	if viper.IsSet("output-format") {
 		return newPrinterFromCLI(log, out)
 	}
-	return printers.NewYAMLPrinter().WithOut(out)
+	return printers.NewProtoYAMLPrinter().WithOut(out)
 }
