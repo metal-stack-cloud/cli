@@ -5,7 +5,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func NewStorageCmd(c *config.Config) *cobra.Command {
+func newStorageCmd(c *config.Config) *cobra.Command {
 	storageCmd := &cobra.Command{
 		Use:   "storage",
 		Short: "storage commands",

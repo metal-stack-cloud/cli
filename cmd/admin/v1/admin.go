@@ -5,8 +5,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func NewAdminCmd(c *config.Config) *cobra.Command {
-
+func AddCmds(cmd *cobra.Command, c *config.Config) {
 	adminCmd := &cobra.Command{
 		Use:          "admin",
 		Short:        "admin commands",
@@ -18,6 +17,8 @@ func NewAdminCmd(c *config.Config) *cobra.Command {
 	adminCmd.AddCommand(newTenantCmd(c))
 	adminCmd.AddCommand(newCouponCmd(c))
 	adminCmd.AddCommand(newStorageCmd(c))
+	adminCmd.AddCommand(newClusterCmd(c))
+	adminCmd.AddCommand(newTokenCmd(c))
 
-	return adminCmd
+	cmd.AddCommand(adminCmd)
 }

@@ -3,8 +3,8 @@ package tableprinters
 import (
 	"fmt"
 
-	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
 	adminv1 "github.com/metal-stack-cloud/api/go/admin/v1"
+	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
 	"github.com/metal-stack/metal-lib/pkg/genericcli/printers"
 	"github.com/metal-stack/metal-lib/pkg/pointer"
 )
@@ -35,6 +35,14 @@ func (t *TablePrinter) ToHeaderAndRows(data any, wide bool) ([]string, [][]strin
 		return t.CouponTable(pointer.WrapInSlice(d), wide)
 	case []*apiv1.Coupon:
 		return t.CouponTable(d, wide)
+	case *apiv1.Cluster:
+		return t.ClusterTable(pointer.WrapInSlice(d), wide)
+	case []*apiv1.Cluster:
+		return t.ClusterTable(d, wide)
+	case *apiv1.ClusterStatusLastError:
+		return t.ClusterStatusLastErrorTable(pointer.WrapInSlice(d), wide)
+	case []*apiv1.ClusterStatusLastError:
+		return t.ClusterStatusLastErrorTable(d, wide)
 	case *apiv1.Volume:
 		return t.VolumeTable(pointer.WrapInSlice(d), wide)
 	case []*apiv1.Volume:
@@ -43,6 +51,10 @@ func (t *TablePrinter) ToHeaderAndRows(data any, wide bool) ([]string, [][]strin
 		return t.SnapshotTable(pointer.WrapInSlice(d), wide)
 	case []*apiv1.Snapshot:
 		return t.SnapshotTable(d, wide)
+	case *apiv1.Token:
+		return t.TokenTable(pointer.WrapInSlice(d), wide)
+	case []*apiv1.Token:
+		return t.TokenTable(d, wide)
 	case *adminv1.StorageClusterInfo:
 		return t.StorageClusterInfoTable(pointer.WrapInSlice(d), wide)
 	case []*adminv1.StorageClusterInfo:

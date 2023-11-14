@@ -7,10 +7,11 @@ import (
 	"time"
 
 	client "github.com/metal-stack-cloud/api/go/client"
-	adminv1client "github.com/metal-stack-cloud/api/go/client/admin/v1"
-	apiv1client "github.com/metal-stack-cloud/api/go/client/api/v1"
+	"github.com/metal-stack/metal-lib/pkg/genericcli"
+
 	adminv1 "github.com/metal-stack-cloud/cli/cmd/admin/v1"
 	apiv1 "github.com/metal-stack-cloud/cli/cmd/api/v1"
+	"github.com/metal-stack-cloud/cli/cmd/completion"
 	"github.com/metal-stack-cloud/cli/cmd/config"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
@@ -22,24 +23,25 @@ import (
 
 func Execute() {
 	cfg := &config.Config{
-		Ctx: context.Background(),
-		Fs:  afero.NewOsFs(),
-		Out: os.Stdout,
+		Ctx:        context.Background(),
+		Fs:         afero.NewOsFs(),
+		Out:        os.Stdout,
+		Completion: &completion.Completion{},
 	}
 
-	cmd := NewRootCmd(cfg)
+	cmd := newRootCmd(cfg)
 
 	err := cmd.Execute()
 	if err != nil {
 		if viper.GetBool("debug") {
 			panic(err)
 		}
-		fmt.Printf("%+v\n", err)
+
 		os.Exit(1)
 	}
 }
 
-func NewRootCmd(c *config.Config) *cobra.Command {
+func newRootCmd(c *config.Config) *cobra.Command {
 	rootCmd := &cobra.Command{
 		Use:          config.BinaryName,
 		Aliases:      []string{"m"},
@@ -47,10 +49,10 @@ func NewRootCmd(c *config.Config) *cobra.Command {
 		Long:         "",
 		SilenceUsage: true,
 		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
-			must(viper.BindPFlags(cmd.Flags()))
-			must(viper.BindPFlags(cmd.PersistentFlags()))
+			genericcli.Must(viper.BindPFlags(cmd.Flags()))
+			genericcli.Must(viper.BindPFlags(cmd.PersistentFlags()))
 
-			must(readConfigFile())
+			genericcli.Must(readConfigFile())
 			initConfigWithViperCtx(c)
 
 			return nil
@@ -64,7 +66,7 @@ apitoken: "alongtoken"
 ...
 `)
 	rootCmd.PersistentFlags().StringP("output-format", "o", "table", "output format (table|wide|markdown|json|yaml|template|jsonraw|yamlraw), wide is a table with more columns, jsonraw and yamlraw do not translate proto enums into string types but leave the original int32 values intact.")
-	must(rootCmd.RegisterFlagCompletionFunc("output-format", cobra.FixedCompletions([]string{"table", "wide", "markdown", "json", "yaml", "template"}, cobra.ShellCompDirectiveNoFileComp)))
+	genericcli.Must(rootCmd.RegisterFlagCompletionFunc("output-format", cobra.FixedCompletions([]string{"table", "wide", "markdown", "json", "yaml", "template"}, cobra.ShellCompDirectiveNoFileComp)))
 	rootCmd.PersistentFlags().StringP("template", "", "", `output template for template output-format, go template format. For property names inspect the output of -o json or -o yaml for reference.`)
 	rootCmd.PersistentFlags().Bool("force-color", false, "force colored output even without tty")
 	rootCmd.PersistentFlags().Bool("debug", false, "debug output")
@@ -73,25 +75,12 @@ apitoken: "alongtoken"
 	rootCmd.PersistentFlags().String("api-token", "", "the token used for api requests")
 	rootCmd.PersistentFlags().String("api-ca-file", "", "the path to the ca file of the api server")
 
-	must(viper.BindPFlags(rootCmd.PersistentFlags()))
+	genericcli.Must(viper.BindPFlags(rootCmd.PersistentFlags()))
 
-	rootCmd.AddCommand(apiv1.NewVersionCmd(c))
-	rootCmd.AddCommand(apiv1.NewHealthCmd(c))
-	rootCmd.AddCommand(apiv1.NewAssetCmd(c))
-	rootCmd.AddCommand(apiv1.NewTokenCmd(c))
-	rootCmd.AddCommand(apiv1.NewIPCmd(c))
-	rootCmd.AddCommand(apiv1.NewStorageCmd(c))
-
-	// Admin subcommand, hidden by default
-	rootCmd.AddCommand(adminv1.NewAdminCmd(c))
+	adminv1.AddCmds(rootCmd, c)
+	apiv1.AddCmds(rootCmd, c)
 
 	return rootCmd
-}
-
-func must(err error) {
-	if err != nil {
-		panic(err)
-	}
 }
 
 func readConfigFile() error {
@@ -136,7 +125,7 @@ func initConfigWithViperCtx(c *config.Config) {
 	c.ListPrinter = newPrinterFromCLI(c.Log, c.Out)
 	c.DescribePrinter = defaultToYAMLPrinter(c.Log, c.Out)
 
-	if c.Adminv1Client != nil && c.Apiv1Client != nil {
+	if c.Client != nil {
 		return
 	}
 
@@ -147,15 +136,14 @@ func initConfigWithViperCtx(c *config.Config) {
 		BaseURL:   viper.GetString("api-url"),
 		Token:     viper.GetString("api-token"),
 		UserAgent: "metal-stack-cloud-cli",
-		Log:       c.Log,
 		Debug:     viper.GetBool("debug"),
 	}
 
-	apiclient := apiv1client.New(ctx, dialConfig)
-	adminclient := adminv1client.New(ctx, dialConfig)
+	mc := client.New(dialConfig)
 
-	c.Apiv1Client = apiclient
-	c.Adminv1Client = adminclient
+	c.Client = mc
+	c.Completion.Client = mc
+	c.Completion.Ctx = ctx
 }
 
 func newLogger() *zap.SugaredLogger {

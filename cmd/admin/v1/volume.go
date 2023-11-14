@@ -3,7 +3,7 @@ package v1
 import (
 	"fmt"
 
-	"github.com/bufbuild/connect-go"
+	"connectrpc.com/connect"
 	adminv1 "github.com/metal-stack-cloud/api/go/admin/v1"
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
 	"github.com/metal-stack-cloud/cli/cmd/config"
@@ -59,7 +59,7 @@ func (v *volume) Get(id string) (*apiv1.Volume, error) {
 	req := &adminv1.StorageServiceListVolumesRequest{
 		Uuid: &id,
 	}
-	resp, err := v.c.Adminv1Client.Storage().ListVolumes(v.c.Ctx, connect.NewRequest(req))
+	resp, err := v.c.Client.Adminv1().Storage().ListVolumes(v.c.Ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get volumes: %w", err)
 	}
@@ -87,20 +87,15 @@ func (v *volume) List() ([]*apiv1.Volume, error) {
 	if viper.IsSet("tenant") {
 		req.Tenant = pointer.Pointer(viper.GetString("tenant"))
 	}
-	resp, err := v.c.Adminv1Client.Storage().ListVolumes(v.c.Ctx, connect.NewRequest(req))
+	resp, err := v.c.Client.Adminv1().Storage().ListVolumes(v.c.Ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get volumes: %w", err)
 	}
 	return resp.Msg.Volumes, nil
 }
 
-// ToCreate implements genericcli.CRUD
-func (v *volume) ToCreate(r *apiv1.Volume) (any, error) {
-	panic("unimplemented")
-}
-
-// ToUpdate implements genericcli.CRUD
-func (v *volume) ToUpdate(r *apiv1.Volume) (any, error) {
+// Convert implements genericcli.CRUD
+func (v *volume) Convert(r *apiv1.Volume) (string, any, any, error) {
 	panic("unimplemented")
 }
 

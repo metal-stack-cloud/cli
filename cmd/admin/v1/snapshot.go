@@ -3,7 +3,7 @@ package v1
 import (
 	"fmt"
 
-	"github.com/bufbuild/connect-go"
+	"connectrpc.com/connect"
 	adminv1 "github.com/metal-stack-cloud/api/go/admin/v1"
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
 	"github.com/metal-stack-cloud/cli/cmd/config"
@@ -59,7 +59,7 @@ func (s *snapshot) Get(id string) (*apiv1.Snapshot, error) {
 	req := &adminv1.StorageServiceListSnapshotsRequest{
 		Uuid: &id,
 	}
-	resp, err := s.c.Adminv1Client.Storage().ListSnapshots(s.c.Ctx, connect.NewRequest(req))
+	resp, err := s.c.Client.Adminv1().Storage().ListSnapshots(s.c.Ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get snapshots: %w", err)
 	}
@@ -87,20 +87,15 @@ func (s *snapshot) List() ([]*apiv1.Snapshot, error) {
 	if viper.IsSet("tenant") {
 		req.Tenant = pointer.Pointer(viper.GetString("tenant"))
 	}
-	resp, err := s.c.Adminv1Client.Storage().ListSnapshots(s.c.Ctx, connect.NewRequest(req))
+	resp, err := s.c.Client.Adminv1().Storage().ListSnapshots(s.c.Ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get snapshots: %w", err)
 	}
 	return resp.Msg.Snapshots, nil
 }
 
-// ToCreate implements genericcli.CRUD
-func (s *snapshot) ToCreate(r *apiv1.Snapshot) (any, error) {
-	panic("unimplemented")
-}
-
-// ToUpdate implements genericcli.CRUD
-func (s *snapshot) ToUpdate(r *apiv1.Snapshot) (any, error) {
+// Convert implements genericcli.CRUD
+func (s *snapshot) Convert(r *apiv1.Snapshot) (string, any, any, error) {
 	panic("unimplemented")
 }
 

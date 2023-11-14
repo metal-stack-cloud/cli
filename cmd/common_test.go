@@ -9,12 +9,13 @@ import (
 	"testing"
 	"time"
 
-	"golang.org/x/exp/slices"
+	"slices"
 
 	"bou.ke/monkey"
 	"github.com/go-openapi/strfmt"
 	"github.com/google/go-cmp/cmp"
 	apitests "github.com/metal-stack-cloud/api/go/tests"
+	"github.com/metal-stack-cloud/cli/cmd/completion"
 	"github.com/metal-stack-cloud/cli/cmd/config"
 	"github.com/metal-stack/metal-lib/pkg/pointer"
 	"github.com/metal-stack/metal-lib/pkg/testcommon"
@@ -36,9 +37,8 @@ type Test[R any] struct {
 	Name string
 	Cmd  func(want R) []string
 
-	APIMocks   *apitests.Apiv1MockFns
-	AdminMocks *apitests.Adminv1MockFns
-	FsMocks    func(fs afero.Fs, want R)
+	ClientMocks *apitests.ClientMockFns
+	FsMocks     func(fs afero.Fs, want R)
 
 	DisableMockClient bool // can switch off mock client creation
 
@@ -58,7 +58,7 @@ func (c *Test[R]) TestCmd(t *testing.T) {
 	if c.WantErr != nil {
 		_, _, conf := c.newMockConfig(t)
 
-		cmd := NewRootCmd(conf)
+		cmd := newRootCmd(conf)
 		os.Args = append([]string{config.BinaryName}, c.Cmd(c.Want)...)
 
 		err := cmd.Execute()
@@ -72,12 +72,12 @@ func (c *Test[R]) TestCmd(t *testing.T) {
 		t.Run(fmt.Sprintf("%v", format.Args()), func(t *testing.T) {
 			_, out, conf := c.newMockConfig(t)
 
-			cmd := NewRootCmd(conf)
+			cmd := newRootCmd(conf)
 			os.Args = append([]string{config.BinaryName}, c.Cmd(c.Want)...)
 			os.Args = append(os.Args, format.Args()...)
 
 			err := cmd.Execute()
-			assert.NoError(t, err)
+			require.NoError(t, err)
 
 			format.Validate(t, out.Bytes())
 		})
@@ -95,17 +95,16 @@ func (c *Test[R]) newMockConfig(t *testing.T) (any, *bytes.Buffer, *config.Confi
 	var (
 		out    bytes.Buffer
 		config = &config.Config{
-			Fs:            fs,
-			Out:           &out,
-			Log:           zaptest.NewLogger(t).Sugar(),
-			Apiv1Client:   mock.Apiv1(c.APIMocks),
-			Adminv1Client: mock.Adminv1(c.AdminMocks),
+			Fs:         fs,
+			Out:        &out,
+			Log:        zaptest.NewLogger(t).Sugar(),
+			Completion: &completion.Completion{},
+			Client:     mock.Client(c.ClientMocks),
 		}
 	)
 
 	if c.DisableMockClient {
-		config.Apiv1Client = nil
-		config.Adminv1Client = nil
+		config.Client = nil
 	}
 
 	return nil, &out, config
@@ -121,7 +120,7 @@ func AssertExhaustiveArgs(t *testing.T, args []string, exclude ...string) {
 		return fmt.Errorf("not exhaustive: does not contain " + prefix)
 	}
 
-	root := NewRootCmd(&config.Config{})
+	root := newRootCmd(&config.Config{})
 	cmd, args, err := root.Find(args)
 	require.NoError(t, err)
 
@@ -129,7 +128,7 @@ func AssertExhaustiveArgs(t *testing.T, args []string, exclude ...string) {
 		if slices.Contains(exclude, f.Name) {
 			return
 		}
-		assert.NoError(t, assertContainsPrefix(args, "--"+f.Name), "please ensure you all available args are used in order to increase coverage or exclude them explicitly")
+		require.NoError(t, assertContainsPrefix(args, "--"+f.Name), "please ensure you all available args are used in order to increase coverage or exclude them explicitly")
 	})
 }
 
@@ -328,6 +327,6 @@ func validateTableRows(t *testing.T, want, got string) {
 	}
 }
 
-func AppendFromFileCommonArgs(args ...string) []string {
-	return append(args, []string{"-f", "/file.yaml", "--force", "--bulk-output"}...)
+func commonExcludedFileArgs() []string {
+	return []string{"file", "bulk-output", "skip-security-prompts", "timestamps"}
 }
