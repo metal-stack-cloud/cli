@@ -327,6 +327,6 @@ func validateTableRows(t *testing.T, want, got string) {
 	}
 }
 
-func AppendFromFileCommonArgs(args ...string) []string {
-	return append(args, []string{"-f", "/file.yaml", "--force", "--bulk-output"}...)
+func commonExcludedFileArgs() []string {
+	return []string{"file", "bulk-output", "skip-security-prompts", "timestamps"}
 }

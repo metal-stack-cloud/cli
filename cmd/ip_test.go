@@ -199,7 +199,7 @@ IP        ID     PROJECT   NAME   DESCRIPTION     TYPE
 			Name: "create",
 			Cmd: func(want *apiv1.IP) []string {
 				args := []string{"ip", "create", "--project", "a", "--description", "a description", "--name", "a", "--static", "--tags", "a=b"}
-				AssertExhaustiveArgs(t, args, "file")
+				AssertExhaustiveArgs(t, args, commonExcludedFileArgs()...)
 				return args
 			},
 			ClientMocks: &apitests.ClientMockFns{
@@ -242,7 +242,7 @@ IP        ID     PROJECT   NAME   DESCRIPTION     TYPE
 			Name: "update",
 			Cmd: func(want *apiv1.IP) []string {
 				args := []string{"ip", "update", "--project", "a", "--uuid", "uuid", "--description", "b description", "--name", "b", "--static", "--tags", "c=d"}
-				AssertExhaustiveArgs(t, args, "file")
+				AssertExhaustiveArgs(t, args, commonExcludedFileArgs()...)
 				return args
 			},
 			ClientMocks: &apitests.ClientMockFns{
