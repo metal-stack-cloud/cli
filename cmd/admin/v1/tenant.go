@@ -57,6 +57,9 @@ func newTenantCmd(c *config.Config) *cobra.Command {
 			if viper.IsSet("coupon-id") {
 				req.CouponId = pointer.Pointer(viper.GetString("coupon-id"))
 			}
+			if viper.IsSet("add-balance") {
+				req.Balance = pointer.Pointer(viper.GetInt64("add-balance"))
+			}
 			resp, err := c.Client.Adminv1().Tenant().Admit(c.Ctx, connect.NewRequest(req))
 			if err != nil {
 				return fmt.Errorf("failed to admit tenant: %w", err)
@@ -66,6 +69,7 @@ func newTenantCmd(c *config.Config) *cobra.Command {
 		},
 	}
 	admitCmd.Flags().StringP("coupon-id", "", "", "optional add a coupon with given id, see coupon list for available coupons")
+	admitCmd.Flags().StringP("add-balance", "", "", "optional add a balance in cent to the customer balance")
 
 	revokeCmd := &cobra.Command{
 		Use:   "revoke",
