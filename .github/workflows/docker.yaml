@@ -1,0 +1,90 @@
+---
+name: Docker Build Action
+on:
+  pull_request:
+    branches:
+      - main
+  release:
+    types:
+      - published
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: 'go.mod'
+          cache: false
+
+      - name: Lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          args: --build-tags integration -p bugs -p unused -D protogetter --timeout=5m
+
+      - name: Test
+        run: |
+          make test
+
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        os:
+          - linux
+          - windows
+          - darwin
+        arch:
+          - amd64
+          - arm64
+        exclude:
+          - os: linux
+            arch: arm64
+          - os: windows
+            arch: arm64
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Make tag
+        run: |
+          [ "${GITHUB_EVENT_NAME}" == 'pull_request' ] && echo "TAG_NAME=$(echo $GITHUB_REF | awk -F / '{print $3}')-${GITHUB_HEAD_REF##*/}" >> $GITHUB_ENV || true
+          [ "${GITHUB_EVENT_NAME}" == 'release' ] && echo "TAG_NAME=${GITHUB_REF##*/}" >> $GITHUB_ENV || true
+          [ "${GITHUB_EVENT_NAME}" == 'push' ] && echo "TAG_NAME=latest" >> $GITHUB_ENV || true
+
+          [ "${GITHUB_EVENT_NAME}" == 'pull_request' ] && echo "TARGET_BINARY_LOCATION=pull-requests/$(echo $GITHUB_REF | awk -F / '{print $3}')-${GITHUB_HEAD_REF##*/}" >> $GITHUB_ENV || true
+          [ "${GITHUB_EVENT_NAME}" == 'release' ] && echo "TARGET_BINARY_LOCATION=${GITHUB_REF##*/}" >> $GITHUB_ENV || true
+          [ "${GITHUB_EVENT_NAME}" == 'push' ] && echo "TARGET_BINARY_LOCATION=latest" >> $GITHUB_ENV || true
+
+      - name: Build
+        run: |
+          make cli GOOS=${{ matrix.os }} GOARCH=${{ matrix.arch }}
+
+      - name: Prepare upload
+        run: |
+          mkdir -p metal/${TARGET_BINARY_LOCATION}
+          sudo chown -R $(id -u):$(id -g) bin
+          cp bin/* metal/${TARGET_BINARY_LOCATION}/
+
+      - name: Upload Release Asset
+        uses: softprops/action-gh-release@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          files: |
+            bin/metal-*
+        if: ${{ github.event_name == 'release' }}
