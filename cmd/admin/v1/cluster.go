@@ -3,12 +3,15 @@ package v1
 import (
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"connectrpc.com/connect"
+	"github.com/fatih/color"
 	adminv1 "github.com/metal-stack-cloud/api/go/admin/v1"
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
 	"github.com/metal-stack-cloud/cli/cmd/config"
+	"github.com/metal-stack-cloud/cli/cmd/kubernetes"
 	"github.com/metal-stack-cloud/cli/cmd/sorters"
 	"github.com/metal-stack/metal-lib/pkg/genericcli"
 	"github.com/metal-stack/metal-lib/pkg/genericcli/printers"
@@ -59,28 +62,14 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 		Use:   "kubeconfig",
 		Short: "fetch kubeconfig of a cluster",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			id, err := genericcli.GetExactlyOneArg(args)
-			if err != nil {
-				return err
-			}
-			expiration := viper.GetDuration("expiration")
-			req := &adminv1.ClusterServiceCredentialsRequest{
-				Uuid:       id,
-				Expiration: durationpb.New(expiration),
-			}
-
-			resp, err := c.Client.Adminv1().Cluster().Credentials(c.Ctx, connect.NewRequest(req))
-			if err != nil {
-				return fmt.Errorf("failed to get cluster credentials: %w", err)
-			}
-
-			fmt.Fprintln(w.c.Out, resp.Msg.Kubeconfig)
-
-			return nil
+			return w.kubeconfig(args)
 		},
 		ValidArgsFunction: c.Completion.ClusterListCompletion,
 	}
+
 	kubeconfigCmd.Flags().DurationP("expiration", "", 8*time.Hour, "kubeconfig will expire after given time")
+	kubeconfigCmd.Flags().Bool("merge", true, "merges the kubeconfig into default kubeconfig instead of printing it to the console")
+	kubeconfigCmd.Flags().String("kubeconfig", "", "specify an explicit path for the merged kubeconfig to be written, defaults to default kubeconfig paths if not provided")
 
 	logsCmd := &cobra.Command{
 		Use:   "logs",
@@ -223,4 +212,45 @@ func (c *cluster) Convert(r *apiv1.Cluster) (string, any, any, error) {
 // Update implements genericcli.CRUD
 func (c *cluster) Update(rq any) (*apiv1.Cluster, error) {
 	panic("unimplemented")
+}
+
+func (c *cluster) kubeconfig(args []string) error {
+	id, err := genericcli.GetExactlyOneArg(args)
+	if err != nil {
+		return err
+	}
+
+	expiration := viper.GetDuration("expiration")
+	req := &adminv1.ClusterServiceCredentialsRequest{
+		Uuid:       id,
+		Expiration: durationpb.New(expiration),
+	}
+
+	resp, err := c.c.Client.Adminv1().Cluster().Credentials(c.c.Ctx, connect.NewRequest(req))
+	if err != nil {
+		return fmt.Errorf("failed to get cluster credentials: %w", err)
+	}
+
+	if !viper.GetBool("merge") {
+		fmt.Fprintln(c.c.Out, resp.Msg.Kubeconfig)
+		return nil
+	}
+
+	var (
+		kubeconfigPath = viper.GetString("kubeconfig")
+	)
+
+	merged, err := kubernetes.MergeKubeconfig([]byte(resp.Msg.Kubeconfig), pointer.PointerOrNil(kubeconfigPath), nil) // FIXME: reverse lookup project name
+	if err != nil {
+		return err
+	}
+
+	err = os.WriteFile(merged.Path, merged.Raw, 0600)
+	if err != nil {
+		return fmt.Errorf("unable to write merged kubeconfig: %w", err)
+	}
+
+	fmt.Fprintf(c.c.Out, "%s merged context %q into %s\n", color.GreenString("✔"), merged.ContextName, merged.Path)
+
+	return nil
 }
