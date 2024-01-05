@@ -1,16 +1,16 @@
 package cmd
 
 import (
+	"fmt"
 	"io"
 
 	"github.com/fatih/color"
 	"github.com/metal-stack-cloud/cli/cmd/tableprinters"
 	"github.com/metal-stack/metal-lib/pkg/genericcli/printers"
 	"github.com/spf13/viper"
-	"go.uber.org/zap"
 )
 
-func newPrinterFromCLI(log *zap.SugaredLogger, out io.Writer) printers.Printer {
+func newPrinterFromCLI(out io.Writer) (printers.Printer, error) {
 	var printer printers.Printer
 
 	switch format := viper.GetString("output-format"); format {
@@ -36,7 +36,7 @@ func newPrinterFromCLI(log *zap.SugaredLogger, out io.Writer) printers.Printer {
 	case "template":
 		printer = printers.NewTemplatePrinter(viper.GetString("template")).WithOut(out)
 	default:
-		log.Fatalf("unknown output format: %q", format)
+		return nil, fmt.Errorf("unknown output format: %q", format)
 	}
 
 	if viper.IsSet("force-color") {
@@ -48,12 +48,12 @@ func newPrinterFromCLI(log *zap.SugaredLogger, out io.Writer) printers.Printer {
 		}
 	}
 
-	return printer
+	return printer, nil
 }
 
-func defaultToYAMLPrinter(log *zap.SugaredLogger, out io.Writer) printers.Printer {
+func defaultToYAMLPrinter(out io.Writer) (printers.Printer, error) {
 	if viper.IsSet("output-format") {
-		return newPrinterFromCLI(log, out)
+		return newPrinterFromCLI(out)
 	}
-	return printers.NewProtoYAMLPrinter().WithOut(out)
+	return printers.NewProtoYAMLPrinter().WithOut(out), nil
 }

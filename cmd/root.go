@@ -16,8 +16,6 @@ import (
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 	"golang.org/x/net/context"
 )
 
@@ -53,9 +51,8 @@ func newRootCmd(c *config.Config) *cobra.Command {
 			genericcli.Must(viper.BindPFlags(cmd.PersistentFlags()))
 
 			genericcli.Must(readConfigFile())
-			initConfigWithViperCtx(c)
 
-			return nil
+			return initConfigWithViperCtx(c)
 		},
 	}
 	rootCmd.PersistentFlags().StringP("config", "c", "", `alternative config file path, (default is ~/.metal-stack-cloud/config.yaml).
@@ -119,14 +116,21 @@ func readConfigFile() error {
 	return nil
 }
 
-func initConfigWithViperCtx(c *config.Config) {
-	c.Log = newLogger()
+func initConfigWithViperCtx(c *config.Config) error {
+	listPrinter, err := newPrinterFromCLI(c.Out)
+	if err != nil {
+		return err
+	}
+	describePrinter, err := defaultToYAMLPrinter(c.Out)
+	if err != nil {
+		return err
+	}
 
-	c.ListPrinter = newPrinterFromCLI(c.Log, c.Out)
-	c.DescribePrinter = defaultToYAMLPrinter(c.Log, c.Out)
+	c.ListPrinter = listPrinter
+	c.DescribePrinter = describePrinter
 
 	if c.Client != nil {
-		return
+		return nil
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -144,21 +148,6 @@ func initConfigWithViperCtx(c *config.Config) {
 	c.Client = mc
 	c.Completion.Client = mc
 	c.Completion.Ctx = ctx
-}
 
-func newLogger() *zap.SugaredLogger {
-	level := zapcore.ErrorLevel
-	if viper.GetBool("debug") {
-		level = zapcore.DebugLevel
-	}
-
-	cfg := zap.NewProductionConfig()
-	cfg.Level = zap.NewAtomicLevelAt(level)
-	cfg.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
-	zlog, err := cfg.Build()
-	if err != nil {
-		panic(err)
-	}
-
-	return zlog.Sugar()
+	return nil
 }
