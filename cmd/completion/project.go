@@ -1,8 +1,6 @@
 package completion
 
 import (
-	"fmt"
-
 	"connectrpc.com/connect"
 	"github.com/spf13/cobra"
 
@@ -18,7 +16,6 @@ func (c *Completion) ProjectListCompletion(cmd *cobra.Command, args []string, to
 
 	var names []string
 	for _, s := range resp.Msg.GetProjects() {
-		fmt.Println(s.Uuid)
 		names = append(names, s.Uuid+"\t"+s.Name)
 	}
 
