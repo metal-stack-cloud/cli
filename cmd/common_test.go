@@ -23,7 +23,6 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/zap/zaptest"
 	"sigs.k8s.io/yaml"
 )
 
@@ -97,7 +96,6 @@ func (c *Test[R]) newMockConfig(t *testing.T) (any, *bytes.Buffer, *config.Confi
 		config = &config.Config{
 			Fs:         fs,
 			Out:        &out,
-			Log:        zaptest.NewLogger(t).Sugar(),
 			Completion: &completion.Completion{},
 			Client:     mock.Client(c.ClientMocks),
 		}

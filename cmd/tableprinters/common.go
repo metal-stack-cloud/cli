@@ -43,6 +43,10 @@ func (t *TablePrinter) ToHeaderAndRows(data any, wide bool) ([]string, [][]strin
 		return t.ClusterStatusLastErrorTable(pointer.WrapInSlice(d), wide)
 	case []*apiv1.ClusterStatusLastError:
 		return t.ClusterStatusLastErrorTable(d, wide)
+	case *apiv1.Project:
+		return t.ProjectTable(pointer.WrapInSlice(d), wide)
+	case []*apiv1.Project:
+		return t.ProjectTable(d, wide)
 	case *apiv1.Volume:
 		return t.VolumeTable(pointer.WrapInSlice(d), wide)
 	case []*apiv1.Volume:

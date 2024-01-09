@@ -8,7 +8,6 @@ import (
 	"github.com/metal-stack-cloud/cli/cmd/completion"
 	"github.com/metal-stack/metal-lib/pkg/genericcli/printers"
 	"github.com/spf13/afero"
-	"go.uber.org/zap"
 )
 
 const (
@@ -24,7 +23,6 @@ type Config struct {
 	Out             io.Writer
 	Client          client.Client
 	Ctx             context.Context
-	Log             *zap.SugaredLogger
 	ListPrinter     printers.Printer
 	DescribePrinter printers.Printer
 	Completion      *completion.Completion
