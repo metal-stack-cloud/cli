@@ -44,17 +44,14 @@ func newSnapshotCmd(c *config.Config) *cobra.Command {
 	return genericcli.NewCmds(cmdsConfig)
 }
 
-// Create implements genericcli.CRUD
 func (s *snapshot) Create(rq any) (*apiv1.Snapshot, error) {
 	panic("unimplemented")
 }
 
-// Delete implements genericcli.CRUD
 func (s *snapshot) Delete(id string) (*apiv1.Snapshot, error) {
 	panic("unimplemented")
 }
 
-// Get implements genericcli.CRUD
 func (s *snapshot) Get(id string) (*apiv1.Snapshot, error) {
 	req := &adminv1.StorageServiceListSnapshotsRequest{
 		Uuid: &id,
@@ -69,7 +66,6 @@ func (s *snapshot) Get(id string) (*apiv1.Snapshot, error) {
 	return resp.Msg.Snapshots[0], nil
 }
 
-// List implements genericcli.CRUD
 func (s *snapshot) List() ([]*apiv1.Snapshot, error) {
 	req := &adminv1.StorageServiceListSnapshotsRequest{}
 	if viper.IsSet("uuid") {
@@ -94,12 +90,10 @@ func (s *snapshot) List() ([]*apiv1.Snapshot, error) {
 	return resp.Msg.Snapshots, nil
 }
 
-// Convert implements genericcli.CRUD
 func (s *snapshot) Convert(r *apiv1.Snapshot) (string, any, any, error) {
 	panic("unimplemented")
 }
 
-// Update implements genericcli.CRUD
 func (s *snapshot) Update(rq any) (*apiv1.Snapshot, error) {
 	panic("unimplemented")
 }

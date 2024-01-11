@@ -11,6 +11,24 @@ import (
 	"github.com/spf13/viper"
 )
 
+func AddCmds(cmd *cobra.Command, c *config.Config) {
+	adminCmd := &cobra.Command{
+		Use:          "admin",
+		Short:        "admin commands",
+		Long:         "",
+		SilenceUsage: true,
+		Hidden:       true,
+	}
+
+	adminCmd.AddCommand(newTenantCmd(c))
+	adminCmd.AddCommand(newCouponCmd(c))
+	adminCmd.AddCommand(newStorageCmd(c))
+	adminCmd.AddCommand(newClusterCmd(c))
+	adminCmd.AddCommand(newTokenCmd(c))
+
+	cmd.AddCommand(adminCmd)
+}
+
 func newStorageCmd(c *config.Config) *cobra.Command {
 	storageCmd := &cobra.Command{
 		Use:          "storage",

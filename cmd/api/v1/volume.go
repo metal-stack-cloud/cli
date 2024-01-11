@@ -15,7 +15,7 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	k8syaml "sigs.k8s.io/yaml"
+	"sigs.k8s.io/yaml"
 )
 
 type volume struct {
@@ -58,7 +58,7 @@ func newVolumeCmd(c *config.Config) *cobra.Command {
 		Short: "volume manifest",
 		Long:  "show detailed info about the storage cluster",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return w.VolumeManifest(args)
+			return w.volumeManifest(args)
 		},
 	}
 	manifestCmd.Flags().StringP("name", "", "restored-pv", "name of the PersistentVolume")
@@ -70,7 +70,7 @@ func newVolumeCmd(c *config.Config) *cobra.Command {
 		Short: "volume encryptionsecret template",
 		Long:  "generate volume encryptionsecret template",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return w.VolumeEncryptionSecretManifest()
+			return w.volumeEncryptionSecretManifest()
 		},
 	}
 	encryptionSecretCmd.Flags().StringP("passphrase", "", "", "passphrase")
@@ -79,12 +79,10 @@ func newVolumeCmd(c *config.Config) *cobra.Command {
 	return genericcli.NewCmds(cmdsConfig, manifestCmd, encryptionSecretCmd)
 }
 
-// Create implements genericcli.CRUD
 func (v *volume) Create(rq any) (*apiv1.Volume, error) {
 	panic("unimplemented")
 }
 
-// Delete implements genericcli.CRUD
 func (v *volume) Delete(id string) (*apiv1.Volume, error) {
 	req := &apiv1.VolumeServiceDeleteRequest{
 		Uuid:    id,
@@ -97,7 +95,6 @@ func (v *volume) Delete(id string) (*apiv1.Volume, error) {
 	return resp.Msg.Volume, nil
 }
 
-// Get implements genericcli.CRUD
 func (v *volume) Get(id string) (*apiv1.Volume, error) {
 	req := &apiv1.VolumeServiceGetRequest{
 		Uuid:    id,
@@ -110,7 +107,6 @@ func (v *volume) Get(id string) (*apiv1.Volume, error) {
 	return resp.Msg.Volume, nil
 }
 
-// List implements genericcli.CRUD
 func (v *volume) List() ([]*apiv1.Volume, error) {
 	req := &apiv1.VolumeServiceListRequest{}
 	if viper.IsSet("uuid") {
@@ -132,17 +128,15 @@ func (v *volume) List() ([]*apiv1.Volume, error) {
 	return resp.Msg.Volumes, nil
 }
 
-// Convert implements genericcli.CRUD
 func (v *volume) Convert(r *apiv1.Volume) (string, any, any, error) {
 	panic("unimplemented")
 }
 
-// Update implements genericcli.CRUD
 func (v *volume) Update(rq any) (*apiv1.Volume, error) {
 	panic("unimplemented")
 }
 
-func (v *volume) VolumeManifest(args []string) error {
+func (v *volume) volumeManifest(args []string) error {
 	id, err := genericcli.GetExactlyOneArg(args)
 	if err != nil {
 		return err
@@ -180,7 +174,7 @@ func (v *volume) VolumeManifest(args []string) error {
 		fmt.Printf("# be cautios! at the time being your volume:%s is still attached to worker node:%s, you can not mount it twice\n", volume.Uuid, strings.Join(nodes, ","))
 	}
 
-	y, err := k8syaml.Marshal(pv)
+	y, err := yaml.Marshal(pv)
 	if err != nil {
 		panic(fmt.Errorf("unable to marshal to yaml: %w", err))
 	}
@@ -189,7 +183,7 @@ func (v *volume) VolumeManifest(args []string) error {
 	return nil
 }
 
-func (v *volume) VolumeEncryptionSecretManifest() error {
+func (v *volume) volumeEncryptionSecretManifest() error {
 	namespace := viper.GetString("namespace")
 	passphrase := viper.GetString("passphrase")
 	secret := corev1.Secret{
@@ -203,7 +197,7 @@ func (v *volume) VolumeEncryptionSecretManifest() error {
 			"host-encryption-passphrase": passphrase,
 		},
 	}
-	y, err := k8syaml.Marshal(secret)
+	y, err := yaml.Marshal(secret)
 	if err != nil {
 		return err
 	}

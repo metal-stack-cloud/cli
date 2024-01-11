@@ -44,17 +44,14 @@ func newVolumeCmd(c *config.Config) *cobra.Command {
 	return genericcli.NewCmds(cmdsConfig)
 }
 
-// Create implements genericcli.CRUD
 func (v *volume) Create(rq any) (*apiv1.Volume, error) {
 	panic("unimplemented")
 }
 
-// Delete implements genericcli.CRUD
 func (v *volume) Delete(id string) (*apiv1.Volume, error) {
 	panic("unimplemented")
 }
 
-// Get implements genericcli.CRUD
 func (v *volume) Get(id string) (*apiv1.Volume, error) {
 	req := &adminv1.StorageServiceListVolumesRequest{
 		Uuid: &id,
@@ -69,7 +66,6 @@ func (v *volume) Get(id string) (*apiv1.Volume, error) {
 	return resp.Msg.Volumes[0], nil
 }
 
-// List implements genericcli.CRUD
 func (v *volume) List() ([]*apiv1.Volume, error) {
 	req := &adminv1.StorageServiceListVolumesRequest{}
 	if viper.IsSet("uuid") {
@@ -94,12 +90,10 @@ func (v *volume) List() ([]*apiv1.Volume, error) {
 	return resp.Msg.Volumes, nil
 }
 
-// Convert implements genericcli.CRUD
 func (v *volume) Convert(r *apiv1.Volume) (string, any, any, error) {
 	panic("unimplemented")
 }
 
-// Update implements genericcli.CRUD
 func (v *volume) Update(rq any) (*apiv1.Volume, error) {
 	panic("unimplemented")
 }

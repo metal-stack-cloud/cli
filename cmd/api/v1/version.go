@@ -41,5 +41,6 @@ func newVersionCmd(c *config.Config) *cobra.Command {
 			return nil
 		},
 	}
+
 	return versionCmd
 }
