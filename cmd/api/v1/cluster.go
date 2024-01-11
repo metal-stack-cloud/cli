@@ -102,24 +102,6 @@ func (c *cluster) Get(id string) (*apiv1.Cluster, error) {
 		return nil, fmt.Errorf("failed to get clusters: %w", err)
 	}
 
-	// _, err = c.c.Client.Apiv1().Cluster().Update(c.c.NewRequestContext(), connect.NewRequest(&apiv1.ClusterServiceUpdateRequest{
-	// 	Uuid:    resp.Msg.Cluster.Uuid,
-	// 	Project: resp.Msg.Cluster.Project,
-	// 	Maintenance: &apiv1.Maintenance{
-	// 		TimeWindow: &apiv1.MaintenanceTimeWindow{
-	// 			Begin: &apiv1.Time{
-	// 				Hour:     24,
-	// 				Minute:   0,
-	// 				Timezone: "Gerrit",
-	// 			},
-	// 			Duration: durationpb.New(2 * time.Hour),
-	// 		},
-	// 	},
-	// }))
-	// if err != nil {
-	// 	return nil, err
-	// }
-
 	return resp.Msg.Cluster, nil
 }
 
