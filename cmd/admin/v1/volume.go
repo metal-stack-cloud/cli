@@ -59,7 +59,7 @@ func (v *volume) Get(id string) (*apiv1.Volume, error) {
 	req := &adminv1.StorageServiceListVolumesRequest{
 		Uuid: &id,
 	}
-	resp, err := v.c.Client.Adminv1().Storage().ListVolumes(v.c.Ctx, connect.NewRequest(req))
+	resp, err := v.c.Client.Adminv1().Storage().ListVolumes(v.c.NewRequestContext(), connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get volumes: %w", err)
 	}
@@ -87,7 +87,7 @@ func (v *volume) List() ([]*apiv1.Volume, error) {
 	if viper.IsSet("tenant") {
 		req.Tenant = pointer.Pointer(viper.GetString("tenant"))
 	}
-	resp, err := v.c.Client.Adminv1().Storage().ListVolumes(v.c.Ctx, connect.NewRequest(req))
+	resp, err := v.c.Client.Adminv1().Storage().ListVolumes(v.c.NewRequestContext(), connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get volumes: %w", err)
 	}

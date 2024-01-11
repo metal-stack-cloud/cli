@@ -48,7 +48,7 @@ func (t *project) Get(id string) (*apiv1.Project, error) {
 		Project: id,
 	}
 
-	resp, err := t.c.Client.Apiv1().Project().Get(t.c.Ctx, connect.NewRequest(req))
+	resp, err := t.c.Client.Apiv1().Project().Get(t.c.NewRequestContext(), connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to list projects: %w", err)
 	}
@@ -62,7 +62,7 @@ func (t *project) List() ([]*apiv1.Project, error) {
 		Tenant: pointer.PointerOrNil(viper.GetString("tenant")),
 	}
 
-	resp, err := t.c.Client.Apiv1().Project().List(t.c.Ctx, connect.NewRequest(req))
+	resp, err := t.c.Client.Apiv1().Project().List(t.c.NewRequestContext(), connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to list projects: %w", err)
 	}

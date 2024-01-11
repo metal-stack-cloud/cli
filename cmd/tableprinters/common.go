@@ -5,6 +5,7 @@ import (
 
 	adminv1 "github.com/metal-stack-cloud/api/go/admin/v1"
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
+	"github.com/metal-stack-cloud/cli/cmd/config"
 	"github.com/metal-stack/metal-lib/pkg/genericcli/printers"
 	"github.com/metal-stack/metal-lib/pkg/pointer"
 )
@@ -23,10 +24,12 @@ func (t *TablePrinter) SetPrinter(printer *printers.TablePrinter) {
 
 func (t *TablePrinter) ToHeaderAndRows(data any, wide bool) ([]string, [][]string, error) {
 	switch d := data.(type) {
-	case *apiv1.Tenant:
-		return t.TenantTable(pointer.WrapInSlice(d), wide)
-	case []*apiv1.Tenant:
-		return t.TenantTable(d, wide)
+	case *apiv1.Asset:
+		return t.AssetTable(pointer.WrapInSlice(d), wide)
+	case []*apiv1.Asset:
+		return t.AssetTable(d, wide)
+	case *config.Contexts:
+		return t.ContextTable(d, wide)
 	case *apiv1.IP:
 		return t.IPTable(pointer.WrapInSlice(d), wide)
 	case []*apiv1.IP:
@@ -63,6 +66,10 @@ func (t *TablePrinter) ToHeaderAndRows(data any, wide bool) ([]string, [][]strin
 		return t.StorageClusterInfoTable(pointer.WrapInSlice(d), wide)
 	case []*adminv1.StorageClusterInfo:
 		return t.StorageClusterInfoTable(d, wide)
+	case *apiv1.Tenant:
+		return t.TenantTable(pointer.WrapInSlice(d), wide)
+	case []*apiv1.Tenant:
+		return t.TenantTable(d, wide)
 	default:
 		return nil, nil, fmt.Errorf("unknown table printer for type: %T", d)
 	}

@@ -29,7 +29,7 @@ func newStorageCmd(c *config.Config) *cobra.Command {
 			if viper.IsSet("partition") {
 				req.Partition = pointer.Pointer(viper.GetString("partition"))
 			}
-			resp, err := c.Client.Adminv1().Storage().ClusterInfo(c.Ctx, connect.NewRequest(req))
+			resp, err := c.Client.Adminv1().Storage().ClusterInfo(c.NewRequestContext(), connect.NewRequest(req))
 			if err != nil {
 				return fmt.Errorf("failed to get clusterinfo: %w", err)
 			}

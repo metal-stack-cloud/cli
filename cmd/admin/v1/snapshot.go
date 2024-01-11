@@ -59,7 +59,7 @@ func (s *snapshot) Get(id string) (*apiv1.Snapshot, error) {
 	req := &adminv1.StorageServiceListSnapshotsRequest{
 		Uuid: &id,
 	}
-	resp, err := s.c.Client.Adminv1().Storage().ListSnapshots(s.c.Ctx, connect.NewRequest(req))
+	resp, err := s.c.Client.Adminv1().Storage().ListSnapshots(s.c.NewRequestContext(), connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get snapshots: %w", err)
 	}
@@ -87,7 +87,7 @@ func (s *snapshot) List() ([]*apiv1.Snapshot, error) {
 	if viper.IsSet("tenant") {
 		req.Tenant = pointer.Pointer(viper.GetString("tenant"))
 	}
-	resp, err := s.c.Client.Adminv1().Storage().ListSnapshots(s.c.Ctx, connect.NewRequest(req))
+	resp, err := s.c.Client.Adminv1().Storage().ListSnapshots(s.c.NewRequestContext(), connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get snapshots: %w", err)
 	}

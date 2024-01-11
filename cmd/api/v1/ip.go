@@ -57,7 +57,7 @@ func newIPCmd(c *config.Config) *cobra.Command {
 		},
 		CreateRequestFromCLI: func() (*connect.Request[apiv1.IPServiceAllocateRequest], error) {
 			ipar := &apiv1.IPServiceAllocateRequest{
-				Project:     viper.GetString("project"),
+				Project:     c.Context.GetProject(),
 				Name:        viper.GetString("name"),
 				Description: viper.GetString("description"),
 				Tags:        viper.GetStringSlice("tags"),
@@ -95,7 +95,7 @@ func (c *ip) updateFromCLI(args []string) (*apiv1.IP, error) {
 
 // Create implements genericcli.CRUD
 func (c *ip) Create(rq *connect.Request[apiv1.IPServiceAllocateRequest]) (*apiv1.IP, error) {
-	resp, err := c.c.Client.Apiv1().IP().Allocate(c.c.Ctx, rq)
+	resp, err := c.c.Client.Apiv1().IP().Allocate(c.c.NewRequestContext(), rq)
 	if err != nil {
 		return nil, err
 	}
@@ -104,13 +104,8 @@ func (c *ip) Create(rq *connect.Request[apiv1.IPServiceAllocateRequest]) (*apiv1
 
 // Delete implements genericcli.CRUD
 func (c *ip) Delete(id string) (*apiv1.IP, error) {
-	project := viper.GetString("project")
-	if project == "" {
-		return nil, fmt.Errorf("project must be provided")
-	}
-
-	resp, err := c.c.Client.Apiv1().IP().Delete(c.c.Ctx, connect.NewRequest(&apiv1.IPServiceDeleteRequest{
-		Project: project,
+	resp, err := c.c.Client.Apiv1().IP().Delete(c.c.NewRequestContext(), connect.NewRequest(&apiv1.IPServiceDeleteRequest{
+		Project: c.c.Context.GetProject(),
 		Uuid:    id,
 	}))
 	if err != nil {
@@ -121,13 +116,8 @@ func (c *ip) Delete(id string) (*apiv1.IP, error) {
 
 // Get implements genericcli.CRUD
 func (c *ip) Get(id string) (*apiv1.IP, error) {
-	project := viper.GetString("project")
-	if project == "" {
-		return nil, fmt.Errorf("project must be provided")
-	}
-
-	resp, err := c.c.Client.Apiv1().IP().Get(c.c.Ctx, connect.NewRequest(&apiv1.IPServiceGetRequest{
-		Project: project,
+	resp, err := c.c.Client.Apiv1().IP().Get(c.c.NewRequestContext(), connect.NewRequest(&apiv1.IPServiceGetRequest{
+		Project: c.c.Context.GetProject(),
 		Uuid:    id,
 	}))
 	if err != nil {
@@ -138,14 +128,9 @@ func (c *ip) Get(id string) (*apiv1.IP, error) {
 
 // List implements genericcli.CRUD
 func (c *ip) List() ([]*apiv1.IP, error) {
-	project := viper.GetString("project")
-	if project == "" {
-		return nil, fmt.Errorf("project must be provided")
-	}
-
 	// FIXME implement filters and paging
-	resp, err := c.c.Client.Apiv1().IP().List(c.c.Ctx, connect.NewRequest(&apiv1.IPServiceListRequest{
-		Project: project,
+	resp, err := c.c.Client.Apiv1().IP().List(c.c.NewRequestContext(), connect.NewRequest(&apiv1.IPServiceListRequest{
+		Project: c.c.Context.GetProject(),
 	}))
 	if err != nil {
 		return nil, err
@@ -162,7 +147,7 @@ func (*ip) Convert(r *apiv1.IP) (string, *connect.Request[apiv1.IPServiceAllocat
 
 // Update implements genericcli.CRUD
 func (c *ip) Update(rq *apiv1.IP) (*apiv1.IP, error) {
-	resp, err := c.c.Client.Apiv1().IP().Update(c.c.Ctx, &connect.Request[apiv1.IPServiceUpdateRequest]{
+	resp, err := c.c.Client.Apiv1().IP().Update(c.c.NewRequestContext(), &connect.Request[apiv1.IPServiceUpdateRequest]{
 		Msg: &apiv1.IPServiceUpdateRequest{
 			Project: rq.Project,
 			Ip:      rq,

@@ -76,7 +76,7 @@ func newTokenCmd(c *config.Config) *cobra.Command {
 			cmd.Flags().Duration("expires", 8*time.Hour, "the duration how long the api token is valid")
 
 			genericcli.Must(cmd.RegisterFlagCompletionFunc("permissions", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-				methods, err := c.Client.Apiv1().Method().TokenScopedList(c.Ctx, connect.NewRequest(&apiv1.MethodServiceTokenScopedListRequest{}))
+				methods, err := c.Client.Apiv1().Method().TokenScopedList(c.NewRequestContext(), connect.NewRequest(&apiv1.MethodServiceTokenScopedListRequest{}))
 				if err != nil {
 					return nil, cobra.ShellCompDirectiveError
 				}
@@ -107,7 +107,7 @@ func newTokenCmd(c *config.Config) *cobra.Command {
 				return perms, cobra.ShellCompDirectiveDefault
 			}))
 			genericcli.Must(cmd.RegisterFlagCompletionFunc("roles", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-				methods, err := c.Client.Apiv1().Method().TokenScopedList(c.Ctx, connect.NewRequest(&apiv1.MethodServiceTokenScopedListRequest{}))
+				methods, err := c.Client.Apiv1().Method().TokenScopedList(c.NewRequestContext(), connect.NewRequest(&apiv1.MethodServiceTokenScopedListRequest{}))
 				if err != nil {
 					return nil, cobra.ShellCompDirectiveError
 				}
@@ -138,7 +138,7 @@ func (t *token) Get(id string) (*apiv1.Token, error) {
 func (t *token) List() ([]*apiv1.Token, error) {
 	req := &apiv1.TokenServiceListRequest{}
 
-	resp, err := t.c.Client.Apiv1().Token().List(t.c.Ctx, connect.NewRequest(req))
+	resp, err := t.c.Client.Apiv1().Token().List(t.c.NewRequestContext(), connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to list tokens: %w", err)
 	}
@@ -147,7 +147,7 @@ func (t *token) List() ([]*apiv1.Token, error) {
 }
 
 func (t *token) Create(rq *apiv1.TokenServiceCreateRequest) (*apiv1.Token, error) {
-	resp, err := t.c.Client.Apiv1().Token().Create(t.c.Ctx, connect.NewRequest(rq))
+	resp, err := t.c.Client.Apiv1().Token().Create(t.c.NewRequestContext(), connect.NewRequest(rq))
 	if err != nil {
 		return nil, err
 	}
@@ -167,7 +167,7 @@ func (t *token) Delete(id string) (*apiv1.Token, error) {
 		Uuid: id,
 	}
 
-	_, err := t.c.Client.Apiv1().Token().Revoke(t.c.Ctx, connect.NewRequest(req))
+	_, err := t.c.Client.Apiv1().Token().Revoke(t.c.NewRequestContext(), connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to revoke token: %w", err)
 	}

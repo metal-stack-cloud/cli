@@ -59,9 +59,9 @@ func (s *snapshot) Create(rq any) (*apiv1.Snapshot, error) {
 func (s *snapshot) Delete(id string) (*apiv1.Snapshot, error) {
 	req := &apiv1.SnapshotServiceDeleteRequest{
 		Uuid:    id,
-		Project: viper.GetString("project"),
+		Project: s.c.Context.GetProject(),
 	}
-	resp, err := s.c.Client.Apiv1().Snapshot().Delete(s.c.Ctx, connect.NewRequest(req))
+	resp, err := s.c.Client.Apiv1().Snapshot().Delete(s.c.NewRequestContext(), connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to delete snapshots: %w", err)
 	}
@@ -72,9 +72,9 @@ func (s *snapshot) Delete(id string) (*apiv1.Snapshot, error) {
 func (s *snapshot) Get(id string) (*apiv1.Snapshot, error) {
 	req := &apiv1.SnapshotServiceGetRequest{
 		Uuid:    id,
-		Project: viper.GetString("project"),
+		Project: s.c.Context.GetProject(),
 	}
-	resp, err := s.c.Client.Apiv1().Snapshot().Get(s.c.Ctx, connect.NewRequest(req))
+	resp, err := s.c.Client.Apiv1().Snapshot().Get(s.c.NewRequestContext(), connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get snapshots: %w", err)
 	}
@@ -83,20 +83,19 @@ func (s *snapshot) Get(id string) (*apiv1.Snapshot, error) {
 
 // List implements genericcli.CRUD
 func (s *snapshot) List() ([]*apiv1.Snapshot, error) {
-	req := &apiv1.SnapshotServiceListRequest{}
+	req := &apiv1.SnapshotServiceListRequest{
+		Project: s.c.Context.GetProject(),
+	}
 	if viper.IsSet("uuid") {
 		req.Uuid = pointer.Pointer(viper.GetString("uuid"))
 	}
 	if viper.IsSet("name") {
 		req.Name = pointer.Pointer(viper.GetString("name"))
 	}
-	if viper.IsSet("project") {
-		req.Project = viper.GetString("project")
-	}
 	if viper.IsSet("partition") {
 		req.Partition = pointer.Pointer(viper.GetString("partition"))
 	}
-	resp, err := s.c.Client.Apiv1().Snapshot().List(s.c.Ctx, connect.NewRequest(req))
+	resp, err := s.c.Client.Apiv1().Snapshot().List(s.c.NewRequestContext(), connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get snapshots: %w", err)
 	}

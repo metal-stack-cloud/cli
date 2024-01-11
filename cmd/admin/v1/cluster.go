@@ -2,7 +2,6 @@ package v1
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"time"
 
@@ -25,11 +24,6 @@ type cluster struct {
 	c *config.Config
 }
 
-func must(err error) {
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-}
 func newClusterCmd(c *config.Config) *cobra.Command {
 	w := &cluster{
 		c: c,
@@ -40,7 +34,7 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 		GenericCLI:      genericcli.NewGenericCLI[any, any, *apiv1.Cluster](w).WithFS(c.Fs),
 		Singular:        "cluster",
 		Plural:          "clusters",
-		Description:     "cluster related actions of metalstack.cloud",
+		Description:     "manage cluster resources",
 		Sorter:          sorters.ClusterSorter(),
 		ValidArgsFn:     c.Completion.ClusterListCompletion,
 		DescribePrinter: func() printers.Printer { return c.DescribePrinter },
@@ -54,7 +48,7 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 			cmd.Flags().StringP("purpose", "", "", "filter by purpose")
 			// must(cmd.RegisterFlagCompletionFunc("id", c.Completion.ClusterListCompletion))
 
-			must(cmd.RegisterFlagCompletionFunc("purpose", c.Completion.ClusterPurposeCompletion))
+			genericcli.Must(cmd.RegisterFlagCompletionFunc("purpose", c.Completion.ClusterPurposeCompletion))
 		},
 	}
 
@@ -82,7 +76,7 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 			req := &adminv1.ClusterServiceGetRequest{
 				Uuid: id,
 			}
-			resp, err := c.Client.Adminv1().Cluster().Get(c.Ctx, connect.NewRequest(req))
+			resp, err := c.Client.Adminv1().Cluster().Get(c.NewRequestContext(), connect.NewRequest(req))
 			if err != nil {
 				return fmt.Errorf("failed to get cluster logs: %w", err)
 			}
@@ -103,7 +97,7 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 				Uuid: id,
 			}
 
-			resp, err := c.Client.Adminv1().Cluster().Get(c.Ctx, connect.NewRequest(req))
+			resp, err := c.Client.Adminv1().Cluster().Get(c.NewRequestContext(), connect.NewRequest(req))
 			if err != nil {
 				return fmt.Errorf("failed to get cluster monitoring: %w", err)
 			}
@@ -133,7 +127,7 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 				Uuid:    id,
 				Operate: operation,
 			}
-			resp, err := c.Client.Adminv1().Cluster().Operate(c.Ctx, connect.NewRequest(req))
+			resp, err := c.Client.Adminv1().Cluster().Operate(c.NewRequestContext(), connect.NewRequest(req))
 			if err != nil {
 				return fmt.Errorf("failed to reconcile cluster: %w", err)
 			}
@@ -152,24 +146,21 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 
 // TODO: implement firewall ssh, machine/firewall list
 
-// Create implements genericcli.CRUD
 func (c *cluster) Create(rq any) (*apiv1.Cluster, error) {
 	panic("unimplemented")
 }
 
-// Delete implements genericcli.CRUD
 func (c *cluster) Delete(id string) (*apiv1.Cluster, error) {
 	panic("unimplemented")
 }
 
-// Get implements genericcli.CRUD
 func (c *cluster) Get(id string) (*apiv1.Cluster, error) {
 	showMachines := viper.GetBool("machines")
 	req := &adminv1.ClusterServiceGetRequest{
 		Uuid:         id,
 		WithMachines: showMachines,
 	}
-	resp, err := c.c.Client.Adminv1().Cluster().Get(c.c.Ctx, connect.NewRequest(req))
+	resp, err := c.c.Client.Adminv1().Cluster().Get(c.c.NewRequestContext(), connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get clusters: %w", err)
 	}
@@ -187,7 +178,6 @@ func (c *cluster) Get(id string) (*apiv1.Cluster, error) {
 	return nil, nil
 }
 
-// List implements genericcli.CRUD
 func (c *cluster) List() ([]*apiv1.Cluster, error) {
 	// FIXME implement filters and paging
 
@@ -197,19 +187,17 @@ func (c *cluster) List() ([]*apiv1.Cluster, error) {
 		req.Purpose = pointer.Pointer(viper.GetString("purpose"))
 	}
 
-	resp, err := c.c.Client.Adminv1().Cluster().List(c.c.Ctx, connect.NewRequest(req))
+	resp, err := c.c.Client.Adminv1().Cluster().List(c.c.NewRequestContext(), connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get clusters: %w", err)
 	}
 	return resp.Msg.Clusters, nil
 }
 
-// Convert implements genericcli.CRUD
 func (c *cluster) Convert(r *apiv1.Cluster) (string, any, any, error) {
 	panic("unimplemented")
 }
 
-// Update implements genericcli.CRUD
 func (c *cluster) Update(rq any) (*apiv1.Cluster, error) {
 	panic("unimplemented")
 }
@@ -226,7 +214,7 @@ func (c *cluster) kubeconfig(args []string) error {
 		Expiration: durationpb.New(expiration),
 	}
 
-	resp, err := c.c.Client.Adminv1().Cluster().Credentials(c.c.Ctx, connect.NewRequest(req))
+	resp, err := c.c.Client.Adminv1().Cluster().Credentials(c.c.NewRequestContext(), connect.NewRequest(req))
 	if err != nil {
 		return fmt.Errorf("failed to get cluster credentials: %w", err)
 	}

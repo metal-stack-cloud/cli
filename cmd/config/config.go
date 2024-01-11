@@ -3,6 +3,7 @@ package config
 import (
 	"context"
 	"io"
+	"time"
 
 	"github.com/metal-stack-cloud/api/go/client"
 	"github.com/metal-stack-cloud/cli/cmd/completion"
@@ -19,11 +20,16 @@ const (
 )
 
 type Config struct {
-	Fs              afero.Fs
-	Out             io.Writer
-	Client          client.Client
-	Ctx             context.Context
+	Fs     afero.Fs
+	Out    io.Writer
+	Client client.Client
+	Context
 	ListPrinter     printers.Printer
 	DescribePrinter printers.Printer
 	Completion      *completion.Completion
+}
+
+func (c *Config) NewRequestContext() context.Context {
+	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second) // nolint
+	return ctx
 }

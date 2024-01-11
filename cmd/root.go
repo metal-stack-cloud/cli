@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"time"
 
 	client "github.com/metal-stack-cloud/api/go/client"
 	"github.com/metal-stack/metal-lib/pkg/genericcli"
 
 	adminv1 "github.com/metal-stack-cloud/cli/cmd/admin/v1"
 	apiv1 "github.com/metal-stack-cloud/cli/cmd/api/v1"
+
 	"github.com/metal-stack-cloud/cli/cmd/completion"
 	"github.com/metal-stack-cloud/cli/cmd/config"
 	"github.com/spf13/afero"
@@ -21,7 +21,6 @@ import (
 
 func Execute() {
 	cfg := &config.Config{
-		Ctx:        context.Background(),
 		Fs:         afero.NewOsFs(),
 		Out:        os.Stdout,
 		Completion: &completion.Completion{},
@@ -47,6 +46,8 @@ func newRootCmd(c *config.Config) *cobra.Command {
 		Long:         "",
 		SilenceUsage: true,
 		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
+			viper.SetFs(c.Fs)
+
 			genericcli.Must(viper.BindPFlags(cmd.Flags()))
 			genericcli.Must(viper.BindPFlags(cmd.PersistentFlags()))
 
@@ -68,12 +69,13 @@ apitoken: "alongtoken"
 	rootCmd.PersistentFlags().Bool("force-color", false, "force colored output even without tty")
 	rootCmd.PersistentFlags().Bool("debug", false, "debug output")
 
-	rootCmd.PersistentFlags().String("api-url", "", "the url to the metalstack.cloud api")
+	rootCmd.PersistentFlags().String("api-url", "https://api.metalstack.cloud", "the url to the metalstack.cloud api")
 	rootCmd.PersistentFlags().String("api-token", "", "the token used for api requests")
 	rootCmd.PersistentFlags().String("api-ca-file", "", "the path to the ca file of the api server")
 
 	genericcli.Must(viper.BindPFlags(rootCmd.PersistentFlags()))
 
+	rootCmd.AddCommand(newContextCmd(c))
 	adminv1.AddCmds(rootCmd, c)
 	apiv1.AddCmds(rootCmd, c)
 
@@ -117,6 +119,8 @@ func readConfigFile() error {
 }
 
 func initConfigWithViperCtx(c *config.Config) error {
+	c.Context = config.MustDefaultContext()
+
 	listPrinter, err := newPrinterFromCLI(c.Out)
 	if err != nil {
 		return err
@@ -133,12 +137,9 @@ func initConfigWithViperCtx(c *config.Config) error {
 		return nil
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
 	dialConfig := client.DialConfig{
-		BaseURL:   viper.GetString("api-url"),
-		Token:     viper.GetString("api-token"),
+		BaseURL:   c.Context.GetApiURL(),
+		Token:     c.Context.GetToken(),
 		UserAgent: "metal-stack-cloud-cli",
 		Debug:     viper.GetBool("debug"),
 	}
@@ -147,7 +148,7 @@ func initConfigWithViperCtx(c *config.Config) error {
 
 	c.Client = mc
 	c.Completion.Client = mc
-	c.Completion.Ctx = ctx
+	c.Completion.Ctx = context.Background()
 
 	return nil
 }

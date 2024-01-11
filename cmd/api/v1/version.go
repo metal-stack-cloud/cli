@@ -25,7 +25,7 @@ func newVersionCmd(c *config.Config) *cobra.Command {
 				Client: v.V.String(),
 			}
 
-			resp, err := c.Client.Apiv1().Version().Get(c.Ctx, connect.NewRequest(&v1.VersionServiceGetRequest{}))
+			resp, err := c.Client.Apiv1().Version().Get(c.NewRequestContext(), connect.NewRequest(&v1.VersionServiceGetRequest{}))
 			if err == nil {
 				v.Server = resp.Msg.Version
 			}
