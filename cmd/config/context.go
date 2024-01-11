@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
@@ -44,27 +45,61 @@ func (cs Contexts) GetContext(name string) (*Context, bool) {
 	return nil, false
 }
 
+func (cs Contexts) Validate() error {
+	names := map[string]bool{}
+	for _, context := range cs.Contexts {
+		context := context
+
+		names[context.Name] = true
+	}
+
+	if len(cs.Contexts) != len(names) {
+		return fmt.Errorf("context names must be unique")
+	}
+
+	return nil
+}
+
 func GetContexts() (*Contexts, error) {
 	var ctxs Contexts
-	cfgFile := viper.ConfigFileUsed()
-	c, err := os.ReadFile(cfgFile)
+	path := viper.ConfigFileUsed()
+
+	c, err := os.ReadFile(path)
 	if err != nil {
-		return nil, fmt.Errorf("unable to read config, please create a config.yaml")
+		if errors.Is(err, os.ErrNotExist) {
+			return &Contexts{}, nil
+		}
+
+		return nil, fmt.Errorf("unable to read config.yaml: %w", err)
 	}
+
 	err = yaml.Unmarshal(c, &ctxs)
 	return &ctxs, err
 }
 
 func WriteContexts(ctxs *Contexts) error {
+	if err := ctxs.Validate(); err != nil {
+		return err
+	}
+
 	c, err := yaml.Marshal(ctxs)
 	if err != nil {
 		return err
 	}
-	cfgFile := viper.ConfigFileUsed()
-	err = os.WriteFile(cfgFile, c, 0600)
+
+	path := viper.ConfigFileUsed()
+	if path == "" {
+		path, err = DefaultConfigPath()
+		if err != nil {
+			return err
+		}
+	}
+
+	err = os.WriteFile(path, c, 0600)
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 

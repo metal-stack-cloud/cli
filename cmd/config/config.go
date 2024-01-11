@@ -3,6 +3,8 @@ package config
 import (
 	"context"
 	"io"
+	"os"
+	"path"
 	"time"
 
 	"github.com/metal-stack-cloud/api/go/client"
@@ -32,4 +34,38 @@ type Config struct {
 func (c *Config) NewRequestContext() context.Context {
 	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second) // nolint
 	return ctx
+}
+
+func HelpTemplate() string {
+	return `Here is how an template configuration looks like:
+~/.metal-stack-cloud/config.yaml
+---
+current: dev
+previous: prod
+contexts:
+    - name: dev
+    api-token: <dev-token>
+    default-project: dev-project
+    - name: prod
+    api-token: <prod-token>
+        default-project: prod-project
+`
+}
+
+func DefaultConfigDirectory() (string, error) {
+	h, err := os.UserHomeDir()
+	if err != nil {
+		return "", err
+	}
+
+	return path.Join(h, "."+ConfigDir), nil
+}
+
+func DefaultConfigPath() (string, error) {
+	dir, err := DefaultConfigDirectory()
+	if err != nil {
+		return "", err
+	}
+
+	return path.Join(dir, "config.yaml"), nil
 }

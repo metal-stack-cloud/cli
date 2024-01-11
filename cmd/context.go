@@ -6,7 +6,9 @@ import (
 	"github.com/fatih/color"
 	"github.com/metal-stack-cloud/cli/cmd/config"
 	"github.com/metal-stack/metal-lib/pkg/genericcli"
+	"github.com/metal-stack/metal-lib/pkg/pointer"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 type ctx struct {
@@ -22,23 +24,9 @@ func newContextCmd(c *config.Config) *cobra.Command {
 		Use:     "context",
 		Aliases: []string{"ctx"},
 		Short:   "manage cli contexts",
-		Long:    "You can switch back and forth contexts with \"-\"",
-		Example: `
-~/.metal-stack-cloud/config.yaml
----
-current: dev
-previous: prod
-contexts:
-  - name: dev
-	token: <dev-token>
-	default-project: dev-project
-  - name: prod
-	token: <prod-token>
-	default-project: prod-project
-...
-`,
+		Long:    "you can switch back and forth contexts with \"-\"",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if len(args) == 1 && args[0] == "-" {
+			if arg, _ := genericcli.GetExactlyOneArg(args); arg == "-" {
 				return w.set(args)
 			}
 
@@ -54,9 +42,10 @@ contexts:
 			return w.list()
 		},
 	}
-	contextSetCmd := &cobra.Command{
-		Use:   "set",
-		Short: "set the cli context",
+	contextSwitchCmd := &cobra.Command{
+		Use:   "switch <context-name>",
+		Short: "switch the cli context",
+		Long:  "you can switch back and forth contexts with \"-\"",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return w.set(args)
 		},
@@ -70,7 +59,7 @@ contexts:
 		},
 	}
 	contextSetProjectCmd := &cobra.Command{
-		Use:   "set-project",
+		Use:   "set-project <project-id>",
 		Short: "sets the default project to act on for cli commands",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return w.setProject(args)
@@ -78,9 +67,25 @@ contexts:
 		ValidArgsFunction: c.Completion.ProjectListCompletion,
 	}
 
+	contextAddCmd := &cobra.Command{
+		Use:     "add <context-name>",
+		Aliases: []string{"create"},
+		Short:   "add a cli context",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return w.add(args)
+		},
+	}
+	contextAddCmd.Flags().String("api-url", "", "sets the api-url for this context")
+	contextAddCmd.Flags().String("api-token", "", "sets the api-token for this context")
+	contextAddCmd.Flags().String("default-project", "", "sets a default project to act on")
+	contextAddCmd.Flags().Bool("activate", false, "immediately switches to the new context")
+
+	genericcli.Must(contextAddCmd.MarkFlagRequired("api-token"))
+
 	contextCmd.AddCommand(
 		contextListCmd,
-		contextSetCmd,
+		contextSwitchCmd,
+		contextAddCmd,
 		contextShortCmd,
 		contextSetProjectCmd,
 	)
@@ -103,6 +108,41 @@ func (c *ctx) short() error {
 		return err
 	}
 	fmt.Println(ctxs.CurrentContext)
+	return nil
+}
+
+func (c *ctx) add(args []string) error {
+	name, err := genericcli.GetExactlyOneArg(args)
+	if err != nil {
+		return fmt.Errorf("no context name given")
+	}
+
+	ctxs, err := config.GetContexts()
+	if err != nil {
+		return err
+	}
+
+	ctx := &config.Context{
+		Name:           name,
+		ApiURL:         pointer.PointerOrNil(viper.GetString("api-url")),
+		Token:          viper.GetString("api-token"),
+		DefaultProject: viper.GetString("default-project"),
+	}
+
+	ctxs.Contexts = append(ctxs.Contexts, ctx)
+
+	if viper.GetBool("activate") {
+		ctxs.PreviousContext = ctxs.CurrentContext
+		ctxs.CurrentContext = ctx.Name
+	}
+
+	err = config.WriteContexts(ctxs)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("%s added context \"%s\"\n", color.GreenString("✔"), color.GreenString(ctx.Name))
+
 	return nil
 }
 
