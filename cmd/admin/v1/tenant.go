@@ -47,6 +47,9 @@ func newTenantCmd(c *config.Config) *cobra.Command {
 		Short: "admit a tenant",
 		Long:  "only admitted tenants are allowed to consume resources",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			ctx, cancel := c.NewRequestContext()
+			defer cancel()
+
 			id, err := genericcli.GetExactlyOneArg(args)
 			if err != nil {
 				return err
@@ -57,7 +60,7 @@ func newTenantCmd(c *config.Config) *cobra.Command {
 			if viper.IsSet("coupon-id") {
 				req.CouponId = pointer.Pointer(viper.GetString("coupon-id"))
 			}
-			resp, err := c.Client.Adminv1().Tenant().Admit(c.Ctx, connect.NewRequest(req))
+			resp, err := c.Client.Adminv1().Tenant().Admit(ctx, connect.NewRequest(req))
 			if err != nil {
 				return fmt.Errorf("failed to admit tenant: %w", err)
 			}
@@ -72,6 +75,9 @@ func newTenantCmd(c *config.Config) *cobra.Command {
 		Short: "revoke a tenant",
 		Long:  "revoke a tenant to be able to consume resources, can be enabled again with admit",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			ctx, cancel := c.NewRequestContext()
+			defer cancel()
+
 			id, err := genericcli.GetExactlyOneArg(args)
 			if err != nil {
 				return err
@@ -79,7 +85,7 @@ func newTenantCmd(c *config.Config) *cobra.Command {
 			req := &adminv1.TenantServiceRevokeRequest{
 				TenantId: id,
 			}
-			resp, err := c.Client.Adminv1().Tenant().Revoke(c.Ctx, connect.NewRequest(req))
+			resp, err := c.Client.Adminv1().Tenant().Revoke(ctx, connect.NewRequest(req))
 			if err != nil {
 				return fmt.Errorf("failed to revoke tenant: %w", err)
 			}
@@ -91,28 +97,28 @@ func newTenantCmd(c *config.Config) *cobra.Command {
 	return genericcli.NewCmds(cmdsConfig, admitCmd, revokeCmd)
 }
 
-// Create implements genericcli.CRUD
 func (c *tenant) Create(rq any) (*apiv1.Tenant, error) {
 	panic("unimplemented")
 }
 
-// Delete implements genericcli.CRUD
 func (c *tenant) Delete(id string) (*apiv1.Tenant, error) {
 	panic("unimplemented")
 }
 
-// Get implements genericcli.CRUD
 func (c *tenant) Get(id string) (*apiv1.Tenant, error) {
 	panic("unimplemented")
 }
 
 var nextpage *uint64
 
-// List implements genericcli.CRUD
 func (c *tenant) List() ([]*apiv1.Tenant, error) {
-	// FIXME implement filters and paging
+	ctx, cancel := c.c.NewRequestContext()
+	defer cancel()
+
+	// TODO: implement filters and paging
 
 	req := &adminv1.TenantServiceListRequest{}
+
 	if viper.IsSet("admitted") {
 		req.Admitted = pointer.Pointer(viper.GetBool("admitted"))
 	}
@@ -128,7 +134,8 @@ func (c *tenant) List() ([]*apiv1.Tenant, error) {
 	if viper.IsSet("email") {
 		return nil, fmt.Errorf("unimplemented filter by provider")
 	}
-	resp, err := c.c.Client.Adminv1().Tenant().List(c.c.Ctx, connect.NewRequest(req))
+
+	resp, err := c.c.Client.Adminv1().Tenant().List(ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get tenants: %w", err)
 	}
@@ -150,15 +157,14 @@ func (c *tenant) List() ([]*apiv1.Tenant, error) {
 		}
 		return c.List()
 	}
+
 	return resp.Msg.Tenants, nil
 }
 
-// Convert implements genericcli.CRUD
 func (c *tenant) Convert(r *apiv1.Tenant) (string, any, any, error) {
 	panic("unimplemented")
 }
 
-// Update implements genericcli.CRUD
 func (c *tenant) Update(rq any) (*apiv1.Tenant, error) {
 	panic("unimplemented")
 }

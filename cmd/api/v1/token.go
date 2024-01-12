@@ -75,51 +75,8 @@ func newTokenCmd(c *config.Config) *cobra.Command {
 			cmd.Flags().StringSlice("roles", nil, "the roles to associate with the api token in the form <subject>=<role>")
 			cmd.Flags().Duration("expires", 8*time.Hour, "the duration how long the api token is valid")
 
-			genericcli.Must(cmd.RegisterFlagCompletionFunc("permissions", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-				methods, err := c.Client.Apiv1().Method().TokenScopedList(c.Ctx, connect.NewRequest(&apiv1.MethodServiceTokenScopedListRequest{}))
-				if err != nil {
-					return nil, cobra.ShellCompDirectiveError
-				}
-
-				subject := ""
-				if s, _, ok := strings.Cut(toComplete, "="); ok {
-					subject = s
-				}
-
-				if subject == "" {
-					var perms []string
-
-					for _, p := range methods.Msg.Permissions {
-						perms = append(perms, p.Subject)
-					}
-
-					return perms, cobra.ShellCompDirectiveNoFileComp
-				}
-
-				// FIXME: completion does not work at this point, investigate why
-
-				var perms []string
-
-				for _, p := range methods.Msg.Permissions {
-					perms = append(perms, p.Methods...)
-				}
-
-				return perms, cobra.ShellCompDirectiveDefault
-			}))
-			genericcli.Must(cmd.RegisterFlagCompletionFunc("roles", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-				methods, err := c.Client.Apiv1().Method().TokenScopedList(c.Ctx, connect.NewRequest(&apiv1.MethodServiceTokenScopedListRequest{}))
-				if err != nil {
-					return nil, cobra.ShellCompDirectiveError
-				}
-
-				var roles []string
-
-				for _, r := range methods.Msg.Roles {
-					roles = append(roles, r.Subject+":"+r.Role)
-				}
-
-				return roles, cobra.ShellCompDirectiveNoFileComp
-			}))
+			genericcli.Must(cmd.RegisterFlagCompletionFunc("permissions", c.Completion.TokenPermissionsCompletionfunc))
+			genericcli.Must(cmd.RegisterFlagCompletionFunc("roles", c.Completion.TokenRolesCompletion))
 
 		},
 		DeleteCmdMutateFn: func(cmd *cobra.Command) {
@@ -131,14 +88,17 @@ func newTokenCmd(c *config.Config) *cobra.Command {
 	return genericcli.NewCmds(cmdsConfig)
 }
 
-func (t *token) Get(id string) (*apiv1.Token, error) {
+func (c *token) Get(id string) (*apiv1.Token, error) {
 	panic("unimplemented")
 }
 
-func (t *token) List() ([]*apiv1.Token, error) {
+func (c *token) List() ([]*apiv1.Token, error) {
+	ctx, cancel := c.c.NewRequestContext()
+	defer cancel()
+
 	req := &apiv1.TokenServiceListRequest{}
 
-	resp, err := t.c.Client.Apiv1().Token().List(t.c.Ctx, connect.NewRequest(req))
+	resp, err := c.c.Client.Apiv1().Token().List(ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to list tokens: %w", err)
 	}
@@ -146,28 +106,34 @@ func (t *token) List() ([]*apiv1.Token, error) {
 	return resp.Msg.GetTokens(), nil
 }
 
-func (t *token) Create(rq *apiv1.TokenServiceCreateRequest) (*apiv1.Token, error) {
-	resp, err := t.c.Client.Apiv1().Token().Create(t.c.Ctx, connect.NewRequest(rq))
+func (c *token) Create(rq *apiv1.TokenServiceCreateRequest) (*apiv1.Token, error) {
+	ctx, cancel := c.c.NewRequestContext()
+	defer cancel()
+
+	resp, err := c.c.Client.Apiv1().Token().Create(ctx, connect.NewRequest(rq))
 	if err != nil {
 		return nil, err
 	}
 
-	fmt.Fprintf(t.c.Out, "Make sure to copy your personal access token now as you will not be able to see this again.\n")
-	fmt.Fprintln(t.c.Out)
-	fmt.Fprintln(t.c.Out, resp.Msg.GetSecret())
-	fmt.Fprintln(t.c.Out)
+	fmt.Fprintf(c.c.Out, "Make sure to copy your personal access token now as you will not be able to see this again.\n")
+	fmt.Fprintln(c.c.Out)
+	fmt.Fprintln(c.c.Out, resp.Msg.GetSecret())
+	fmt.Fprintln(c.c.Out)
 
 	// TODO: allow printer in metal-lib to be silenced
 
 	return resp.Msg.GetToken(), nil
 }
 
-func (t *token) Delete(id string) (*apiv1.Token, error) {
+func (c *token) Delete(id string) (*apiv1.Token, error) {
+	ctx, cancel := c.c.NewRequestContext()
+	defer cancel()
+
 	req := &apiv1.TokenServiceRevokeRequest{
 		Uuid: id,
 	}
 
-	_, err := t.c.Client.Apiv1().Token().Revoke(t.c.Ctx, connect.NewRequest(req))
+	_, err := c.c.Client.Apiv1().Token().Revoke(ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to revoke token: %w", err)
 	}

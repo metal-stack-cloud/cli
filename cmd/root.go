@@ -1,16 +1,14 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
-	"strings"
-	"time"
 
 	client "github.com/metal-stack-cloud/api/go/client"
 	"github.com/metal-stack/metal-lib/pkg/genericcli"
 
 	adminv1 "github.com/metal-stack-cloud/cli/cmd/admin/v1"
 	apiv1 "github.com/metal-stack-cloud/cli/cmd/api/v1"
+
 	"github.com/metal-stack-cloud/cli/cmd/completion"
 	"github.com/metal-stack-cloud/cli/cmd/config"
 	"github.com/spf13/afero"
@@ -21,7 +19,6 @@ import (
 
 func Execute() {
 	cfg := &config.Config{
-		Ctx:        context.Background(),
 		Fs:         afero.NewOsFs(),
 		Out:        os.Stdout,
 		Completion: &completion.Completion{},
@@ -47,76 +44,38 @@ func newRootCmd(c *config.Config) *cobra.Command {
 		Long:         "",
 		SilenceUsage: true,
 		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
+			viper.SetFs(c.Fs)
+
 			genericcli.Must(viper.BindPFlags(cmd.Flags()))
 			genericcli.Must(viper.BindPFlags(cmd.PersistentFlags()))
-
-			genericcli.Must(readConfigFile())
 
 			return initConfigWithViperCtx(c)
 		},
 	}
-	rootCmd.PersistentFlags().StringP("config", "c", "", `alternative config file path, (default is ~/.metal-stack-cloud/config.yaml).
-Example config.yaml:
-
----
-apitoken: "alongtoken"
-...
-`)
+	rootCmd.PersistentFlags().StringP("config", "c", "", "alternative config file path, (default is ~/.metal-stack-cloud/config.yaml)")
 	rootCmd.PersistentFlags().StringP("output-format", "o", "table", "output format (table|wide|markdown|json|yaml|template|jsonraw|yamlraw), wide is a table with more columns, jsonraw and yamlraw do not translate proto enums into string types but leave the original int32 values intact.")
 	genericcli.Must(rootCmd.RegisterFlagCompletionFunc("output-format", cobra.FixedCompletions([]string{"table", "wide", "markdown", "json", "yaml", "template"}, cobra.ShellCompDirectiveNoFileComp)))
 	rootCmd.PersistentFlags().StringP("template", "", "", `output template for template output-format, go template format. For property names inspect the output of -o json or -o yaml for reference.`)
 	rootCmd.PersistentFlags().Bool("force-color", false, "force colored output even without tty")
 	rootCmd.PersistentFlags().Bool("debug", false, "debug output")
+	rootCmd.PersistentFlags().Duration("timeout", 0, "request timeout used for api requests")
 
-	rootCmd.PersistentFlags().String("api-url", "", "the url to the metalstack.cloud api")
+	rootCmd.PersistentFlags().String("api-url", "https://api.metalstack.cloud", "the url to the metalstack.cloud api")
 	rootCmd.PersistentFlags().String("api-token", "", "the token used for api requests")
 	rootCmd.PersistentFlags().String("api-ca-file", "", "the path to the ca file of the api server")
 
 	genericcli.Must(viper.BindPFlags(rootCmd.PersistentFlags()))
 
+	rootCmd.AddCommand(newContextCmd(c))
 	adminv1.AddCmds(rootCmd, c)
 	apiv1.AddCmds(rootCmd, c)
 
 	return rootCmd
 }
 
-func readConfigFile() error {
-	viper.SetEnvPrefix(strings.ToUpper(config.ConfigDir))
-	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
-	viper.AutomaticEnv()
-
-	viper.SetConfigType("yaml")
-	cfgFile := viper.GetString("config")
-
-	viper.AutomaticEnv()
-
-	if cfgFile != "" {
-		viper.SetConfigFile(cfgFile)
-		if err := viper.ReadInConfig(); err != nil {
-			return fmt.Errorf("config file path set explicitly, but unreadable: %w", err)
-		}
-	} else {
-		viper.SetConfigName("config")
-		viper.AddConfigPath(fmt.Sprintf("/etc/%s", config.ConfigDir))
-		h, err := os.UserHomeDir()
-		if err != nil {
-			fmt.Printf("unable to figure out user home directory, skipping config lookup path: %v", err)
-		} else {
-			viper.AddConfigPath(fmt.Sprintf(h+"/.%s", config.ConfigDir))
-		}
-		viper.AddConfigPath(".")
-		if err := viper.ReadInConfig(); err != nil {
-			usedCfg := viper.ConfigFileUsed()
-			if usedCfg != "" {
-				return fmt.Errorf("config %s file unreadable: %w", usedCfg, err)
-			}
-		}
-	}
-
-	return nil
-}
-
 func initConfigWithViperCtx(c *config.Config) error {
+	c.Context = c.MustDefaultContext()
+
 	listPrinter, err := newPrinterFromCLI(c.Out)
 	if err != nil {
 		return err
@@ -133,12 +92,9 @@ func initConfigWithViperCtx(c *config.Config) error {
 		return nil
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
 	dialConfig := client.DialConfig{
-		BaseURL:   viper.GetString("api-url"),
-		Token:     viper.GetString("api-token"),
+		BaseURL:   c.GetApiURL(),
+		Token:     c.GetToken(),
 		UserAgent: "metal-stack-cloud-cli",
 		Debug:     viper.GetBool("debug"),
 	}
@@ -147,7 +103,7 @@ func initConfigWithViperCtx(c *config.Config) error {
 
 	c.Client = mc
 	c.Completion.Client = mc
-	c.Completion.Ctx = ctx
+	c.Completion.Ctx = context.Background()
 
 	return nil
 }

@@ -35,39 +35,34 @@ func newCouponCmd(c *config.Config) *cobra.Command {
 	return genericcli.NewCmds(cmdsConfig)
 }
 
-// Create implements genericcli.CRUD
 func (c *coupon) Create(rq any) (*apiv1.Coupon, error) {
 	panic("unimplemented")
 }
 
-// Delete implements genericcli.CRUD
 func (c *coupon) Delete(id string) (*apiv1.Coupon, error) {
 	panic("unimplemented")
 }
 
-// Get implements genericcli.CRUD
 func (c *coupon) Get(id string) (*apiv1.Coupon, error) {
 	panic("unimplemented")
 }
 
-// List implements genericcli.CRUD
 func (c *coupon) List() ([]*apiv1.Coupon, error) {
-	// FIXME implement filters and paging
+	ctx, cancel := c.c.NewRequestContext()
+	defer cancel()
 
 	req := &adminv1.PaymentServiceListCouponsRequest{}
-	resp, err := c.c.Client.Adminv1().Payment().ListCoupons(c.c.Ctx, connect.NewRequest(req))
+	resp, err := c.c.Client.Adminv1().Payment().ListCoupons(ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get coupons: %w", err)
 	}
 	return resp.Msg.Coupons, nil
 }
 
-// Convert implements genericcli.CRUD
 func (c *coupon) Convert(r *apiv1.Coupon) (string, any, any, error) {
 	panic("unimplemented")
 }
 
-// Update implements genericcli.CRUD
 func (c *coupon) Update(rq any) (*apiv1.Coupon, error) {
 	panic("unimplemented")
 }

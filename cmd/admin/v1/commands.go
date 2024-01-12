@@ -11,6 +11,24 @@ import (
 	"github.com/spf13/viper"
 )
 
+func AddCmds(cmd *cobra.Command, c *config.Config) {
+	adminCmd := &cobra.Command{
+		Use:          "admin",
+		Short:        "admin commands",
+		Long:         "",
+		SilenceUsage: true,
+		Hidden:       true,
+	}
+
+	adminCmd.AddCommand(newTenantCmd(c))
+	adminCmd.AddCommand(newCouponCmd(c))
+	adminCmd.AddCommand(newStorageCmd(c))
+	adminCmd.AddCommand(newClusterCmd(c))
+	adminCmd.AddCommand(newTokenCmd(c))
+
+	cmd.AddCommand(adminCmd)
+}
+
 func newStorageCmd(c *config.Config) *cobra.Command {
 	storageCmd := &cobra.Command{
 		Use:          "storage",
@@ -25,11 +43,15 @@ func newStorageCmd(c *config.Config) *cobra.Command {
 		Short: "storage clusterinfo",
 		Long:  "show detailed info about the storage cluster",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			ctx, cancel := c.NewRequestContext()
+			defer cancel()
+
 			req := &adminv1.StorageServiceClusterInfoRequest{}
 			if viper.IsSet("partition") {
 				req.Partition = pointer.Pointer(viper.GetString("partition"))
 			}
-			resp, err := c.Client.Adminv1().Storage().ClusterInfo(c.Ctx, connect.NewRequest(req))
+
+			resp, err := c.Client.Adminv1().Storage().ClusterInfo(ctx, connect.NewRequest(req))
 			if err != nil {
 				return fmt.Errorf("failed to get clusterinfo: %w", err)
 			}
@@ -42,5 +64,6 @@ func newStorageCmd(c *config.Config) *cobra.Command {
 	storageCmd.AddCommand(newVolumeCmd(c))
 	storageCmd.AddCommand(newSnapshotCmd(c))
 	storageCmd.AddCommand(clusterInfoCmd)
+
 	return storageCmd
 }

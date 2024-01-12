@@ -13,17 +13,17 @@ func newAssetCmd(c *config.Config) *cobra.Command {
 		Short: "show asset",
 		Long:  "assets are boundaries of consumable objects",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			resp, err := c.Client.Apiv1().Asset().List(c.Ctx, connect.NewRequest(&v1.AssetServiceListRequest{}))
+			ctx, cancel := c.NewRequestContext()
+			defer cancel()
+
+			resp, err := c.Client.Apiv1().Asset().List(ctx, connect.NewRequest(&v1.AssetServiceListRequest{}))
 			if err != nil {
 				return err
 			}
 
-			if err := c.ListPrinter.Print(resp.Msg); err != nil {
-				return err
-			}
-
-			return nil
+			return c.ListPrinter.Print(resp.Msg.Assets)
 		},
 	}
+
 	return assetCmd
 }

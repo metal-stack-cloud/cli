@@ -43,12 +43,15 @@ func newProjectCmd(c *config.Config) *cobra.Command {
 	return genericcli.NewCmds(cmdsConfig)
 }
 
-func (t *project) Get(id string) (*apiv1.Project, error) {
+func (c *project) Get(id string) (*apiv1.Project, error) {
+	ctx, cancel := c.c.NewRequestContext()
+	defer cancel()
+
 	req := &apiv1.ProjectServiceGetRequest{
 		Project: id,
 	}
 
-	resp, err := t.c.Client.Apiv1().Project().Get(t.c.Ctx, connect.NewRequest(req))
+	resp, err := c.c.Client.Apiv1().Project().Get(ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to list projects: %w", err)
 	}
@@ -56,13 +59,16 @@ func (t *project) Get(id string) (*apiv1.Project, error) {
 	return resp.Msg.GetProject(), nil
 }
 
-func (t *project) List() ([]*apiv1.Project, error) {
+func (c *project) List() ([]*apiv1.Project, error) {
+	ctx, cancel := c.c.NewRequestContext()
+	defer cancel()
+
 	req := &apiv1.ProjectServiceListRequest{
 		Name:   pointer.PointerOrNil(viper.GetString("name")),
 		Tenant: pointer.PointerOrNil(viper.GetString("tenant")),
 	}
 
-	resp, err := t.c.Client.Apiv1().Project().List(t.c.Ctx, connect.NewRequest(req))
+	resp, err := c.c.Client.Apiv1().Project().List(ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to list projects: %w", err)
 	}

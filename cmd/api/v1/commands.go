@@ -14,4 +14,18 @@ func AddCmds(cmd *cobra.Command, c *config.Config) {
 	cmd.AddCommand(newStorageCmd(c))
 	cmd.AddCommand(newClusterCmd(c))
 	cmd.AddCommand(newProjectCmd(c))
+	cmd.AddCommand(newMethodsCmd(c))
+}
+
+func newStorageCmd(c *config.Config) *cobra.Command {
+	storageCmd := &cobra.Command{
+		Use:   "storage",
+		Short: "storage commands",
+		Long:  "volume and snapshot actions",
+	}
+
+	storageCmd.AddCommand(newVolumeCmd(c))
+	storageCmd.AddCommand(newSnapshotCmd(c))
+
+	return storageCmd
 }

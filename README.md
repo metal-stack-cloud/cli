@@ -1,25 +1,15 @@
 # metal-stack-cloud cli
 
-## Admin usage
+To work with this CLI, it is first necessary to create a metalstack.cloud api-token. This can be issues through the cloud console.
 
-In order to use the admin commands you must first create a config file `~/.metal-stack-cloud/config.yaml` with this content.
-
-```yaml
-# this config works in the mini-lab
-# api-url: http://api.172.17.0.1.nip.io:8080
-# this config is working for a api-server started locally
-api-url: http://localhost:8080
-api-token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJtZXRhbC1zdGFjay1jbG91ZCIsInN1YiI6ImFkbWluIiwiZXhwIjo0ODEyNjE0OTczLCJyb2xlcyI6eyIqIjoiYWRtaW4ifX0.gsqlaAcvIZFFYZSxrOMIwiZdKb0AZiGhFt4qpS0keC8
-api-ca-file: yourdevelopmentfolder/metal-stack-cloud/deployment/files/certs/ca.pem
-```
-
-This config contains a api-token with admin permissions for the development and is not suitable for production use.
-
-After that you can see the available admin subcommands with:
+Once you got the token, you probably want to create a CLI context:
 
 ```bash
-bin/metal admin
+$ metal ctx add project-xyz --api-token <your-token> --default-project project-xyz --activate
+✔ added context "project-xyz"
 ```
+
+The configuration file is by default written to `~/.metal-stack-cloud/config.yaml`.
 
 ## Basic commands
 
