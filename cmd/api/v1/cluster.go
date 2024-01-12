@@ -29,9 +29,9 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 		c: c,
 	}
 
-	cmdsConfig := &genericcli.CmdsConfig[any, any, *apiv1.Cluster]{
+	cmdsConfig := &genericcli.CmdsConfig[*apiv1.ClusterServiceCreateRequest, *apiv1.ClusterServiceUpdateRequest, *apiv1.Cluster]{
 		BinaryName:      config.BinaryName,
-		GenericCLI:      genericcli.NewGenericCLI[any, any, *apiv1.Cluster](w).WithFS(c.Fs),
+		GenericCLI:      genericcli.NewGenericCLI[*apiv1.ClusterServiceCreateRequest, *apiv1.ClusterServiceUpdateRequest, *apiv1.Cluster](w).WithFS(c.Fs),
 		Singular:        "cluster",
 		Plural:          "clusters",
 		Description:     "manage kubernetes clusters",
@@ -43,9 +43,33 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 		ListCmdMutateFn: func(cmd *cobra.Command) {
 			cmd.Flags().String("project", "", "the project for which to list clusters")
 		},
+		CreateRequestFromCLI: w.createFromCLI,
+		CreateCmdMutateFn: func(cmd *cobra.Command) {
+			cmd.Flags().StringP("name", "", "", "name of the cluster")
+			cmd.Flags().StringP("project", "", "", "project where the cluster should be created")
+			cmd.Flags().StringP("partition", "", "", "partition of the cluster")
+			cmd.Flags().StringP("kubernetes", "", "", "kubernetes version of the cluster")
+			cmd.Flags().Int32("maintenance-hour", 0, "hour in which cluster maintenance is allowed to take place")
+			cmd.Flags().Int32("maintenance-minute", 0, "minute in which cluster maintenance is allowed to take place")
+			cmd.Flags().String("maintenance-timezone", time.Local.String(), "timezone used for the maintenance time window") // nolint
+			cmd.Flags().Duration("maintenance-duration", 2*time.Hour, "duration in which cluster maintenance is allowed to take place")
+		},
 		DescribeCmdMutateFn: func(cmd *cobra.Command) {
 			cmd.Flags().String("project", "", "the project for which to describe the cluster")
 		},
+		DeleteCmdMutateFn: func(cmd *cobra.Command) {
+			cmd.Flags().StringP("project", "", "", "project of the cluster")
+		},
+		UpdateCmdMutateFn: func(cmd *cobra.Command) {
+			cmd.Flags().String("uuid", "", "uuid of the cluster")
+			cmd.Flags().StringP("project", "p", "", "project of the cluster")
+			cmd.Flags().String("kubernetes", "", "kubernetes version of the cluster")
+			cmd.Flags().Uint32("maintenance-hour", 0, "hour in which cluster maintenance is allowed to take place")
+			cmd.Flags().Uint32("maintenance-minute", 0, "minute in which cluster maintenance is allowed to take place")
+			cmd.Flags().String("maintenance-timezone", time.Local.String(), "timezone used for the maintenance time window") // nolint
+			cmd.Flags().Duration("maintenance-duration", 2*time.Hour, "duration in which cluster maintenance is allowed to take place")
+		},
+		UpdateRequestFromCLI: w.updateFromCLI,
 	}
 
 	kubeconfigCmd := &cobra.Command{
@@ -84,12 +108,31 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 	return genericcli.NewCmds(cmdsConfig, kubeconfigCmd, monitoringCmd)
 }
 
-func (c *cluster) Create(rq any) (*apiv1.Cluster, error) {
-	panic("unimplemented")
+func (c *cluster) Create(req *apiv1.ClusterServiceCreateRequest) (*apiv1.Cluster, error) {
+	ctx, cancel := c.c.NewRequestContext()
+	defer cancel()
+
+	resp, err := c.c.Client.Apiv1().Cluster().Create(ctx, connect.NewRequest(req))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create cluster: %w", err)
+	}
+
+	return resp.Msg.Cluster, nil
 }
 
 func (c *cluster) Delete(id string) (*apiv1.Cluster, error) {
-	panic("unimplemented")
+	ctx, cancel := c.c.NewRequestContext()
+	defer cancel()
+
+	resp, err := c.c.Client.Apiv1().Cluster().Delete(ctx, connect.NewRequest(&apiv1.ClusterServiceDeleteRequest{
+		Uuid:    id,
+		Project: c.c.GetProject(),
+	}))
+	if err != nil {
+		return nil, fmt.Errorf("failed to delete cluster: %w", err)
+	}
+
+	return resp.Msg.Cluster, nil
 }
 
 func (c *cluster) Get(id string) (*apiv1.Cluster, error) {
@@ -125,12 +168,87 @@ func (c *cluster) List() ([]*apiv1.Cluster, error) {
 	return resp.Msg.Clusters, nil
 }
 
-func (c *cluster) Convert(r *apiv1.Cluster) (string, any, any, error) {
+func (c *cluster) Convert(r *apiv1.Cluster) (string, *apiv1.ClusterServiceCreateRequest, *apiv1.ClusterServiceUpdateRequest, error) {
 	panic("unimplemented")
 }
 
-func (c *cluster) Update(rq any) (*apiv1.Cluster, error) {
-	panic("unimplemented")
+func (c *cluster) Update(req *apiv1.ClusterServiceUpdateRequest) (*apiv1.Cluster, error) {
+	ctx, cancel := c.c.NewRequestContext()
+	defer cancel()
+
+	resp, err := c.c.Client.Apiv1().Cluster().Update(ctx, connect.NewRequest(req))
+	if err != nil {
+		return nil, fmt.Errorf("failed to update cluster: %w", err)
+	}
+
+	return resp.Msg.Cluster, nil
+}
+
+func (c *cluster) createFromCLI() (*apiv1.ClusterServiceCreateRequest, error) {
+	rq := &apiv1.ClusterServiceCreateRequest{
+		Name:      viper.GetString("name"),
+		Project:   c.c.GetProject(),
+		Partition: viper.GetString("partition"),
+		Kubernetes: &apiv1.KubernetesSpec{
+			Version: viper.GetString("kubernetes"),
+		},
+		Maintenance: &apiv1.Maintenance{},
+	}
+
+	if viper.IsSet("maintenance-hour") {
+		rq.Maintenance.TimeWindow = &apiv1.MaintenanceTimeWindow{
+			Begin: &apiv1.Time{
+				Hour:     viper.GetUint32("maintenance-hour"),
+				Minute:   viper.GetUint32("maintenance-minute"),
+				Timezone: viper.GetString("maintenance-timezone"),
+			},
+			Duration: durationpb.New(viper.GetDuration("maintenance-duration")),
+		}
+	}
+
+	return rq, nil
+}
+
+func (c *cluster) updateFromCLI(args []string) (*apiv1.ClusterServiceUpdateRequest, error) {
+	uuid, err := genericcli.GetExactlyOneArg(args)
+	if err != nil {
+		return nil, err
+	}
+
+	cluster, err := c.Get(uuid)
+	if err != nil {
+		return nil, err
+	}
+
+	rq := &apiv1.ClusterServiceUpdateRequest{
+		Uuid:        uuid,
+		Project:     c.c.GetProject(),
+		Kubernetes:  &apiv1.KubernetesSpec{},
+		Maintenance: &apiv1.Maintenance{},
+	}
+
+	if viper.IsSet("maintenance-hour") || viper.IsSet("maintenance-minute") || viper.IsSet("maintenance-duration") {
+		rq.Maintenance = cluster.Maintenance
+
+		if viper.IsSet("maintenance-hour") {
+			rq.Maintenance.TimeWindow.Begin.Hour = viper.GetUint32("maintenance-hour")
+			rq.Maintenance.TimeWindow.Begin.Timezone = viper.GetString("maintenance-timezone")
+
+		}
+		if viper.IsSet("maintenance-minute") {
+			rq.Maintenance.TimeWindow.Begin.Minute = viper.GetUint32("maintenance-minute")
+			rq.Maintenance.TimeWindow.Begin.Timezone = viper.GetString("maintenance-timezone")
+		}
+		if viper.IsSet("maintenance-duration") {
+			rq.Maintenance.TimeWindow.Duration = durationpb.New(viper.GetDuration("maintenance-duration"))
+		}
+	}
+
+	if viper.IsSet("kubernetes") {
+		cluster.Kubernetes.Version = viper.GetString("kubernetes")
+	}
+
+	return rq, nil
 }
 
 func (c *cluster) kubeconfig(args []string) error {
