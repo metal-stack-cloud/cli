@@ -2,7 +2,6 @@ package v1
 
 import (
 	"fmt"
-	"os"
 	"time"
 
 	"connectrpc.com/connect"
@@ -15,6 +14,7 @@ import (
 	"github.com/metal-stack/metal-lib/pkg/genericcli"
 	"github.com/metal-stack/metal-lib/pkg/genericcli/printers"
 	"github.com/metal-stack/metal-lib/pkg/pointer"
+	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"google.golang.org/protobuf/types/known/durationpb"
@@ -228,12 +228,12 @@ func (c *cluster) kubeconfig(args []string) error {
 		kubeconfigPath = viper.GetString("kubeconfig")
 	)
 
-	merged, err := kubernetes.MergeKubeconfig([]byte(resp.Msg.Kubeconfig), pointer.PointerOrNil(kubeconfigPath), nil) // FIXME: reverse lookup project name
+	merged, err := kubernetes.MergeKubeconfig(c.c.Fs, []byte(resp.Msg.Kubeconfig), pointer.PointerOrNil(kubeconfigPath), nil) // FIXME: reverse lookup project name
 	if err != nil {
 		return err
 	}
 
-	err = os.WriteFile(merged.Path, merged.Raw, 0600)
+	err = afero.WriteFile(c.c.Fs, merged.Path, merged.Raw, 0600)
 	if err != nil {
 		return fmt.Errorf("unable to write merged kubeconfig: %w", err)
 	}

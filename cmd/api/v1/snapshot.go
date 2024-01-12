@@ -57,7 +57,7 @@ func (s *snapshot) Create(rq any) (*apiv1.Snapshot, error) {
 func (s *snapshot) Delete(id string) (*apiv1.Snapshot, error) {
 	req := &apiv1.SnapshotServiceDeleteRequest{
 		Uuid:    id,
-		Project: s.c.Context.GetProject(),
+		Project: s.c.GetProject(),
 	}
 	resp, err := s.c.Client.Apiv1().Snapshot().Delete(s.c.NewRequestContext(), connect.NewRequest(req))
 	if err != nil {
@@ -69,7 +69,7 @@ func (s *snapshot) Delete(id string) (*apiv1.Snapshot, error) {
 func (s *snapshot) Get(id string) (*apiv1.Snapshot, error) {
 	req := &apiv1.SnapshotServiceGetRequest{
 		Uuid:    id,
-		Project: s.c.Context.GetProject(),
+		Project: s.c.GetProject(),
 	}
 	resp, err := s.c.Client.Apiv1().Snapshot().Get(s.c.NewRequestContext(), connect.NewRequest(req))
 	if err != nil {
@@ -80,7 +80,7 @@ func (s *snapshot) Get(id string) (*apiv1.Snapshot, error) {
 
 func (s *snapshot) List() ([]*apiv1.Snapshot, error) {
 	req := &apiv1.SnapshotServiceListRequest{
-		Project: s.c.Context.GetProject(),
+		Project: s.c.GetProject(),
 	}
 	if viper.IsSet("uuid") {
 		req.Uuid = pointer.Pointer(viper.GetString("uuid"))

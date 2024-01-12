@@ -2,7 +2,6 @@ package v1
 
 import (
 	"fmt"
-	"os"
 	"time"
 
 	"connectrpc.com/connect"
@@ -14,6 +13,7 @@ import (
 	"github.com/metal-stack/metal-lib/pkg/genericcli"
 	"github.com/metal-stack/metal-lib/pkg/genericcli/printers"
 	"github.com/metal-stack/metal-lib/pkg/pointer"
+	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"google.golang.org/protobuf/types/known/durationpb"
@@ -94,7 +94,7 @@ func (c *cluster) Delete(id string) (*apiv1.Cluster, error) {
 func (c *cluster) Get(id string) (*apiv1.Cluster, error) {
 	req := &apiv1.ClusterServiceGetRequest{
 		Uuid:    id,
-		Project: c.c.Context.GetProject(),
+		Project: c.c.GetProject(),
 	}
 
 	resp, err := c.c.Client.Apiv1().Cluster().Get(c.c.NewRequestContext(), connect.NewRequest(req))
@@ -107,7 +107,7 @@ func (c *cluster) Get(id string) (*apiv1.Cluster, error) {
 
 func (c *cluster) List() ([]*apiv1.Cluster, error) {
 	req := &apiv1.ClusterServiceListRequest{
-		Project: c.c.Context.GetProject(),
+		Project: c.c.GetProject(),
 	}
 
 	resp, err := c.c.Client.Apiv1().Cluster().List(c.c.NewRequestContext(), connect.NewRequest(req))
@@ -134,7 +134,7 @@ func (c *cluster) kubeconfig(args []string) error {
 
 	req := &apiv1.ClusterServiceGetCredentialsRequest{
 		Uuid:       id,
-		Project:    c.c.Context.GetProject(),
+		Project:    c.c.GetProject(),
 		Expiration: durationpb.New(viper.GetDuration("expiration")),
 	}
 
@@ -150,15 +150,15 @@ func (c *cluster) kubeconfig(args []string) error {
 
 	var (
 		kubeconfigPath = viper.GetString("kubeconfig")
-		projectName    = c.c.Context.GetProject() // FIXME: reverse lookup project name from
+		projectName    = c.c.GetProject() // FIXME: reverse lookup project name from
 	)
 
-	merged, err := kubernetes.MergeKubeconfig([]byte(resp.Msg.Kubeconfig), pointer.PointerOrNil(kubeconfigPath), &projectName)
+	merged, err := kubernetes.MergeKubeconfig(c.c.Fs, []byte(resp.Msg.Kubeconfig), pointer.PointerOrNil(kubeconfigPath), &projectName)
 	if err != nil {
 		return err
 	}
 
-	err = os.WriteFile(merged.Path, merged.Raw, 0600)
+	err = afero.WriteFile(c.c.Fs, merged.Path, merged.Raw, 0600)
 	if err != nil {
 		return fmt.Errorf("unable to write merged kubeconfig: %w", err)
 	}

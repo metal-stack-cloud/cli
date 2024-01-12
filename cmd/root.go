@@ -74,7 +74,7 @@ func newRootCmd(c *config.Config) *cobra.Command {
 }
 
 func initConfigWithViperCtx(c *config.Config) error {
-	c.Context = config.MustDefaultContext()
+	c.Context = c.MustDefaultContext()
 
 	listPrinter, err := newPrinterFromCLI(c.Out)
 	if err != nil {
@@ -93,8 +93,8 @@ func initConfigWithViperCtx(c *config.Config) error {
 	}
 
 	dialConfig := client.DialConfig{
-		BaseURL:   c.Context.GetApiURL(),
-		Token:     c.Context.GetToken(),
+		BaseURL:   c.GetApiURL(),
+		Token:     c.GetToken(),
 		UserAgent: "metal-stack-cloud-cli",
 		Debug:     viper.GetBool("debug"),
 	}

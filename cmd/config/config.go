@@ -2,7 +2,6 @@ package config
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"os"
 	"path"
@@ -25,13 +24,13 @@ const (
 )
 
 type Config struct {
-	Fs     afero.Fs
-	Out    io.Writer
-	Client client.Client
-	Context
+	Fs              afero.Fs
+	Out             io.Writer
+	Client          client.Client
 	ListPrinter     printers.Printer
 	DescribePrinter printers.Printer
 	Completion      *completion.Completion
+	Context         Context
 }
 
 func (c *Config) NewRequestContext() context.Context {
@@ -70,14 +69,7 @@ func DefaultConfigDirectory() (string, error) {
 		return "", err
 	}
 
-	dir := path.Join(h, "."+ConfigDir)
-
-	err = os.MkdirAll(dir, 0600)
-	if err != nil {
-		return "", fmt.Errorf("unable to ensure default config directory: %w", err)
-	}
-
-	return dir, nil
+	return path.Join(h, "."+ConfigDir), nil
 }
 
 func ConfigPath() (string, error) {
@@ -91,4 +83,30 @@ func ConfigPath() (string, error) {
 	}
 
 	return path.Join(dir, "config.yaml"), nil
+}
+
+func (c *Config) GetProject() string {
+	if viper.IsSet("project") {
+		return viper.GetString("project")
+	}
+	return c.Context.DefaultProject
+}
+
+func (c *Config) GetToken() string {
+	if viper.IsSet("api-token") {
+		return viper.GetString("api-token")
+	}
+	return c.Context.Token
+}
+
+func (c *Config) GetApiURL() string {
+	if viper.IsSet("api-url") {
+		return viper.GetString("api-url")
+	}
+	if c.Context.ApiURL != nil {
+		return *c.Context.ApiURL
+	}
+
+	// fallback to the default specified by viper
+	return viper.GetString("api-url")
 }

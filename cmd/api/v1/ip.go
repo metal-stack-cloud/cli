@@ -57,7 +57,7 @@ func newIPCmd(c *config.Config) *cobra.Command {
 		},
 		CreateRequestFromCLI: func() (*apiv1.IPServiceAllocateRequest, error) {
 			return &apiv1.IPServiceAllocateRequest{
-				Project:     c.Context.GetProject(),
+				Project:     c.GetProject(),
 				Name:        viper.GetString("name"),
 				Description: viper.GetString("description"),
 				Tags:        viper.GetStringSlice("tags"),
@@ -103,7 +103,7 @@ func (c *ip) Create(rq *apiv1.IPServiceAllocateRequest) (*apiv1.IP, error) {
 
 func (c *ip) Delete(id string) (*apiv1.IP, error) {
 	resp, err := c.c.Client.Apiv1().IP().Delete(c.c.NewRequestContext(), connect.NewRequest(&apiv1.IPServiceDeleteRequest{
-		Project: c.c.Context.GetProject(),
+		Project: c.c.GetProject(),
 		Uuid:    id,
 	}))
 	if err != nil {
@@ -115,7 +115,7 @@ func (c *ip) Delete(id string) (*apiv1.IP, error) {
 
 func (c *ip) Get(id string) (*apiv1.IP, error) {
 	resp, err := c.c.Client.Apiv1().IP().Get(c.c.NewRequestContext(), connect.NewRequest(&apiv1.IPServiceGetRequest{
-		Project: c.c.Context.GetProject(),
+		Project: c.c.GetProject(),
 		Uuid:    id,
 	}))
 	if err != nil {
@@ -127,7 +127,7 @@ func (c *ip) Get(id string) (*apiv1.IP, error) {
 
 func (c *ip) List() ([]*apiv1.IP, error) {
 	resp, err := c.c.Client.Apiv1().IP().List(c.c.NewRequestContext(), connect.NewRequest(&apiv1.IPServiceListRequest{
-		Project: c.c.Context.GetProject(),
+		Project: c.c.GetProject(),
 	}))
 	if err != nil {
 		return nil, err

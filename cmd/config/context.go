@@ -4,10 +4,12 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path"
 	"slices"
 	"time"
 
 	"github.com/metal-stack/metal-lib/pkg/pointer"
+	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"sigs.k8s.io/yaml"
@@ -29,14 +31,7 @@ type Context struct {
 	Timeout        *time.Duration `json:"timeout,omitempty"`
 }
 
-func defaultCtx() Context {
-	return Context{
-		ApiURL: pointer.PointerOrNil(viper.GetString("api-url")),
-		Token:  viper.GetString("api-token"),
-	}
-}
-
-func (cs Contexts) GetContext(name string) (*Context, bool) {
+func (cs Contexts) Get(name string) (*Context, bool) {
 	for _, context := range cs.Contexts {
 		context := context
 
@@ -46,6 +41,18 @@ func (cs Contexts) GetContext(name string) (*Context, bool) {
 	}
 
 	return nil, false
+}
+
+func (cs Contexts) List() []*Context {
+	var res []*Context
+
+	for _, context := range cs.Contexts {
+		context := context
+
+		res = append(res, context)
+	}
+
+	return res
 }
 
 func (cs Contexts) Validate() error {
@@ -69,13 +76,13 @@ func (cs *Contexts) Delete(name string) {
 	})
 }
 
-func GetContexts() (*Contexts, error) {
+func (c *Config) GetContexts() (*Contexts, error) {
 	path, err := ConfigPath()
 	if err != nil {
 		return nil, err
 	}
 
-	c, err := os.ReadFile(path)
+	raw, err := afero.ReadFile(c.Fs, path)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			return &Contexts{}, nil
@@ -85,26 +92,34 @@ func GetContexts() (*Contexts, error) {
 	}
 
 	var ctxs Contexts
-	err = yaml.Unmarshal(c, &ctxs)
+	err = yaml.Unmarshal(raw, &ctxs)
 	return &ctxs, err
 }
 
-func WriteContexts(ctxs *Contexts) error {
+func (c *Config) WriteContexts(ctxs *Contexts) error {
 	if err := ctxs.Validate(); err != nil {
 		return err
 	}
 
-	c, err := yaml.Marshal(ctxs)
+	raw, err := yaml.Marshal(ctxs)
 	if err != nil {
 		return err
 	}
 
-	path, err := ConfigPath()
+	dest, err := ConfigPath()
 	if err != nil {
 		return err
 	}
 
-	err = os.WriteFile(path, c, 0600)
+	// when path is in the default path, we ensure the directory exists
+	if defaultPath, err := DefaultConfigDirectory(); err == nil && defaultPath == path.Dir(dest) {
+		err = c.Fs.MkdirAll(defaultPath, 0600)
+		if err != nil {
+			return fmt.Errorf("unable to ensure default config directory: %w", err)
+		}
+	}
+
+	err = afero.WriteFile(c.Fs, dest, raw, 0600)
 	if err != nil {
 		return err
 	}
@@ -112,20 +127,27 @@ func WriteContexts(ctxs *Contexts) error {
 	return nil
 }
 
-func MustDefaultContext() Context {
-	ctxs, err := GetContexts()
+func (c *Config) MustDefaultContext() Context {
+	ctxs, err := c.GetContexts()
 	if err != nil {
 		return defaultCtx()
 	}
-	ctx, ok := ctxs.GetContext(ctxs.CurrentContext)
+	ctx, ok := ctxs.Get(ctxs.CurrentContext)
 	if !ok {
 		return defaultCtx()
 	}
 	return *ctx
 }
 
-func ContextListCompletion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-	ctxs, err := GetContexts()
+func defaultCtx() Context {
+	return Context{
+		ApiURL: pointer.PointerOrNil(viper.GetString("api-url")),
+		Token:  viper.GetString("api-token"),
+	}
+}
+
+func (c *Config) ContextListCompletion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	ctxs, err := c.GetContexts()
 	if err != nil {
 		return nil, cobra.ShellCompDirectiveError
 	}

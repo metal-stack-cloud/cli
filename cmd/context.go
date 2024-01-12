@@ -47,7 +47,7 @@ func newContextCmd(c *config.Config) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return w.set(args)
 		},
-		ValidArgsFunction: config.ContextListCompletion,
+		ValidArgsFunction: c.ContextListCompletion,
 	}
 	contextShortCmd := &cobra.Command{
 		Use:   "show-current",
@@ -71,7 +71,7 @@ func newContextCmd(c *config.Config) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return w.remove(args)
 		},
-		ValidArgsFunction: config.ContextListCompletion,
+		ValidArgsFunction: c.ContextListCompletion,
 	}
 
 	contextAddCmd := &cobra.Command{
@@ -96,7 +96,7 @@ func newContextCmd(c *config.Config) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return w.update(args)
 		},
-		ValidArgsFunction: config.ContextListCompletion,
+		ValidArgsFunction: c.ContextListCompletion,
 	}
 	contextUpdateCmd.Flags().String("api-url", "", "sets the api-url for this context")
 	contextUpdateCmd.Flags().String("api-token", "", "sets the api-token for this context")
@@ -120,7 +120,7 @@ func newContextCmd(c *config.Config) *cobra.Command {
 }
 
 func (c *ctx) list() error {
-	ctxs, err := config.GetContexts()
+	ctxs, err := c.c.GetContexts()
 	if err != nil {
 		return err
 	}
@@ -129,7 +129,7 @@ func (c *ctx) list() error {
 }
 
 func (c *ctx) short() error {
-	ctxs, err := config.GetContexts()
+	ctxs, err := c.c.GetContexts()
 	if err != nil {
 		return err
 	}
@@ -143,12 +143,12 @@ func (c *ctx) add(args []string) error {
 		return fmt.Errorf("no context name given")
 	}
 
-	ctxs, err := config.GetContexts()
+	ctxs, err := c.c.GetContexts()
 	if err != nil {
 		return err
 	}
 
-	_, ok := ctxs.GetContext(name)
+	_, ok := ctxs.Get(name)
 	if ok {
 		return fmt.Errorf("context with name %q already exists", name)
 	}
@@ -168,7 +168,7 @@ func (c *ctx) add(args []string) error {
 		ctxs.CurrentContext = ctx.Name
 	}
 
-	err = config.WriteContexts(ctxs)
+	err = c.c.WriteContexts(ctxs)
 	if err != nil {
 		return err
 	}
@@ -184,12 +184,12 @@ func (c *ctx) update(args []string) error {
 		return fmt.Errorf("no context name given")
 	}
 
-	ctxs, err := config.GetContexts()
+	ctxs, err := c.c.GetContexts()
 	if err != nil {
 		return err
 	}
 
-	ctx, ok := ctxs.GetContext(name)
+	ctx, ok := ctxs.Get(name)
 	if !ok {
 		return fmt.Errorf("no context with name %q found", name)
 	}
@@ -211,7 +211,7 @@ func (c *ctx) update(args []string) error {
 		ctxs.CurrentContext = ctx.Name
 	}
 
-	err = config.WriteContexts(ctxs)
+	err = c.c.WriteContexts(ctxs)
 	if err != nil {
 		return err
 	}
@@ -227,19 +227,19 @@ func (c *ctx) remove(args []string) error {
 		return fmt.Errorf("no context name given")
 	}
 
-	ctxs, err := config.GetContexts()
+	ctxs, err := c.c.GetContexts()
 	if err != nil {
 		return err
 	}
 
-	ctx, ok := ctxs.GetContext(name)
+	ctx, ok := ctxs.Get(name)
 	if !ok {
 		return fmt.Errorf("no context with name %q found", name)
 	}
 
 	ctxs.Delete(ctx.Name)
 
-	err = config.WriteContexts(ctxs)
+	err = c.c.WriteContexts(ctxs)
 	if err != nil {
 		return err
 	}
@@ -255,7 +255,7 @@ func (c *ctx) set(args []string) error {
 		return fmt.Errorf("no context name given")
 	}
 
-	ctxs, err := config.GetContexts()
+	ctxs, err := c.c.GetContexts()
 	if err != nil {
 		return err
 	}
@@ -271,7 +271,7 @@ func (c *ctx) set(args []string) error {
 		ctxs.CurrentContext = prev
 	} else {
 		nextCtx := wantCtx
-		_, ok := ctxs.GetContext(nextCtx)
+		_, ok := ctxs.Get(nextCtx)
 		if !ok {
 			return fmt.Errorf("context %s not found", nextCtx)
 		}
@@ -283,7 +283,7 @@ func (c *ctx) set(args []string) error {
 		ctxs.CurrentContext = nextCtx
 	}
 
-	err = config.WriteContexts(ctxs)
+	err = c.c.WriteContexts(ctxs)
 	if err != nil {
 		return err
 	}
@@ -299,19 +299,19 @@ func (c *ctx) setProject(args []string) error {
 		return err
 	}
 
-	ctxs, err := config.GetContexts()
+	ctxs, err := c.c.GetContexts()
 	if err != nil {
 		return err
 	}
 
-	ctx, ok := ctxs.GetContext(c.c.Context.Name)
+	ctx, ok := ctxs.Get(c.c.Context.Name)
 	if !ok {
 		return fmt.Errorf("no context currently active")
 	}
 
 	ctx.DefaultProject = project
 
-	err = config.WriteContexts(ctxs)
+	err = c.c.WriteContexts(ctxs)
 	if err != nil {
 		return err
 	}

@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/spf13/afero"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/clientcmd/api"
@@ -19,7 +20,7 @@ type MergedKubeconfig struct {
 	ContextName string
 }
 
-func MergeKubeconfig(raw []byte, kubeconfigPath, projectName *string) (*MergedKubeconfig, error) {
+func MergeKubeconfig(fs afero.Fs, raw []byte, kubeconfigPath, projectName *string) (*MergedKubeconfig, error) {
 	path := os.Getenv(clientcmd.RecommendedConfigPathEnvVar)
 	if kubeconfigPath != nil {
 		path = *kubeconfigPath
@@ -32,8 +33,8 @@ func MergeKubeconfig(raw []byte, kubeconfigPath, projectName *string) (*MergedKu
 		return nil, fmt.Errorf("it is currently not supported to merge when multiple kubeconfigs are provided")
 	}
 
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		err := os.WriteFile(path, nil, 0600)
+	if _, err := fs.Stat(path); os.IsNotExist(err) {
+		err := afero.WriteFile(fs, path, nil, 0600)
 		if err != nil {
 			return nil, fmt.Errorf("error to write to: %w", err)
 		}

@@ -86,7 +86,7 @@ func (v *volume) Create(rq any) (*apiv1.Volume, error) {
 func (v *volume) Delete(id string) (*apiv1.Volume, error) {
 	req := &apiv1.VolumeServiceDeleteRequest{
 		Uuid:    id,
-		Project: v.c.Context.GetProject(),
+		Project: v.c.GetProject(),
 	}
 	resp, err := v.c.Client.Apiv1().Volume().Delete(v.c.NewRequestContext(), connect.NewRequest(req))
 	if err != nil {
@@ -98,7 +98,7 @@ func (v *volume) Delete(id string) (*apiv1.Volume, error) {
 func (v *volume) Get(id string) (*apiv1.Volume, error) {
 	req := &apiv1.VolumeServiceGetRequest{
 		Uuid:    id,
-		Project: v.c.Context.GetProject(),
+		Project: v.c.GetProject(),
 	}
 	resp, err := v.c.Client.Apiv1().Volume().Get(v.c.NewRequestContext(), connect.NewRequest(req))
 	if err != nil {
