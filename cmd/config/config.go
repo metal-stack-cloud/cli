@@ -10,7 +10,9 @@ import (
 	"github.com/metal-stack-cloud/api/go/client"
 	"github.com/metal-stack-cloud/cli/cmd/completion"
 	"github.com/metal-stack/metal-lib/pkg/genericcli/printers"
+	"github.com/metal-stack/metal-lib/pkg/pointer"
 	"github.com/spf13/afero"
+	"github.com/spf13/viper"
 )
 
 const (
@@ -32,7 +34,16 @@ type Config struct {
 }
 
 func (c *Config) NewRequestContext() context.Context {
-	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second) // nolint
+	timeout := c.Context.Timeout
+	if timeout == nil {
+		timeout = pointer.Pointer(30 * time.Second)
+	}
+	if viper.IsSet("timeout") {
+		timeout = pointer.Pointer(viper.GetDuration("timeout"))
+	}
+
+	ctx, _ := context.WithTimeout(context.Background(), *timeout) // nolint
+
 	return ctx
 }
 

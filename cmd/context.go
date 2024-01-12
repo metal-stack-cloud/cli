@@ -26,11 +26,7 @@ func newContextCmd(c *config.Config) *cobra.Command {
 		Short:   "manage cli contexts",
 		Long:    "you can switch back and forth contexts with \"-\"",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if arg, _ := genericcli.GetExactlyOneArg(args); arg == "-" {
-				return w.set(args)
-			}
-
-			return cmd.Usage()
+			return w.set(args)
 		},
 	}
 
@@ -43,9 +39,10 @@ func newContextCmd(c *config.Config) *cobra.Command {
 		},
 	}
 	contextSwitchCmd := &cobra.Command{
-		Use:   "switch <context-name>",
-		Short: "switch the cli context",
-		Long:  "you can switch back and forth contexts with \"-\"",
+		Use:     "switch <context-name>",
+		Short:   "switch the cli context",
+		Long:    "you can switch back and forth contexts with \"-\"",
+		Aliases: []string{"set"},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return w.set(args)
 		},
@@ -66,6 +63,15 @@ func newContextCmd(c *config.Config) *cobra.Command {
 		},
 		ValidArgsFunction: c.Completion.ProjectListCompletion,
 	}
+	contextRemoveCmd := &cobra.Command{
+		Use:     "remove <context-name>",
+		Aliases: []string{"rm", "delete"},
+		Short:   "remove a cli context",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return w.remove(args)
+		},
+		ValidArgsFunction: config.ContextListCompletion,
+	}
 
 	contextAddCmd := &cobra.Command{
 		Use:     "add <context-name>",
@@ -78,6 +84,7 @@ func newContextCmd(c *config.Config) *cobra.Command {
 	contextAddCmd.Flags().String("api-url", "", "sets the api-url for this context")
 	contextAddCmd.Flags().String("api-token", "", "sets the api-token for this context")
 	contextAddCmd.Flags().String("default-project", "", "sets a default project to act on")
+	contextAddCmd.Flags().Duration("timeout", 0, "sets a default request timeout")
 	contextAddCmd.Flags().Bool("activate", false, "immediately switches to the new context")
 
 	genericcli.Must(contextAddCmd.MarkFlagRequired("api-token"))
@@ -86,6 +93,7 @@ func newContextCmd(c *config.Config) *cobra.Command {
 		contextListCmd,
 		contextSwitchCmd,
 		contextAddCmd,
+		contextRemoveCmd,
 		contextShortCmd,
 		contextSetProjectCmd,
 	)
@@ -127,6 +135,7 @@ func (c *ctx) add(args []string) error {
 		ApiURL:         pointer.PointerOrNil(viper.GetString("api-url")),
 		Token:          viper.GetString("api-token"),
 		DefaultProject: viper.GetString("default-project"),
+		Timeout:        pointer.PointerOrNil(viper.GetDuration("timeout")),
 	}
 
 	ctxs.Contexts = append(ctxs.Contexts, ctx)
@@ -141,7 +150,35 @@ func (c *ctx) add(args []string) error {
 		return err
 	}
 
-	fmt.Printf("%s added context \"%s\"\n", color.GreenString("✔"), color.GreenString(ctx.Name))
+	fmt.Fprintf(c.c.Out, "%s added context \"%s\"\n", color.GreenString("✔"), color.GreenString(ctx.Name))
+
+	return nil
+}
+
+func (c *ctx) remove(args []string) error {
+	name, err := genericcli.GetExactlyOneArg(args)
+	if err != nil {
+		return fmt.Errorf("no context name given")
+	}
+
+	ctxs, err := config.GetContexts()
+	if err != nil {
+		return err
+	}
+
+	ctx, ok := ctxs.GetContext(name)
+	if !ok {
+		return fmt.Errorf("no context with name %q found", name)
+	}
+
+	ctxs.Delete(ctx.Name)
+
+	err = config.WriteContexts(ctxs)
+	if err != nil {
+		return err
+	}
+
+	fmt.Fprintf(c.c.Out, "%s removed context \"%s\"\n", color.GreenString("✔"), color.GreenString(ctx.Name))
 
 	return nil
 }
@@ -173,7 +210,7 @@ func (c *ctx) set(args []string) error {
 			return fmt.Errorf("context %s not found", nextCtx)
 		}
 		if nextCtx == ctxs.CurrentContext {
-			fmt.Printf("%s context \"%s\" already active\n", color.GreenString("✔"), color.GreenString(ctxs.CurrentContext))
+			fmt.Fprintf(c.c.Out, "%s context \"%s\" already active\n", color.GreenString("✔"), color.GreenString(ctxs.CurrentContext))
 			return nil
 		}
 		ctxs.PreviousContext = ctxs.CurrentContext

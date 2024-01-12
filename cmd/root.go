@@ -62,6 +62,7 @@ func newRootCmd(c *config.Config) *cobra.Command {
 	rootCmd.PersistentFlags().StringP("template", "", "", `output template for template output-format, go template format. For property names inspect the output of -o json or -o yaml for reference.`)
 	rootCmd.PersistentFlags().Bool("force-color", false, "force colored output even without tty")
 	rootCmd.PersistentFlags().Bool("debug", false, "debug output")
+	rootCmd.PersistentFlags().Duration("timeout", 0, "request timeout used for api requests")
 
 	rootCmd.PersistentFlags().String("api-url", "https://api.metalstack.cloud", "the url to the metalstack.cloud api")
 	rootCmd.PersistentFlags().String("api-token", "", "the token used for api requests")

@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"slices"
+	"time"
 
 	"github.com/metal-stack/metal-lib/pkg/pointer"
 	"github.com/spf13/cobra"
@@ -11,19 +13,20 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
-// Contexts contains all configuration contexts of metalctl
+// Contexts contains all configuration contexts
 type Contexts struct {
 	CurrentContext  string     `json:"current-context"`
 	PreviousContext string     `json:"previous-context"`
 	Contexts        []*Context `json:"contexts"`
 }
 
-// Context configure metalctl behaviour
+// Context configure
 type Context struct {
-	Name           string  `json:"name"`
-	ApiURL         *string `json:"api-url,omitempty"`
-	Token          string  `json:"api-token"`
-	DefaultProject string  `json:"default-project"`
+	Name           string         `json:"name"`
+	ApiURL         *string        `json:"api-url,omitempty"`
+	Token          string         `json:"api-token"`
+	DefaultProject string         `json:"default-project"`
+	Timeout        *time.Duration `json:"timeout,omitempty"`
 }
 
 func defaultCtx() Context {
@@ -58,6 +61,12 @@ func (cs Contexts) Validate() error {
 	}
 
 	return nil
+}
+
+func (cs *Contexts) Delete(name string) {
+	cs.Contexts = slices.DeleteFunc(cs.Contexts, func(ctx *Context) bool {
+		return ctx.Name == name
+	})
 }
 
 func GetContexts() (*Contexts, error) {
@@ -149,5 +158,5 @@ func (c Context) GetApiURL() string {
 	if c.ApiURL != nil {
 		return *c.ApiURL
 	}
-	return ""
+	return viper.GetString("api-url")
 }
