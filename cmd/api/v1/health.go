@@ -15,7 +15,10 @@ func newHealthCmd(c *config.Config) *cobra.Command {
 		Short: "print the client and server health information",
 		Long:  "print the client and server health information",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			resp, err := c.Client.Apiv1().Health().Get(c.NewRequestContext(), connect.NewRequest(&v1.HealthServiceGetRequest{}))
+			ctx, cancel := c.NewRequestContext()
+			defer cancel()
+
+			resp, err := c.Client.Apiv1().Health().Get(ctx, connect.NewRequest(&v1.HealthServiceGetRequest{}))
 			if err != nil {
 				return fmt.Errorf("failed to get health: %w", err)
 			}
@@ -23,5 +26,6 @@ func newHealthCmd(c *config.Config) *cobra.Command {
 			return c.DescribePrinter.Print(resp.Msg.Health)
 		},
 	}
+
 	return healthCmd
 }

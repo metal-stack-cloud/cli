@@ -10,6 +10,7 @@ import (
 	"github.com/metal-stack-cloud/cli/cmd/config"
 	"github.com/metal-stack-cloud/cli/cmd/kubernetes"
 	"github.com/metal-stack-cloud/cli/cmd/sorters"
+	"github.com/metal-stack-cloud/cli/pkg/helpers"
 	"github.com/metal-stack/metal-lib/pkg/genericcli"
 	"github.com/metal-stack/metal-lib/pkg/genericcli/printers"
 	"github.com/metal-stack/metal-lib/pkg/pointer"
@@ -92,12 +93,15 @@ func (c *cluster) Delete(id string) (*apiv1.Cluster, error) {
 }
 
 func (c *cluster) Get(id string) (*apiv1.Cluster, error) {
+	ctx, cancel := c.c.NewRequestContext()
+	defer cancel()
+
 	req := &apiv1.ClusterServiceGetRequest{
 		Uuid:    id,
 		Project: c.c.GetProject(),
 	}
 
-	resp, err := c.c.Client.Apiv1().Cluster().Get(c.c.NewRequestContext(), connect.NewRequest(req))
+	resp, err := c.c.Client.Apiv1().Cluster().Get(ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get clusters: %w", err)
 	}
@@ -106,11 +110,14 @@ func (c *cluster) Get(id string) (*apiv1.Cluster, error) {
 }
 
 func (c *cluster) List() ([]*apiv1.Cluster, error) {
+	ctx, cancel := c.c.NewRequestContext()
+	defer cancel()
+
 	req := &apiv1.ClusterServiceListRequest{
 		Project: c.c.GetProject(),
 	}
 
-	resp, err := c.c.Client.Apiv1().Cluster().List(c.c.NewRequestContext(), connect.NewRequest(req))
+	resp, err := c.c.Client.Apiv1().Cluster().List(ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get clusters: %w", err)
 	}
@@ -127,6 +134,9 @@ func (c *cluster) Update(rq any) (*apiv1.Cluster, error) {
 }
 
 func (c *cluster) kubeconfig(args []string) error {
+	ctx, cancel := c.c.NewRequestContext()
+	defer cancel()
+
 	id, err := genericcli.GetExactlyOneArg(args)
 	if err != nil {
 		return err
@@ -138,7 +148,7 @@ func (c *cluster) kubeconfig(args []string) error {
 		Expiration: durationpb.New(viper.GetDuration("expiration")),
 	}
 
-	resp, err := c.c.Client.Apiv1().Cluster().GetCredentials(c.c.NewRequestContext(), connect.NewRequest(req))
+	resp, err := c.c.Client.Apiv1().Cluster().GetCredentials(ctx, connect.NewRequest(req))
 	if err != nil {
 		return fmt.Errorf("failed to get cluster credentials: %w", err)
 	}
@@ -148,9 +158,14 @@ func (c *cluster) kubeconfig(args []string) error {
 		return nil
 	}
 
+	projectResp, err := c.c.Client.Apiv1().Project().Get(ctx, connect.NewRequest(&apiv1.ProjectServiceGetRequest{Project: c.c.GetProject()}))
+	if err != nil {
+		return err
+	}
+
 	var (
 		kubeconfigPath = viper.GetString("kubeconfig")
-		projectName    = c.c.GetProject() // FIXME: reverse lookup project name from
+		projectName    = helpers.TrimProvider(projectResp.Msg.Project.Name)
 	)
 
 	merged, err := kubernetes.MergeKubeconfig(c.c.Fs, []byte(resp.Msg.Kubeconfig), pointer.PointerOrNil(kubeconfigPath), &projectName)

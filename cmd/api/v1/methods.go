@@ -17,10 +17,14 @@ func newMethodsCmd(c *config.Config) *cobra.Command {
 		Use:   "api-methods",
 		Short: "show available api-methods of the metalstack.cloud api",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			ctx, cancel := c.NewRequestContext()
+			defer cancel()
+
 			if viper.GetBool("scoped") {
+
 				req := &apiv1.MethodServiceTokenScopedListRequest{}
 
-				resp, err := c.Client.Apiv1().Method().TokenScopedList(c.NewRequestContext(), connect.NewRequest(req))
+				resp, err := c.Client.Apiv1().Method().TokenScopedList(ctx, connect.NewRequest(req))
 				if err != nil {
 					return fmt.Errorf("failed to list methods: %w", err)
 				}
@@ -33,7 +37,7 @@ func newMethodsCmd(c *config.Config) *cobra.Command {
 				req     = &apiv1.MethodServiceListRequest{}
 			)
 
-			resp, err := c.Client.Apiv1().Method().List(c.NewRequestContext(), connect.NewRequest(req))
+			resp, err := c.Client.Apiv1().Method().List(ctx, connect.NewRequest(req))
 			if err != nil {
 				return fmt.Errorf("failed to list methods: %w", err)
 			}

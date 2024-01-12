@@ -47,6 +47,9 @@ func newTenantCmd(c *config.Config) *cobra.Command {
 		Short: "admit a tenant",
 		Long:  "only admitted tenants are allowed to consume resources",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			ctx, cancel := c.NewRequestContext()
+			defer cancel()
+
 			id, err := genericcli.GetExactlyOneArg(args)
 			if err != nil {
 				return err
@@ -57,7 +60,7 @@ func newTenantCmd(c *config.Config) *cobra.Command {
 			if viper.IsSet("coupon-id") {
 				req.CouponId = pointer.Pointer(viper.GetString("coupon-id"))
 			}
-			resp, err := c.Client.Adminv1().Tenant().Admit(c.NewRequestContext(), connect.NewRequest(req))
+			resp, err := c.Client.Adminv1().Tenant().Admit(ctx, connect.NewRequest(req))
 			if err != nil {
 				return fmt.Errorf("failed to admit tenant: %w", err)
 			}
@@ -72,6 +75,9 @@ func newTenantCmd(c *config.Config) *cobra.Command {
 		Short: "revoke a tenant",
 		Long:  "revoke a tenant to be able to consume resources, can be enabled again with admit",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			ctx, cancel := c.NewRequestContext()
+			defer cancel()
+
 			id, err := genericcli.GetExactlyOneArg(args)
 			if err != nil {
 				return err
@@ -79,7 +85,7 @@ func newTenantCmd(c *config.Config) *cobra.Command {
 			req := &adminv1.TenantServiceRevokeRequest{
 				TenantId: id,
 			}
-			resp, err := c.Client.Adminv1().Tenant().Revoke(c.NewRequestContext(), connect.NewRequest(req))
+			resp, err := c.Client.Adminv1().Tenant().Revoke(ctx, connect.NewRequest(req))
 			if err != nil {
 				return fmt.Errorf("failed to revoke tenant: %w", err)
 			}
@@ -106,9 +112,13 @@ func (c *tenant) Get(id string) (*apiv1.Tenant, error) {
 var nextpage *uint64
 
 func (c *tenant) List() ([]*apiv1.Tenant, error) {
+	ctx, cancel := c.c.NewRequestContext()
+	defer cancel()
+
 	// TODO: implement filters and paging
 
 	req := &adminv1.TenantServiceListRequest{}
+
 	if viper.IsSet("admitted") {
 		req.Admitted = pointer.Pointer(viper.GetBool("admitted"))
 	}
@@ -124,7 +134,8 @@ func (c *tenant) List() ([]*apiv1.Tenant, error) {
 	if viper.IsSet("email") {
 		return nil, fmt.Errorf("unimplemented filter by provider")
 	}
-	resp, err := c.c.Client.Adminv1().Tenant().List(c.c.NewRequestContext(), connect.NewRequest(req))
+
+	resp, err := c.c.Client.Adminv1().Tenant().List(ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get tenants: %w", err)
 	}
@@ -146,6 +157,7 @@ func (c *tenant) List() ([]*apiv1.Tenant, error) {
 		}
 		return c.List()
 	}
+
 	return resp.Msg.Tenants, nil
 }
 

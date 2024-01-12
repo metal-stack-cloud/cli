@@ -51,14 +51,17 @@ func (t *token) Get(id string) (*apiv1.Token, error) {
 	panic("unimplemented")
 }
 
-func (t *token) List() ([]*apiv1.Token, error) {
+func (c *token) List() ([]*apiv1.Token, error) {
+	ctx, cancel := c.c.NewRequestContext()
+	defer cancel()
+
 	req := &adminv1.TokenServiceListRequest{}
 
 	if viper.IsSet("user") {
 		req.UserId = pointer.Pointer(viper.GetString("user"))
 	}
 
-	resp, err := t.c.Client.Adminv1().Token().List(t.c.NewRequestContext(), connect.NewRequest(req))
+	resp, err := c.c.Client.Adminv1().Token().List(ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to list tokens: %w", err)
 	}
@@ -70,7 +73,10 @@ func (t *token) Create(rq any) (*apiv1.Token, error) {
 	panic("unimplemented")
 }
 
-func (t *token) Delete(id string) (*apiv1.Token, error) {
+func (c *token) Delete(id string) (*apiv1.Token, error) {
+	ctx, cancel := c.c.NewRequestContext()
+	defer cancel()
+
 	if !viper.IsSet("user") {
 		return nil, fmt.Errorf("user is required to be set")
 	}
@@ -80,7 +86,7 @@ func (t *token) Delete(id string) (*apiv1.Token, error) {
 		UserId: viper.GetString("user"),
 	}
 
-	_, err := t.c.Client.Adminv1().Token().Revoke(t.c.NewRequestContext(), connect.NewRequest(req))
+	_, err := c.c.Client.Adminv1().Token().Revoke(ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to revoke token: %w", err)
 	}

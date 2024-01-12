@@ -1,8 +1,6 @@
 package completion
 
 import (
-	"fmt"
-
 	"connectrpc.com/connect"
 	adminv1 "github.com/metal-stack-cloud/api/go/admin/v1"
 	"github.com/spf13/cobra"
@@ -16,8 +14,7 @@ func (c *Completion) ClusterListCompletion(cmd *cobra.Command, args []string, to
 	}
 	var names []string
 	for _, s := range resp.Msg.Clusters {
-		fmt.Println(s.Uuid)
-		names = append(names, s.Uuid)
+		names = append(names, s.Uuid+"\t"+s.Name)
 	}
 	return names, cobra.ShellCompDirectiveNoFileComp
 }

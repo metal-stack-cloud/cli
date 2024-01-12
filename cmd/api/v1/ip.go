@@ -93,7 +93,10 @@ func (c *ip) updateFromCLI(args []string) (*apiv1.IPServiceUpdateRequest, error)
 }
 
 func (c *ip) Create(rq *apiv1.IPServiceAllocateRequest) (*apiv1.IP, error) {
-	resp, err := c.c.Client.Apiv1().IP().Allocate(c.c.NewRequestContext(), connect.NewRequest(rq))
+	ctx, cancel := c.c.NewRequestContext()
+	defer cancel()
+
+	resp, err := c.c.Client.Apiv1().IP().Allocate(ctx, connect.NewRequest(rq))
 	if err != nil {
 		return nil, err
 	}
@@ -102,7 +105,10 @@ func (c *ip) Create(rq *apiv1.IPServiceAllocateRequest) (*apiv1.IP, error) {
 }
 
 func (c *ip) Delete(id string) (*apiv1.IP, error) {
-	resp, err := c.c.Client.Apiv1().IP().Delete(c.c.NewRequestContext(), connect.NewRequest(&apiv1.IPServiceDeleteRequest{
+	ctx, cancel := c.c.NewRequestContext()
+	defer cancel()
+
+	resp, err := c.c.Client.Apiv1().IP().Delete(ctx, connect.NewRequest(&apiv1.IPServiceDeleteRequest{
 		Project: c.c.GetProject(),
 		Uuid:    id,
 	}))
@@ -114,7 +120,10 @@ func (c *ip) Delete(id string) (*apiv1.IP, error) {
 }
 
 func (c *ip) Get(id string) (*apiv1.IP, error) {
-	resp, err := c.c.Client.Apiv1().IP().Get(c.c.NewRequestContext(), connect.NewRequest(&apiv1.IPServiceGetRequest{
+	ctx, cancel := c.c.NewRequestContext()
+	defer cancel()
+
+	resp, err := c.c.Client.Apiv1().IP().Get(ctx, connect.NewRequest(&apiv1.IPServiceGetRequest{
 		Project: c.c.GetProject(),
 		Uuid:    id,
 	}))
@@ -126,7 +135,10 @@ func (c *ip) Get(id string) (*apiv1.IP, error) {
 }
 
 func (c *ip) List() ([]*apiv1.IP, error) {
-	resp, err := c.c.Client.Apiv1().IP().List(c.c.NewRequestContext(), connect.NewRequest(&apiv1.IPServiceListRequest{
+	ctx, cancel := c.c.NewRequestContext()
+	defer cancel()
+
+	resp, err := c.c.Client.Apiv1().IP().List(ctx, connect.NewRequest(&apiv1.IPServiceListRequest{
 		Project: c.c.GetProject(),
 	}))
 	if err != nil {
@@ -137,7 +149,10 @@ func (c *ip) List() ([]*apiv1.IP, error) {
 }
 
 func (c *ip) Update(rq *apiv1.IPServiceUpdateRequest) (*apiv1.IP, error) {
-	resp, err := c.c.Client.Apiv1().IP().Update(c.c.NewRequestContext(), connect.NewRequest(rq))
+	ctx, cancel := c.c.NewRequestContext()
+	defer cancel()
+
+	resp, err := c.c.Client.Apiv1().IP().Update(ctx, connect.NewRequest(rq))
 	if err != nil {
 		return nil, err
 	}

@@ -52,22 +52,32 @@ func (v *volume) Delete(id string) (*apiv1.Volume, error) {
 	panic("unimplemented")
 }
 
-func (v *volume) Get(id string) (*apiv1.Volume, error) {
+func (c *volume) Get(id string) (*apiv1.Volume, error) {
+	ctx, cancel := c.c.NewRequestContext()
+	defer cancel()
+
 	req := &adminv1.StorageServiceListVolumesRequest{
 		Uuid: &id,
 	}
-	resp, err := v.c.Client.Adminv1().Storage().ListVolumes(v.c.NewRequestContext(), connect.NewRequest(req))
+
+	resp, err := c.c.Client.Adminv1().Storage().ListVolumes(ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get volumes: %w", err)
 	}
+
 	if len(resp.Msg.Volumes) != 1 {
 		return nil, fmt.Errorf("no volume with ID:%s found", id)
 	}
+
 	return resp.Msg.Volumes[0], nil
 }
 
-func (v *volume) List() ([]*apiv1.Volume, error) {
+func (c *volume) List() ([]*apiv1.Volume, error) {
+	ctx, cancel := c.c.NewRequestContext()
+	defer cancel()
+
 	req := &adminv1.StorageServiceListVolumesRequest{}
+
 	if viper.IsSet("uuid") {
 		req.Uuid = pointer.Pointer(viper.GetString("uuid"))
 	}
@@ -83,10 +93,12 @@ func (v *volume) List() ([]*apiv1.Volume, error) {
 	if viper.IsSet("tenant") {
 		req.Tenant = pointer.Pointer(viper.GetString("tenant"))
 	}
-	resp, err := v.c.Client.Adminv1().Storage().ListVolumes(v.c.NewRequestContext(), connect.NewRequest(req))
+
+	resp, err := c.c.Client.Adminv1().Storage().ListVolumes(ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get volumes: %w", err)
 	}
+
 	return resp.Msg.Volumes, nil
 }
 

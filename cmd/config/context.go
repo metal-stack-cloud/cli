@@ -158,27 +158,3 @@ func (c *Config) ContextListCompletion(cmd *cobra.Command, args []string, toComp
 	}
 	return names, cobra.ShellCompDirectiveNoFileComp
 }
-
-func (c Context) GetProject() string {
-	if viper.IsSet("project") {
-		return viper.GetString("project")
-	}
-	return c.DefaultProject
-}
-
-func (c Context) GetToken() string {
-	if viper.IsSet("api-token") {
-		return viper.GetString("api-token")
-	}
-	return c.Token
-}
-
-func (c Context) GetApiURL() string {
-	if viper.IsSet("api-url") {
-		return viper.GetString("api-url")
-	}
-	if c.ApiURL != nil {
-		return *c.ApiURL
-	}
-	return viper.GetString("api-url")
-}

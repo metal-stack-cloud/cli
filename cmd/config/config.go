@@ -33,7 +33,7 @@ type Config struct {
 	Context         Context
 }
 
-func (c *Config) NewRequestContext() context.Context {
+func (c *Config) NewRequestContext() (context.Context, context.CancelFunc) {
 	timeout := c.Context.Timeout
 	if timeout == nil {
 		timeout = pointer.Pointer(30 * time.Second)
@@ -42,9 +42,7 @@ func (c *Config) NewRequestContext() context.Context {
 		timeout = pointer.Pointer(viper.GetDuration("timeout"))
 	}
 
-	ctx, _ := context.WithTimeout(context.Background(), *timeout) // nolint
-
-	return ctx
+	return context.WithTimeout(context.Background(), *timeout)
 }
 
 func HelpTemplate() string {

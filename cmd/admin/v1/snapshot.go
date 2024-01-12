@@ -44,30 +44,40 @@ func newSnapshotCmd(c *config.Config) *cobra.Command {
 	return genericcli.NewCmds(cmdsConfig)
 }
 
-func (s *snapshot) Create(rq any) (*apiv1.Snapshot, error) {
+func (c *snapshot) Create(rq any) (*apiv1.Snapshot, error) {
 	panic("unimplemented")
 }
 
-func (s *snapshot) Delete(id string) (*apiv1.Snapshot, error) {
+func (c *snapshot) Delete(id string) (*apiv1.Snapshot, error) {
 	panic("unimplemented")
 }
 
-func (s *snapshot) Get(id string) (*apiv1.Snapshot, error) {
+func (c *snapshot) Get(id string) (*apiv1.Snapshot, error) {
+	ctx, cancel := c.c.NewRequestContext()
+	defer cancel()
+
 	req := &adminv1.StorageServiceListSnapshotsRequest{
 		Uuid: &id,
 	}
-	resp, err := s.c.Client.Adminv1().Storage().ListSnapshots(s.c.NewRequestContext(), connect.NewRequest(req))
+
+	resp, err := c.c.Client.Adminv1().Storage().ListSnapshots(ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get snapshots: %w", err)
 	}
+
 	if len(resp.Msg.Snapshots) != 1 {
 		return nil, fmt.Errorf("no snapshot with ID:%s found", id)
 	}
+
 	return resp.Msg.Snapshots[0], nil
 }
 
-func (s *snapshot) List() ([]*apiv1.Snapshot, error) {
+func (c *snapshot) List() ([]*apiv1.Snapshot, error) {
+	ctx, cancel := c.c.NewRequestContext()
+	defer cancel()
+
 	req := &adminv1.StorageServiceListSnapshotsRequest{}
+
 	if viper.IsSet("uuid") {
 		req.Uuid = pointer.Pointer(viper.GetString("uuid"))
 	}
@@ -83,17 +93,18 @@ func (s *snapshot) List() ([]*apiv1.Snapshot, error) {
 	if viper.IsSet("tenant") {
 		req.Tenant = pointer.Pointer(viper.GetString("tenant"))
 	}
-	resp, err := s.c.Client.Adminv1().Storage().ListSnapshots(s.c.NewRequestContext(), connect.NewRequest(req))
+
+	resp, err := c.c.Client.Adminv1().Storage().ListSnapshots(ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get snapshots: %w", err)
 	}
 	return resp.Msg.Snapshots, nil
 }
 
-func (s *snapshot) Convert(r *apiv1.Snapshot) (string, any, any, error) {
+func (c *snapshot) Convert(r *apiv1.Snapshot) (string, any, any, error) {
 	panic("unimplemented")
 }
 
-func (s *snapshot) Update(rq any) (*apiv1.Snapshot, error) {
+func (c *snapshot) Update(rq any) (*apiv1.Snapshot, error) {
 	panic("unimplemented")
 }

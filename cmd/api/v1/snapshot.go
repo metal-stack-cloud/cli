@@ -54,33 +54,46 @@ func (s *snapshot) Create(rq any) (*apiv1.Snapshot, error) {
 	panic("unimplemented")
 }
 
-func (s *snapshot) Delete(id string) (*apiv1.Snapshot, error) {
+func (c *snapshot) Delete(id string) (*apiv1.Snapshot, error) {
+	ctx, cancel := c.c.NewRequestContext()
+	defer cancel()
+
 	req := &apiv1.SnapshotServiceDeleteRequest{
 		Uuid:    id,
-		Project: s.c.GetProject(),
+		Project: c.c.GetProject(),
 	}
-	resp, err := s.c.Client.Apiv1().Snapshot().Delete(s.c.NewRequestContext(), connect.NewRequest(req))
+
+	resp, err := c.c.Client.Apiv1().Snapshot().Delete(ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to delete snapshots: %w", err)
 	}
+
 	return resp.Msg.Snapshot, nil
 }
 
-func (s *snapshot) Get(id string) (*apiv1.Snapshot, error) {
+func (c *snapshot) Get(id string) (*apiv1.Snapshot, error) {
+	ctx, cancel := c.c.NewRequestContext()
+	defer cancel()
+
 	req := &apiv1.SnapshotServiceGetRequest{
 		Uuid:    id,
-		Project: s.c.GetProject(),
+		Project: c.c.GetProject(),
 	}
-	resp, err := s.c.Client.Apiv1().Snapshot().Get(s.c.NewRequestContext(), connect.NewRequest(req))
+
+	resp, err := c.c.Client.Apiv1().Snapshot().Get(ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get snapshots: %w", err)
 	}
+
 	return resp.Msg.Snapshot, nil
 }
 
-func (s *snapshot) List() ([]*apiv1.Snapshot, error) {
+func (c *snapshot) List() ([]*apiv1.Snapshot, error) {
+	ctx, cancel := c.c.NewRequestContext()
+	defer cancel()
+
 	req := &apiv1.SnapshotServiceListRequest{
-		Project: s.c.GetProject(),
+		Project: c.c.GetProject(),
 	}
 	if viper.IsSet("uuid") {
 		req.Uuid = pointer.Pointer(viper.GetString("uuid"))
@@ -91,17 +104,19 @@ func (s *snapshot) List() ([]*apiv1.Snapshot, error) {
 	if viper.IsSet("partition") {
 		req.Partition = pointer.Pointer(viper.GetString("partition"))
 	}
-	resp, err := s.c.Client.Apiv1().Snapshot().List(s.c.NewRequestContext(), connect.NewRequest(req))
+
+	resp, err := c.c.Client.Apiv1().Snapshot().List(ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get snapshots: %w", err)
 	}
+
 	return resp.Msg.Snapshots, nil
 }
 
-func (s *snapshot) Convert(r *apiv1.Snapshot) (string, any, any, error) {
+func (c *snapshot) Convert(r *apiv1.Snapshot) (string, any, any, error) {
 	panic("unimplemented")
 }
 
-func (s *snapshot) Update(rq any) (*apiv1.Snapshot, error) {
+func (c *snapshot) Update(rq any) (*apiv1.Snapshot, error) {
 	panic("unimplemented")
 }

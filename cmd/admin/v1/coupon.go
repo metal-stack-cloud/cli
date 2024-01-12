@@ -48,8 +48,11 @@ func (c *coupon) Get(id string) (*apiv1.Coupon, error) {
 }
 
 func (c *coupon) List() ([]*apiv1.Coupon, error) {
+	ctx, cancel := c.c.NewRequestContext()
+	defer cancel()
+
 	req := &adminv1.PaymentServiceListCouponsRequest{}
-	resp, err := c.c.Client.Adminv1().Payment().ListCoupons(c.c.NewRequestContext(), connect.NewRequest(req))
+	resp, err := c.c.Client.Adminv1().Payment().ListCoupons(ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get coupons: %w", err)
 	}
