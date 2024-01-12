@@ -8,8 +8,9 @@ import (
 )
 
 type Completion struct {
-	Client client.Client
-	Ctx    context.Context
+	Client  client.Client
+	Project string
+	Ctx     context.Context
 }
 
 func OutputFormatListCompletion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {

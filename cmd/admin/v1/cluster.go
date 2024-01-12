@@ -36,7 +36,7 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 		Plural:          "clusters",
 		Description:     "manage cluster resources",
 		Sorter:          sorters.ClusterSorter(),
-		ValidArgsFn:     c.Completion.ClusterListCompletion,
+		ValidArgsFn:     c.Completion.ClusterAdminListCompletion,
 		DescribePrinter: func() printers.Printer { return c.DescribePrinter },
 		ListPrinter:     func() printers.Printer { return c.ListPrinter },
 		OnlyCmds:        genericcli.OnlyCmds(genericcli.DescribeCmd, genericcli.ListCmd),
@@ -58,7 +58,7 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return w.kubeconfig(args)
 		},
-		ValidArgsFunction: c.Completion.ClusterListCompletion,
+		ValidArgsFunction: c.Completion.ClusterAdminListCompletion,
 	}
 
 	kubeconfigCmd.Flags().DurationP("expiration", "", 8*time.Hour, "kubeconfig will expire after given time")
@@ -88,7 +88,7 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 
 			return c.ListPrinter.Print(resp.Msg.Cluster.Status.LastErrors)
 		},
-		ValidArgsFunction: c.Completion.ClusterListCompletion,
+		ValidArgsFunction: c.Completion.ClusterAdminListCompletion,
 	}
 
 	monitoringCmd := &cobra.Command{
@@ -114,7 +114,7 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 
 			return c.DescribePrinter.Print(resp.Msg.Cluster.Monitoring)
 		},
-		ValidArgsFunction: c.Completion.ClusterListCompletion,
+		ValidArgsFunction: c.Completion.ClusterAdminListCompletion,
 	}
 
 	reconcileCmd := &cobra.Command{
@@ -149,7 +149,7 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 
 			return c.ListPrinter.Print(resp.Msg.Cluster)
 		},
-		ValidArgsFunction: c.Completion.ClusterListCompletion,
+		ValidArgsFunction: c.Completion.ClusterAdminListCompletion,
 	}
 
 	reconcileCmd.Flags().Bool("reconcile", true, "trigger cluster reconciliation")
