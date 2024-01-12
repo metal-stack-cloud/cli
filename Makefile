@@ -19,7 +19,6 @@ LINKMODE := $(LINKMODE) \
 		 -X 'github.com/metal-stack/v.GitSHA1=$(SHA)' \
 		 -X 'github.com/metal-stack/v.BuildDate=$(BUILDDATE)'
 
-
 all: test cli
 
 .PHONY: cli

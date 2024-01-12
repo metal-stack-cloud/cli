@@ -70,8 +70,10 @@ func (cs *Contexts) Delete(name string) {
 }
 
 func GetContexts() (*Contexts, error) {
-	var ctxs Contexts
-	path := viper.ConfigFileUsed()
+	path, err := ConfigPath()
+	if err != nil {
+		return nil, err
+	}
 
 	c, err := os.ReadFile(path)
 	if err != nil {
@@ -82,6 +84,7 @@ func GetContexts() (*Contexts, error) {
 		return nil, fmt.Errorf("unable to read config.yaml: %w", err)
 	}
 
+	var ctxs Contexts
 	err = yaml.Unmarshal(c, &ctxs)
 	return &ctxs, err
 }
@@ -96,12 +99,9 @@ func WriteContexts(ctxs *Contexts) error {
 		return err
 	}
 
-	path := viper.ConfigFileUsed()
-	if path == "" {
-		path, err = DefaultConfigPath()
-		if err != nil {
-			return err
-		}
+	path, err := ConfigPath()
+	if err != nil {
+		return err
 	}
 
 	err = os.WriteFile(path, c, 0600)

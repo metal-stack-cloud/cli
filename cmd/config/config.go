@@ -2,6 +2,7 @@ package config
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"os"
 	"path"
@@ -69,10 +70,21 @@ func DefaultConfigDirectory() (string, error) {
 		return "", err
 	}
 
-	return path.Join(h, "."+ConfigDir), nil
+	dir := path.Join(h, "."+ConfigDir)
+
+	err = os.MkdirAll(dir, 0600)
+	if err != nil {
+		return "", fmt.Errorf("unable to ensure default config directory: %w", err)
+	}
+
+	return dir, nil
 }
 
-func DefaultConfigPath() (string, error) {
+func ConfigPath() (string, error) {
+	if viper.IsSet("config") {
+		return viper.GetString("config"), nil
+	}
+
 	dir, err := DefaultConfigDirectory()
 	if err != nil {
 		return "", err

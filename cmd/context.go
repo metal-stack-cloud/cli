@@ -90,10 +90,27 @@ func newContextCmd(c *config.Config) *cobra.Command {
 
 	genericcli.Must(contextAddCmd.MarkFlagRequired("api-token"))
 
+	contextUpdateCmd := &cobra.Command{
+		Use:   "update <context-name>",
+		Short: "update a cli context",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return w.update(args)
+		},
+		ValidArgsFunction: config.ContextListCompletion,
+	}
+	contextUpdateCmd.Flags().String("api-url", "", "sets the api-url for this context")
+	contextUpdateCmd.Flags().String("api-token", "", "sets the api-token for this context")
+	contextUpdateCmd.Flags().String("default-project", "", "sets a default project to act on")
+	contextUpdateCmd.Flags().Duration("timeout", 0, "sets a default request timeout")
+	contextUpdateCmd.Flags().Bool("activate", false, "immediately switches to the new context")
+
+	genericcli.Must(contextUpdateCmd.RegisterFlagCompletionFunc("default-project", c.Completion.ProjectListCompletion))
+
 	contextCmd.AddCommand(
 		contextListCmd,
 		contextSwitchCmd,
 		contextAddCmd,
+		contextUpdateCmd,
 		contextRemoveCmd,
 		contextShortCmd,
 		contextSetProjectCmd,
@@ -131,6 +148,11 @@ func (c *ctx) add(args []string) error {
 		return err
 	}
 
+	_, ok := ctxs.GetContext(name)
+	if ok {
+		return fmt.Errorf("context with name %q already exists", name)
+	}
+
 	ctx := &config.Context{
 		Name:           name,
 		ApiURL:         pointer.PointerOrNil(viper.GetString("api-url")),
@@ -152,6 +174,49 @@ func (c *ctx) add(args []string) error {
 	}
 
 	fmt.Fprintf(c.c.Out, "%s added context \"%s\"\n", color.GreenString("✔"), color.GreenString(ctx.Name))
+
+	return nil
+}
+
+func (c *ctx) update(args []string) error {
+	name, err := genericcli.GetExactlyOneArg(args)
+	if err != nil {
+		return fmt.Errorf("no context name given")
+	}
+
+	ctxs, err := config.GetContexts()
+	if err != nil {
+		return err
+	}
+
+	ctx, ok := ctxs.GetContext(name)
+	if !ok {
+		return fmt.Errorf("no context with name %q found", name)
+	}
+
+	if viper.IsSet("api-url") {
+		ctx.ApiURL = pointer.PointerOrNil(viper.GetString("api-url"))
+	}
+	if viper.IsSet("api-token") {
+		ctx.Token = viper.GetString("api-token")
+	}
+	if viper.IsSet("default-project") {
+		ctx.DefaultProject = viper.GetString("default-project")
+	}
+	if viper.IsSet("timeout") {
+		ctx.Timeout = pointer.PointerOrNil(viper.GetDuration("timeout"))
+	}
+	if viper.GetBool("activate") {
+		ctxs.PreviousContext = ctxs.CurrentContext
+		ctxs.CurrentContext = ctx.Name
+	}
+
+	err = config.WriteContexts(ctxs)
+	if err != nil {
+		return err
+	}
+
+	fmt.Fprintf(c.c.Out, "%s updated context \"%s\"\n", color.GreenString("✔"), color.GreenString(ctx.Name))
 
 	return nil
 }
