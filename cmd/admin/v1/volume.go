@@ -36,7 +36,7 @@ func newVolumeCmd(c *config.Config) *cobra.Command {
 			cmd.Flags().StringP("uuid", "", "", "filter by uuid")
 			cmd.Flags().StringP("name", "", "", "filter by name")
 			cmd.Flags().StringP("partition", "", "", "filter by partition")
-			cmd.Flags().StringP("project", "", "", "filter by project")
+			cmd.Flags().StringP("project", "p", "", "filter by project")
 			cmd.Flags().StringP("tenant", "", "", "filter by tenant")
 		},
 		OnlyCmds: genericcli.OnlyCmds(genericcli.ListCmd, genericcli.DescribeCmd),

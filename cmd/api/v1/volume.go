@@ -40,15 +40,15 @@ func newVolumeCmd(c *config.Config) *cobra.Command {
 			cmd.Flags().StringP("uuid", "", "", "filter by uuid")
 			cmd.Flags().StringP("name", "", "", "filter by name")
 			cmd.Flags().StringP("partition", "", "", "filter by partition")
-			cmd.Flags().StringP("project", "", "", "filter by project")
+			cmd.Flags().StringP("project", "p", "", "filter by project")
 		},
 		DeleteCmdMutateFn: func(cmd *cobra.Command) {
 			cmd.Flags().StringP("uuid", "", "", "filter by uuid")
-			cmd.Flags().StringP("project", "", "", "filter by project")
+			cmd.Flags().StringP("project", "p", "", "filter by project")
 		},
 		DescribeCmdMutateFn: func(cmd *cobra.Command) {
 			cmd.Flags().StringP("uuid", "", "", "filter by uuid")
-			cmd.Flags().StringP("project", "", "", "filter by project")
+			cmd.Flags().StringP("project", "p", "", "filter by project")
 		},
 		OnlyCmds: genericcli.OnlyCmds(genericcli.ListCmd, genericcli.DeleteCmd, genericcli.DescribeCmd),
 	}
@@ -63,7 +63,7 @@ func newVolumeCmd(c *config.Config) *cobra.Command {
 	}
 	manifestCmd.Flags().StringP("name", "", "restored-pv", "name of the PersistentVolume")
 	manifestCmd.Flags().StringP("namespace", "", "default", "namespace for the PersistentVolume")
-	manifestCmd.Flags().StringP("project", "", "", "project")
+	manifestCmd.Flags().StringP("project", "p", "", "project")
 
 	encryptionSecretCmd := &cobra.Command{
 		Use:   "encryptionsecret",

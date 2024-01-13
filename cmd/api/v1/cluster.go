@@ -40,7 +40,9 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 		DescribePrinter: func() printers.Printer { return c.DescribePrinter },
 		ListPrinter:     func() printers.Printer { return c.ListPrinter },
 		ListCmdMutateFn: func(cmd *cobra.Command) {
-			cmd.Flags().String("project", "", "project of the clusters")
+			cmd.Flags().StringP("project", "p", "", "project of the clusters")
+
+			genericcli.Must(cmd.RegisterFlagCompletionFunc("project", c.Completion.ProjectListCompletion))
 		},
 		CreateRequestFromCLI: w.createFromCLI,
 		CreateCmdMutateFn: func(cmd *cobra.Command) {
@@ -60,19 +62,25 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 			genericcli.Must(cmd.RegisterFlagCompletionFunc("kubernetes-version", c.Completion.KubernetesVersionAssetListCompletion))
 		},
 		DescribeCmdMutateFn: func(cmd *cobra.Command) {
-			cmd.Flags().String("project", "", "project of the cluster")
+			cmd.Flags().StringP("project", "p", "", "project of the cluster")
+
+			genericcli.Must(cmd.RegisterFlagCompletionFunc("project", c.Completion.ProjectListCompletion))
 		},
 		DeleteCmdMutateFn: func(cmd *cobra.Command) {
-			cmd.Flags().StringP("project", "", "", "project of the cluster")
+			cmd.Flags().StringP("project", "p", "", "project of the cluster")
+
+			genericcli.Must(cmd.RegisterFlagCompletionFunc("project", c.Completion.ProjectListCompletion))
 		},
 		UpdateCmdMutateFn: func(cmd *cobra.Command) {
-			cmd.Flags().String("uuid", "", "uuid of the cluster")
 			cmd.Flags().StringP("project", "p", "", "project of the cluster")
 			cmd.Flags().String("kubernetes-version", "", "kubernetes version of the cluster")
 			cmd.Flags().Uint32("maintenance-hour", 0, "hour in which cluster maintenance is allowed to take place")
 			cmd.Flags().Uint32("maintenance-minute", 0, "minute in which cluster maintenance is allowed to take place")
 			cmd.Flags().String("maintenance-timezone", time.Local.String(), "timezone used for the maintenance time window") // nolint
 			cmd.Flags().Duration("maintenance-duration", 2*time.Hour, "duration in which cluster maintenance is allowed to take place")
+
+			genericcli.Must(cmd.RegisterFlagCompletionFunc("project", c.Completion.ProjectListCompletion))
+			genericcli.Must(cmd.RegisterFlagCompletionFunc("kubernetes-version", c.Completion.KubernetesVersionAssetListCompletion))
 		},
 		UpdateRequestFromCLI: w.updateFromCLI,
 	}
@@ -86,10 +94,12 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 		ValidArgsFunction: c.Completion.ClusterListCompletion,
 	}
 
-	kubeconfigCmd.Flags().String("project", "", "the project in which the cluster resides for which to get the kubeconfig for")
+	kubeconfigCmd.Flags().StringP("project", "p", "", "the project in which the cluster resides for which to get the kubeconfig for")
 	kubeconfigCmd.Flags().DurationP("expiration", "", 8*time.Hour, "kubeconfig will expire after given time")
 	kubeconfigCmd.Flags().Bool("merge", true, "merges the kubeconfig into default kubeconfig instead of printing it to the console")
 	kubeconfigCmd.Flags().String("kubeconfig", "", "specify an explicit path for the merged kubeconfig to be written, defaults to default kubeconfig paths if not provided")
+
+	genericcli.Must(kubeconfigCmd.RegisterFlagCompletionFunc("project", c.Completion.ProjectListCompletion))
 
 	monitoringCmd := &cobra.Command{
 		Use:   "monitoring",
@@ -109,6 +119,10 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 		},
 		ValidArgsFunction: c.Completion.ClusterListCompletion,
 	}
+
+	monitoringCmd.Flags().String("project", "", "the project in which the cluster resides for which to get the kubeconfig for")
+
+	genericcli.Must(monitoringCmd.RegisterFlagCompletionFunc("project", c.Completion.ProjectListCompletion))
 
 	return genericcli.NewCmds(cmdsConfig, kubeconfigCmd, monitoringCmd)
 }

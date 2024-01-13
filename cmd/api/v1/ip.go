@@ -32,28 +32,37 @@ func newIPCmd(c *config.Config) *cobra.Command {
 		DescribePrinter: func() printers.Printer { return c.DescribePrinter },
 		ListPrinter:     func() printers.Printer { return c.ListPrinter },
 		ListCmdMutateFn: func(cmd *cobra.Command) {
-			cmd.Flags().StringP("project", "", "", "project from where ips should be listed")
+			cmd.Flags().StringP("project", "p", "", "project from where ips should be listed")
+
+			genericcli.Must(cmd.RegisterFlagCompletionFunc("project", c.Completion.ProjectListCompletion))
 		},
 		CreateCmdMutateFn: func(cmd *cobra.Command) {
-			cmd.Flags().StringP("project", "", "", "project where the ip should be created")
+			cmd.Flags().StringP("project", "p", "", "project of the ip")
 			cmd.Flags().StringP("name", "", "", "name of the ip")
 			cmd.Flags().StringP("description", "", "", "description of the ip")
 			cmd.Flags().StringSliceP("tags", "", nil, "tags to add to the ip")
 			cmd.Flags().BoolP("static", "", false, "make this ip static")
+
+			genericcli.Must(cmd.RegisterFlagCompletionFunc("project", c.Completion.ProjectListCompletion))
 		},
 		UpdateCmdMutateFn: func(cmd *cobra.Command) {
-			cmd.Flags().String("uuid", "", "uuid of the ip")
-			cmd.Flags().String("project", "", "project from where the ip should be made static")
+			cmd.Flags().StringP("project", "p", "", "project of the ip")
 			cmd.Flags().String("name", "", "name of the ip")
 			cmd.Flags().String("description", "", "description of the ip")
 			cmd.Flags().StringSlice("tags", nil, "tags of the ip")
 			cmd.Flags().Bool("static", false, "make this ip static")
+
+			genericcli.Must(cmd.RegisterFlagCompletionFunc("project", c.Completion.ProjectListCompletion))
 		},
 		DescribeCmdMutateFn: func(cmd *cobra.Command) {
-			cmd.Flags().StringP("project", "", "", "project of the ip")
+			cmd.Flags().StringP("project", "p", "", "project of the ip")
+
+			genericcli.Must(cmd.RegisterFlagCompletionFunc("project", c.Completion.ProjectListCompletion))
 		},
 		DeleteCmdMutateFn: func(cmd *cobra.Command) {
-			cmd.Flags().StringP("project", "", "", "project of the ip")
+			cmd.Flags().StringP("project", "p", "", "project of the ip")
+
+			genericcli.Must(cmd.RegisterFlagCompletionFunc("project", c.Completion.ProjectListCompletion))
 		},
 		CreateRequestFromCLI: func() (*apiv1.IPServiceAllocateRequest, error) {
 			return &apiv1.IPServiceAllocateRequest{
@@ -65,13 +74,19 @@ func newIPCmd(c *config.Config) *cobra.Command {
 			}, nil
 		},
 		UpdateRequestFromCLI: w.updateFromCLI,
+		ValidArgsFn:          c.Completion.IpListCompletion,
 	}
 
 	return genericcli.NewCmds(cmdsConfig)
 }
 
 func (c *ip) updateFromCLI(args []string) (*apiv1.IPServiceUpdateRequest, error) {
-	ipToUpdate, err := c.Get(viper.GetString("uuid"))
+	uuid, err := genericcli.GetExactlyOneArg(args)
+	if err != nil {
+		return nil, err
+	}
+
+	ipToUpdate, err := c.Get(uuid)
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve ip: %w", err)
 	}
@@ -89,7 +104,7 @@ func (c *ip) updateFromCLI(args []string) (*apiv1.IPServiceUpdateRequest, error)
 		ipToUpdate.Tags = viper.GetStringSlice("tags")
 	}
 
-	return ipResponseToUpdate(ipToUpdate), nil
+	return IpResponseToUpdate(ipToUpdate), nil
 }
 
 func (c *ip) Create(rq *apiv1.IPServiceAllocateRequest) (*apiv1.IP, error) {
@@ -161,10 +176,10 @@ func (c *ip) Update(rq *apiv1.IPServiceUpdateRequest) (*apiv1.IP, error) {
 }
 
 func (*ip) Convert(r *apiv1.IP) (string, *apiv1.IPServiceAllocateRequest, *apiv1.IPServiceUpdateRequest, error) {
-	return r.Uuid, ipResponseToCreate(r), ipResponseToUpdate(r), nil
+	return r.Uuid, IpResponseToCreate(r), IpResponseToUpdate(r), nil
 }
 
-func ipResponseToCreate(r *apiv1.IP) *apiv1.IPServiceAllocateRequest {
+func IpResponseToCreate(r *apiv1.IP) *apiv1.IPServiceAllocateRequest {
 	return &apiv1.IPServiceAllocateRequest{
 		Project:     r.Project,
 		Name:        r.Name,
@@ -174,7 +189,7 @@ func ipResponseToCreate(r *apiv1.IP) *apiv1.IPServiceAllocateRequest {
 	}
 }
 
-func ipResponseToUpdate(r *apiv1.IP) *apiv1.IPServiceUpdateRequest {
+func IpResponseToUpdate(r *apiv1.IP) *apiv1.IPServiceUpdateRequest {
 	return &apiv1.IPServiceUpdateRequest{
 		Project: r.Project,
 		Ip:      r,
