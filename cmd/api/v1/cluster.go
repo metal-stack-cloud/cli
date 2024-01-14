@@ -55,8 +55,6 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 			cmd.Flags().String("maintenance-timezone", time.Local.String(), "timezone used for the maintenance time window") // nolint
 			cmd.Flags().Duration("maintenance-duration", 2*time.Hour, "duration in which cluster maintenance is allowed to take place")
 
-			genericcli.Must(cmd.MarkFlagRequired("partition"))
-
 			genericcli.Must(cmd.RegisterFlagCompletionFunc("project", c.Completion.ProjectListCompletion))
 			genericcli.Must(cmd.RegisterFlagCompletionFunc("partition", c.Completion.PartitionAssetListCompletion))
 			genericcli.Must(cmd.RegisterFlagCompletionFunc("kubernetes-version", c.Completion.KubernetesVersionAssetListCompletion))
@@ -131,6 +129,10 @@ func (c *cluster) Create(req *apiv1.ClusterServiceCreateRequest) (*apiv1.Cluster
 	ctx, cancel := c.c.NewRequestContext()
 	defer cancel()
 
+	if req.Partition == "" {
+		return nil, fmt.Errorf("partition is required")
+	}
+
 	resp, err := c.c.Client.Apiv1().Cluster().Create(ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create cluster: %w", err)
@@ -171,10 +173,20 @@ func (c *cluster) Delete(id string) (*apiv1.Cluster, error) {
 	ctx, cancel := c.c.NewRequestContext()
 	defer cancel()
 
-	resp, err := c.c.Client.Apiv1().Cluster().Delete(ctx, connect.NewRequest(&apiv1.ClusterServiceDeleteRequest{
+	req := &apiv1.ClusterServiceDeleteRequest{
 		Uuid:    id,
 		Project: c.c.GetProject(),
-	}))
+	}
+
+	if viper.IsSet("file") {
+		var err error
+		req.Uuid, req.Project, err = helpers.DecodeProject(id)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	resp, err := c.c.Client.Apiv1().Cluster().Delete(ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to delete cluster: %w", err)
 	}
@@ -216,10 +228,10 @@ func (c *cluster) List() ([]*apiv1.Cluster, error) {
 }
 
 func (c *cluster) Convert(r *apiv1.Cluster) (string, *apiv1.ClusterServiceCreateRequest, *apiv1.ClusterServiceUpdateRequest, error) {
-	return r.Uuid, c.toCreate(r), c.toUpdate(r), nil
+	return helpers.EncodeProject(r.Uuid, r.Project), ClusterResponseToCreate(r), ClusterResponseToUpdate(r), nil
 }
 
-func (c *cluster) toCreate(r *apiv1.Cluster) *apiv1.ClusterServiceCreateRequest {
+func ClusterResponseToCreate(r *apiv1.Cluster) *apiv1.ClusterServiceCreateRequest {
 	return &apiv1.ClusterServiceCreateRequest{
 		Name:        r.Name,
 		Project:     r.Project,
@@ -230,7 +242,7 @@ func (c *cluster) toCreate(r *apiv1.Cluster) *apiv1.ClusterServiceCreateRequest 
 	}
 }
 
-func (c *cluster) toUpdate(r *apiv1.Cluster) *apiv1.ClusterServiceUpdateRequest {
+func ClusterResponseToUpdate(r *apiv1.Cluster) *apiv1.ClusterServiceUpdateRequest {
 	return &apiv1.ClusterServiceUpdateRequest{
 		Uuid:       r.Uuid,
 		Project:    r.Project,
@@ -288,7 +300,7 @@ func (c *cluster) updateFromCLI(args []string) (*apiv1.ClusterServiceUpdateReque
 	}
 
 	if viper.IsSet("kubernetes-version") {
-		cluster.Kubernetes.Version = viper.GetString("kubernetes-version")
+		rq.Kubernetes.Version = viper.GetString("kubernetes-version")
 	}
 
 	return rq, nil

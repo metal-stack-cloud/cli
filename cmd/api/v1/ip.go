@@ -7,6 +7,7 @@ import (
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
 	"github.com/metal-stack-cloud/cli/cmd/config"
 	"github.com/metal-stack-cloud/cli/cmd/sorters"
+	"github.com/metal-stack-cloud/cli/pkg/helpers"
 	"github.com/metal-stack/metal-lib/pkg/genericcli"
 	"github.com/metal-stack/metal-lib/pkg/genericcli/printers"
 	"github.com/spf13/cobra"
@@ -123,10 +124,20 @@ func (c *ip) Delete(id string) (*apiv1.IP, error) {
 	ctx, cancel := c.c.NewRequestContext()
 	defer cancel()
 
-	resp, err := c.c.Client.Apiv1().IP().Delete(ctx, connect.NewRequest(&apiv1.IPServiceDeleteRequest{
+	req := &apiv1.IPServiceDeleteRequest{
 		Project: c.c.GetProject(),
 		Uuid:    id,
-	}))
+	}
+
+	if viper.IsSet("file") {
+		var err error
+		req.Uuid, req.Project, err = helpers.DecodeProject(id)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	resp, err := c.c.Client.Apiv1().IP().Delete(ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, err
 	}
@@ -176,7 +187,7 @@ func (c *ip) Update(rq *apiv1.IPServiceUpdateRequest) (*apiv1.IP, error) {
 }
 
 func (*ip) Convert(r *apiv1.IP) (string, *apiv1.IPServiceAllocateRequest, *apiv1.IPServiceUpdateRequest, error) {
-	return r.Uuid, IpResponseToCreate(r), IpResponseToUpdate(r), nil
+	return helpers.EncodeProject(r.Uuid, r.Project), IpResponseToCreate(r), IpResponseToUpdate(r), nil
 }
 
 func IpResponseToCreate(r *apiv1.IP) *apiv1.IPServiceAllocateRequest {
