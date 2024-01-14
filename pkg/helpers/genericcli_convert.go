@@ -8,8 +8,7 @@ import (
 // The genericcli convert interface returns the uuid of an entity from parsed documents and internally uses this id
 // for calling the delete function when using with the "file" flag.
 // However, our api requires the project id for deletion as well and when parsed from file the project id gets lost this way.
-// To workaround this, we encode the project into the idea in the implementation of the convert interface and
-// in the delete function decode this in case the "file" flag is set.
+// To workaround this, we encode the project into the id and in the delete function decode this in case the "file" flag is set.
 
 func EncodeProject(uuid, project string) string {
 	return fmt.Sprintf("%s (%s)", uuid, project)

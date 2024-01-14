@@ -41,14 +41,19 @@ func newVolumeCmd(c *config.Config) *cobra.Command {
 			cmd.Flags().StringP("name", "", "", "filter by name")
 			cmd.Flags().StringP("partition", "", "", "filter by partition")
 			cmd.Flags().StringP("project", "p", "", "filter by project")
+
+			genericcli.Must(cmd.RegisterFlagCompletionFunc("project", c.Completion.ProjectListCompletion))
+			genericcli.Must(cmd.RegisterFlagCompletionFunc("partition", c.Completion.PartitionAssetListCompletion))
 		},
 		DeleteCmdMutateFn: func(cmd *cobra.Command) {
-			cmd.Flags().StringP("uuid", "", "", "filter by uuid")
 			cmd.Flags().StringP("project", "p", "", "filter by project")
+
+			genericcli.Must(cmd.RegisterFlagCompletionFunc("project", c.Completion.ProjectListCompletion))
 		},
 		DescribeCmdMutateFn: func(cmd *cobra.Command) {
-			cmd.Flags().StringP("uuid", "", "", "filter by uuid")
 			cmd.Flags().StringP("project", "p", "", "filter by project")
+
+			genericcli.Must(cmd.RegisterFlagCompletionFunc("project", c.Completion.ProjectListCompletion))
 		},
 		OnlyCmds: genericcli.OnlyCmds(genericcli.ListCmd, genericcli.DeleteCmd, genericcli.DescribeCmd),
 	}
@@ -64,6 +69,8 @@ func newVolumeCmd(c *config.Config) *cobra.Command {
 	manifestCmd.Flags().StringP("name", "", "restored-pv", "name of the PersistentVolume")
 	manifestCmd.Flags().StringP("namespace", "", "default", "namespace for the PersistentVolume")
 	manifestCmd.Flags().StringP("project", "p", "", "project")
+
+	genericcli.Must(manifestCmd.RegisterFlagCompletionFunc("project", c.Completion.ProjectListCompletion))
 
 	encryptionSecretCmd := &cobra.Command{
 		Use:   "encryptionsecret",
@@ -121,16 +128,15 @@ func (c *volume) List() ([]*apiv1.Volume, error) {
 	ctx, cancel := c.c.NewRequestContext()
 	defer cancel()
 
-	req := &apiv1.VolumeServiceListRequest{}
+	req := &apiv1.VolumeServiceListRequest{
+		Project: c.c.GetProject(),
+	}
 
 	if viper.IsSet("uuid") {
 		req.Uuid = pointer.Pointer(viper.GetString("uuid"))
 	}
 	if viper.IsSet("name") {
 		req.Name = pointer.Pointer(viper.GetString("name"))
-	}
-	if viper.IsSet("project") {
-		req.Project = viper.GetString("project")
 	}
 	if viper.IsSet("partition") {
 		req.Partition = pointer.Pointer(viper.GetString("partition"))

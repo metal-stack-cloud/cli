@@ -36,14 +36,19 @@ func newSnapshotCmd(c *config.Config) *cobra.Command {
 			cmd.Flags().StringP("name", "", "", "filter by name")
 			cmd.Flags().StringP("partition", "", "", "filter by partition")
 			cmd.Flags().StringP("project", "p", "", "filter by project")
+
+			genericcli.Must(cmd.RegisterFlagCompletionFunc("project", c.Completion.ProjectListCompletion))
+			genericcli.Must(cmd.RegisterFlagCompletionFunc("partition", c.Completion.PartitionAssetListCompletion))
 		},
 		DeleteCmdMutateFn: func(cmd *cobra.Command) {
-			cmd.Flags().StringP("uuid", "", "", "filter by uuid")
 			cmd.Flags().StringP("project", "p", "", "filter by project")
+
+			genericcli.Must(cmd.RegisterFlagCompletionFunc("project", c.Completion.ProjectListCompletion))
 		},
 		DescribeCmdMutateFn: func(cmd *cobra.Command) {
-			cmd.Flags().StringP("uuid", "", "", "filter by uuid")
 			cmd.Flags().StringP("project", "p", "", "filter by project")
+
+			genericcli.Must(cmd.RegisterFlagCompletionFunc("project", c.Completion.ProjectListCompletion))
 		},
 		OnlyCmds: genericcli.OnlyCmds(genericcli.ListCmd, genericcli.DeleteCmd, genericcli.DescribeCmd),
 	}
