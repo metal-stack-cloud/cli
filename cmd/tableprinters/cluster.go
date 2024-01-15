@@ -14,9 +14,8 @@ import (
 func (t *TablePrinter) ClusterTable(data []*apiv1.Cluster, wide bool) ([]string, [][]string, error) {
 
 	var (
-		rows [][]string
-		// header = []string{"ClusterStatus", "ID", "Name", "Project", "Kubernetes Version", "Nodes", "Uptime"}
-		header = []string{"UID", "Tenant", "Project", "Name", "Version", "Partition", "Operation", "Progress", "Api", "Control", "Nodes", "Sys", "Size", "Age", "Purpose"}
+		rows   [][]string
+		header = []string{"", "Tenant", "Project", "ID", "Name", "Partition", "Version", "Size", "Age"}
 
 		statusIcon = func(s string) string {
 			switch s {
@@ -28,70 +27,109 @@ func (t *TablePrinter) ClusterTable(data []*apiv1.Cluster, wide bool) ([]string,
 				return color.YellowString("?")
 			}
 		}
+		statusShort = func(status *apiv1.ClusterStatus) string {
+			progress := fmt.Sprintf("%d%%", status.Progress)
+
+			if status.ApiServerReady == "True" && status.ControlPlaneReady == "True" && status.NodesReady == "True" && status.SystemComponentsReady == "True" {
+				progress = color.GreenString(progress)
+			} else {
+				progress = color.YellowString(progress)
+			}
+
+			return progress
+		}
 	)
 
+	if wide {
+		header = []string{"ID", "Tenant", "Project", "Name", "Partition", "Purpose", "Version", "Operation", "Progress", "Api", "Control", "Nodes", "Sys", "Size", "Age"}
+	}
+
 	for _, cluster := range data {
-		var totalMinNodes, totalMaxNodes uint32
+		cluster := cluster
+
+		var (
+			totalMinNodes, totalMaxNodes uint32
+		)
 
 		for _, worker := range cluster.Workers {
 			totalMinNodes += worker.Minsize
 			totalMaxNodes += worker.Maxsize
 		}
+
 		nodesRange := fmt.Sprintf("%v - %v", totalMinNodes, totalMaxNodes)
 
-		api := ""
-		control := ""
-		nodes := ""
-		system := ""
-		operation := ""
-		progress := "0%"
-		if cluster.Status != nil {
-			operation = cluster.Status.State
-			progress = fmt.Sprintf("%d%% [%s]", cluster.Status.Progress, cluster.Status.Type)
-			api = statusIcon(cluster.Status.ApiServerReady)
-			control = statusIcon(cluster.Status.ControlPlaneReady)
-			nodes = statusIcon(cluster.Status.NodesReady)
-			system = statusIcon(cluster.Status.SystemComponentsReady)
-		}
-		purpose := pointer.SafeDeref(cluster.Purpose)
+		if wide {
+			var (
+				purpose   = pointer.SafeDeref(cluster.Purpose)
+				api       = ""
+				control   = ""
+				nodes     = ""
+				system    = ""
+				operation = ""
+				progress  = "0%"
+			)
 
-		rows = append(rows, []string{
-			cluster.Uuid,
-			cluster.Tenant,
-			cluster.Project,
-			cluster.Name,
-			cluster.Kubernetes.Version,
-			cluster.Partition,
-			operation,
-			progress,
-			api,
-			control,
-			nodes,
-			system,
-			nodesRange,
-			humanize.Time(cluster.CreatedAt.AsTime()),
-			purpose,
-		})
+			if cluster.Status != nil {
+				operation = cluster.Status.State
+				progress = fmt.Sprintf("%d%% [%s]", cluster.Status.Progress, cluster.Status.Type)
+				api = statusIcon(cluster.Status.ApiServerReady)
+				control = statusIcon(cluster.Status.ControlPlaneReady)
+				nodes = statusIcon(cluster.Status.NodesReady)
+				system = statusIcon(cluster.Status.SystemComponentsReady)
+			}
+
+			rows = append(rows, []string{
+				cluster.Uuid,
+				cluster.Tenant,
+				cluster.Project,
+				cluster.Name,
+				cluster.Partition,
+				purpose,
+				cluster.Kubernetes.Version,
+				operation,
+				progress,
+				api,
+				control,
+				nodes,
+				system,
+				nodesRange,
+				humanize.Time(cluster.CreatedAt.AsTime()),
+			})
+		} else {
+			rows = append(rows, []string{
+				statusShort(cluster.Status),
+				cluster.Tenant,
+				cluster.Project,
+				cluster.Uuid,
+				cluster.Name,
+				cluster.Partition,
+				cluster.Kubernetes.Version,
+				nodesRange,
+				humanize.Time(cluster.CreatedAt.AsTime()),
+			})
+		}
 	}
 
 	t.t.MutateTable(func(table *tablewriter.Table) {
-		table.SetColumnAlignment([]int{
-			tablewriter.ALIGN_LEFT,
-			tablewriter.ALIGN_LEFT,
-			tablewriter.ALIGN_LEFT,
-			tablewriter.ALIGN_LEFT,
-			tablewriter.ALIGN_LEFT,
-			tablewriter.ALIGN_LEFT,
-			tablewriter.ALIGN_LEFT,
-			tablewriter.ALIGN_LEFT,
-			tablewriter.ALIGN_CENTER,
-			tablewriter.ALIGN_CENTER,
-			tablewriter.ALIGN_CENTER,
-			tablewriter.ALIGN_CENTER,
-			tablewriter.ALIGN_LEFT,
-			tablewriter.ALIGN_LEFT,
-			tablewriter.ALIGN_LEFT,
-		})
+		if wide {
+			table.SetColumnAlignment([]int{
+				tablewriter.ALIGN_LEFT,
+				tablewriter.ALIGN_LEFT,
+				tablewriter.ALIGN_LEFT,
+				tablewriter.ALIGN_LEFT,
+				tablewriter.ALIGN_LEFT,
+				tablewriter.ALIGN_LEFT,
+				tablewriter.ALIGN_LEFT,
+				tablewriter.ALIGN_LEFT,
+				tablewriter.ALIGN_LEFT,
+				tablewriter.ALIGN_CENTER,
+				tablewriter.ALIGN_CENTER,
+				tablewriter.ALIGN_CENTER,
+				tablewriter.ALIGN_CENTER,
+				tablewriter.ALIGN_LEFT,
+				tablewriter.ALIGN_LEFT,
+			})
+		}
 	})
 
 	return header, rows, nil

@@ -46,7 +46,6 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 		},
 		ListCmdMutateFn: func(cmd *cobra.Command) {
 			cmd.Flags().StringP("purpose", "", "", "filter by purpose")
-			// must(cmd.RegisterFlagCompletionFunc("id", c.Completion.ClusterListCompletion))
 
 			genericcli.Must(cmd.RegisterFlagCompletionFunc("purpose", c.Completion.ClusterPurposeCompletion))
 		},
@@ -213,7 +212,32 @@ func (c *cluster) List() ([]*apiv1.Cluster, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to get clusters: %w", err)
 	}
-	return resp.Msg.Clusters, nil
+
+	var (
+		seeds  []*apiv1.Cluster
+		shoots []*apiv1.Cluster
+	)
+
+	for _, cluster := range resp.Msg.Clusters {
+		cluster := cluster
+
+		if pointer.SafeDeref(cluster.Purpose) == "infrastructure" {
+			seeds = append(seeds, cluster)
+		} else {
+			shoots = append(shoots, cluster)
+		}
+	}
+
+	err = c.c.ListPrinter.Print(shoots)
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Fprintln(c.c.Out)
+	fmt.Fprintln(c.c.Out, "Seeds:")
+	fmt.Fprintln(c.c.Out)
+
+	return seeds, nil
 }
 
 func (c *cluster) Convert(r *apiv1.Cluster) (string, any, any, error) {
