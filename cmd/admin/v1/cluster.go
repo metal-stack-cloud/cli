@@ -11,6 +11,7 @@ import (
 	"github.com/metal-stack-cloud/cli/cmd/config"
 	"github.com/metal-stack-cloud/cli/cmd/kubernetes"
 	"github.com/metal-stack-cloud/cli/cmd/sorters"
+	"github.com/metal-stack-cloud/cli/pkg/helpers"
 	"github.com/metal-stack/metal-lib/pkg/genericcli"
 	"github.com/metal-stack/metal-lib/pkg/genericcli/printers"
 	"github.com/metal-stack/metal-lib/pkg/pointer"
@@ -112,6 +113,17 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 		},
 	}
 
+	// metal admin cluster machine ssh
+
+	machineSSHCmd := &cobra.Command{
+		Use:               "ssh",
+		Short:             "ssh to cluster machines",
+		ValidArgsFunction: c.Completion.AdminClusterListCompletion,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return w.machineSSH(args)
+		},
+	}
+
 	// metal admin cluster machine
 
 	machineCmd := &cobra.Command{
@@ -119,12 +131,10 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 		Short: "commands for cluster machines",
 	}
 
-	machineCmd.AddCommand(machineListCmd)
+	machineCmd.AddCommand(machineListCmd, machineSSHCmd)
 
 	return genericcli.NewCmds(cmdsConfig, kubeconfigCmd, reconcileCmd, logsCmd, machineCmd)
 }
-
-// TODO: implement firewall ssh, machine/firewall list
 
 func (c *cluster) Create(rq any) (*apiv1.Cluster, error) {
 	panic("unimplemented")
@@ -307,4 +317,49 @@ func (c *cluster) machineList(args []string) error {
 	}
 
 	return c.c.ListPrinter.Print(resp.Msg)
+}
+
+func (c *cluster) machineSSH(args []string) error {
+	ctx, cancel := c.c.NewRequestContext()
+	defer cancel()
+
+	id, err := genericcli.GetExactlyOneArg(args)
+	if err != nil {
+		return err
+	}
+
+	req := &adminv1.ClusterServiceGetRequest{
+		Uuid:         id,
+		WithMachines: true,
+	}
+
+	resp, err := c.c.Client.Adminv1().Cluster().Get(ctx, connect.NewRequest(req))
+	if err != nil {
+		return fmt.Errorf("failed to get cluster: %w", err)
+	}
+
+	sshResp, err := c.c.Client.Adminv1().Cluster().Credentials(ctx, connect.NewRequest(&adminv1.ClusterServiceCredentialsRequest{
+		Uuid:    id,
+		WithSsh: true,
+		WithVpn: true,
+	}))
+	if err != nil {
+		return fmt.Errorf("failed to get cluster credentials: %w", err)
+	}
+
+	var firewall *adminv1.Machine
+	for _, machine := range resp.Msg.Machines {
+		machine := machine
+
+		if machine.Role == "firewall" {
+			firewall = machine
+			break
+		}
+	}
+
+	if firewall == nil {
+		return fmt.Errorf("no firewall found in cluster")
+	}
+
+	return helpers.FirewallSSHViaVPN(c.c.Out, firewall.Uuid, sshResp.Msg.Vpn, sshResp.Msg.SshKeypair.Privatekey)
 }
