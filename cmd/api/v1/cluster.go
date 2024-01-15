@@ -64,6 +64,7 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 			genericcli.Must(cmd.RegisterFlagCompletionFunc("project", c.Completion.ProjectListCompletion))
 			genericcli.Must(cmd.RegisterFlagCompletionFunc("partition", c.Completion.PartitionAssetListCompletion))
 			genericcli.Must(cmd.RegisterFlagCompletionFunc("kubernetes-version", c.Completion.KubernetesVersionAssetListCompletion))
+			genericcli.Must(cmd.RegisterFlagCompletionFunc("worker-type", c.Completion.MachineTypeAssetListCompletion))
 		},
 		DescribeCmdMutateFn: func(cmd *cobra.Command) {
 			cmd.Flags().StringP("project", "p", "", "project of the cluster")

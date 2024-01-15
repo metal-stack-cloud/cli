@@ -38,3 +38,38 @@ func (c *Completion) KubernetesVersionAssetListCompletion(cmd *cobra.Command, ar
 	}
 	return versions, cobra.ShellCompDirectiveNoFileComp
 }
+
+func (c *Completion) MachineTypeAssetListCompletion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	req := &apiv1.AssetServiceListRequest{}
+
+	resp, err := c.Client.Apiv1().Asset().List(c.Ctx, connect.NewRequest(req))
+	if err != nil {
+		return nil, cobra.ShellCompDirectiveError
+	}
+
+	var relevantRegions []*apiv1.Asset
+	for _, asset := range resp.Msg.Assets {
+		asset := asset
+
+		if partition := cmd.Flag("partition").Value.String(); partition != "" {
+			_, ok := asset.Region.Partitions[partition]
+			if !ok {
+				continue
+			}
+		}
+
+		relevantRegions = append(relevantRegions, asset)
+	}
+
+	var types []string
+	for _, region := range relevantRegions {
+		region := region
+
+		for _, machineType := range region.MachineTypes {
+			machineType := machineType
+			types = append(types, machineType.Name)
+		}
+	}
+
+	return types, cobra.ShellCompDirectiveNoFileComp
+}
