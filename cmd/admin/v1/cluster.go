@@ -37,7 +37,7 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 		Plural:          "clusters",
 		Description:     "manage cluster resources",
 		Sorter:          sorters.ClusterSorter(),
-		ValidArgsFn:     c.Completion.ClusterAdminListCompletion,
+		ValidArgsFn:     c.Completion.AdminClusterListCompletion,
 		DescribePrinter: func() printers.Printer { return c.DescribePrinter },
 		ListPrinter:     func() printers.Printer { return c.ListPrinter },
 		OnlyCmds:        genericcli.OnlyCmds(genericcli.DescribeCmd, genericcli.ListCmd),
@@ -51,10 +51,10 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 			cmd.Flags().String("labels", "", "filter by labels")
 			cmd.Flags().String("purpose", "", "filter by purpose")
 
-			genericcli.Must(cmd.RegisterFlagCompletionFunc("id", c.Completion.ClusterAdminListCompletion))
+			genericcli.Must(cmd.RegisterFlagCompletionFunc("id", c.Completion.AdminClusterListCompletion))
 			genericcli.Must(cmd.RegisterFlagCompletionFunc("project", c.Completion.ProjectListCompletion))
 			genericcli.Must(cmd.RegisterFlagCompletionFunc("partition", c.Completion.PartitionAssetListCompletion))
-			genericcli.Must(cmd.RegisterFlagCompletionFunc("name", c.Completion.ClusterNameAdminListCompletion))
+			genericcli.Must(cmd.RegisterFlagCompletionFunc("name", c.Completion.AdminClusterNameListCompletion))
 			genericcli.Must(cmd.RegisterFlagCompletionFunc("purpose", c.Completion.ClusterPurposeCompletion))
 		},
 	}
@@ -67,7 +67,7 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return w.kubeconfig(args)
 		},
-		ValidArgsFunction: c.Completion.ClusterAdminListCompletion,
+		ValidArgsFunction: c.Completion.AdminClusterListCompletion,
 	}
 
 	kubeconfigCmd.Flags().DurationP("expiration", "", 8*time.Hour, "kubeconfig will expire after given time")
@@ -82,7 +82,7 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return w.logs(args)
 		},
-		ValidArgsFunction: c.Completion.ClusterAdminListCompletion,
+		ValidArgsFunction: c.Completion.AdminClusterListCompletion,
 	}
 
 	// metal admin cluster reconcile
@@ -93,7 +93,7 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return w.reconcile(args)
 		},
-		ValidArgsFunction: c.Completion.ClusterAdminListCompletion,
+		ValidArgsFunction: c.Completion.AdminClusterListCompletion,
 	}
 
 	reconcileCmd.Flags().String("operation", "reconcile", "specifies the reconcile operation to trigger")
@@ -106,7 +106,7 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 		Use:               "list",
 		Aliases:           []string{"ls"},
 		Short:             "list cluster machines",
-		ValidArgsFunction: c.Completion.ClusterAdminListCompletion,
+		ValidArgsFunction: c.Completion.AdminClusterListCompletion,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return w.machineList(args)
 		},

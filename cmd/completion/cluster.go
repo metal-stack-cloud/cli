@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func (c *Completion) ClusterAdminListCompletion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+func (c *Completion) AdminClusterListCompletion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	req := &adminv1.ClusterServiceListRequest{
 		Project: pointer.PointerOrNil(c.Project),
 	}
@@ -23,7 +23,7 @@ func (c *Completion) ClusterAdminListCompletion(cmd *cobra.Command, args []strin
 	return names, cobra.ShellCompDirectiveNoFileComp
 }
 
-func (c *Completion) ClusterNameAdminListCompletion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+func (c *Completion) AdminClusterNameListCompletion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	req := &adminv1.ClusterServiceListRequest{
 		Project: pointer.PointerOrNil(c.Project),
 	}
