@@ -48,7 +48,7 @@ func newContextCmd(c *config.Config) *cobra.Command {
 		Use:     "switch <context-name>",
 		Short:   "switch the cli context",
 		Long:    "you can switch back and forth contexts with \"-\"",
-		Aliases: []string{"set"},
+		Aliases: []string{"set", "sw"},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return w.set(args)
 		},
