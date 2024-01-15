@@ -120,40 +120,14 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 		Use:   "reconcile",
 		Short: "reconcile a cluster",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx, cancel := c.NewRequestContext()
-			defer cancel()
-
-			id, err := genericcli.GetExactlyOneArg(args)
-			if err != nil {
-				return err
-			}
-
-			operation := adminv1.Operate_OPERATE_RECONCILE
-			if viper.GetBool("maintain") {
-				operation = adminv1.Operate_OPERATE_MAINTAIN
-			}
-			if viper.GetBool("retry") {
-				operation = adminv1.Operate_OPERATE_RETRY
-			}
-
-			req := &adminv1.ClusterServiceOperateRequest{
-				Uuid:    id,
-				Operate: operation,
-			}
-
-			resp, err := c.Client.Adminv1().Cluster().Operate(ctx, connect.NewRequest(req))
-			if err != nil {
-				return fmt.Errorf("failed to reconcile cluster: %w", err)
-			}
-
-			return c.ListPrinter.Print(resp.Msg.Cluster)
+			return w.reconcile(args)
 		},
 		ValidArgsFunction: c.Completion.ClusterAdminListCompletion,
 	}
 
-	reconcileCmd.Flags().Bool("reconcile", true, "trigger cluster reconciliation")
-	reconcileCmd.Flags().Bool("maintain", false, "trigger cluster maintain reconciliation")
-	reconcileCmd.Flags().Bool("retry", false, "trigger cluster retry reconciliation")
+	reconcileCmd.Flags().String("operation", "reconcile", "specifies the reconcile operation to trigger")
+
+	genericcli.Must(reconcileCmd.RegisterFlagCompletionFunc("operation", c.Completion.ClusterAdminOperationCompletion))
 
 	return genericcli.NewCmds(cmdsConfig, kubeconfigCmd, reconcileCmd, logsCmd, monitoringCmd)
 }
@@ -290,4 +264,39 @@ func (c *cluster) kubeconfig(args []string) error {
 	fmt.Fprintf(c.c.Out, "%s merged context %q into %s\n", color.GreenString("✔"), merged.ContextName, merged.Path)
 
 	return nil
+}
+
+func (c *cluster) reconcile(args []string) error {
+	ctx, cancel := c.c.NewRequestContext()
+	defer cancel()
+
+	id, err := genericcli.GetExactlyOneArg(args)
+	if err != nil {
+		return err
+	}
+
+	var operation adminv1.Operate
+
+	switch op := viper.GetString("operation"); op {
+	case "reconcile":
+		operation = adminv1.Operate_OPERATE_RECONCILE
+	case "maintain":
+		operation = adminv1.Operate_OPERATE_MAINTAIN
+	case "retry":
+		operation = adminv1.Operate_OPERATE_RETRY
+	default:
+		return fmt.Errorf("unsupported operation: %s", op)
+	}
+
+	req := &adminv1.ClusterServiceOperateRequest{
+		Uuid:    id,
+		Operate: operation,
+	}
+
+	resp, err := c.c.Client.Adminv1().Cluster().Operate(ctx, connect.NewRequest(req))
+	if err != nil {
+		return fmt.Errorf("failed to reconcile cluster: %w", err)
+	}
+
+	return c.c.DescribePrinter.Print(resp.Msg.Cluster)
 }

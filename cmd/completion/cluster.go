@@ -41,3 +41,7 @@ func (c *Completion) ClusterListCompletion(cmd *cobra.Command, args []string, to
 func (c *Completion) ClusterPurposeCompletion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	return []string{"production", "infrastructure", "evaluation"}, cobra.ShellCompDirectiveNoFileComp
 }
+
+func (c *Completion) ClusterAdminOperationCompletion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	return []string{"reconcile", "retry", "maintain"}, cobra.ShellCompDirectiveNoFileComp
+}
