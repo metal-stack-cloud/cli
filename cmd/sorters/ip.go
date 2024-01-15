@@ -19,5 +19,17 @@ func IPSorter() *multisort.Sorter[*apiv1.IP] {
 		"name": func(a, b *apiv1.IP, descending bool) multisort.CompareResult {
 			return multisort.Compare(a.Name, b.Name, descending)
 		},
-	}, multisort.Keys{{ID: "ip"}, {ID: "name"}})
+		"project": func(a, b *apiv1.IP, descending bool) multisort.CompareResult {
+			return multisort.Compare(a.Project, b.Project, descending)
+		},
+		"type": func(a, b *apiv1.IP, descending bool) multisort.CompareResult {
+			return multisort.Compare(a.Type, b.Type, descending)
+		},
+		"network": func(a, b *apiv1.IP, descending bool) multisort.CompareResult {
+			return multisort.Compare(a.Network, b.Network, descending)
+		},
+		"uuid": func(a, b *apiv1.IP, descending bool) multisort.CompareResult {
+			return multisort.Compare(a.Uuid, b.Uuid, descending)
+		},
+	}, multisort.Keys{{ID: "project"}, {ID: "ip"}})
 }

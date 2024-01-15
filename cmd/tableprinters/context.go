@@ -1,6 +1,9 @@
 package tableprinters
 
-import "github.com/metal-stack-cloud/cli/cmd/config"
+import (
+	"github.com/fatih/color"
+	"github.com/metal-stack-cloud/cli/cmd/config"
+)
 
 func (t *TablePrinter) ContextTable(data *config.Contexts, wide bool) ([]string, [][]string, error) {
 	var (
@@ -11,7 +14,7 @@ func (t *TablePrinter) ContextTable(data *config.Contexts, wide bool) ([]string,
 	for _, c := range data.Contexts {
 		active := ""
 		if c.Name == data.CurrentContext {
-			active = "*"
+			active = color.GreenString("✔")
 		}
 		rows = append(rows, []string{active, c.Name, c.DefaultProject})
 	}

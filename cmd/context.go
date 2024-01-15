@@ -5,6 +5,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/metal-stack-cloud/cli/cmd/config"
+	"github.com/metal-stack-cloud/cli/cmd/sorters"
 	"github.com/metal-stack/metal-lib/pkg/genericcli"
 	"github.com/metal-stack/metal-lib/pkg/pointer"
 	"github.com/spf13/cobra"
@@ -27,6 +28,10 @@ func newContextCmd(c *config.Config) *cobra.Command {
 		Long:    "you can switch back and forth contexts with \"-\"",
 		Example: config.HelpTemplate(),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
+				return w.list()
+			}
+
 			return w.set(args)
 		},
 	}
@@ -43,7 +48,7 @@ func newContextCmd(c *config.Config) *cobra.Command {
 		Use:     "switch <context-name>",
 		Short:   "switch the cli context",
 		Long:    "you can switch back and forth contexts with \"-\"",
-		Aliases: []string{"set"},
+		Aliases: []string{"set", "sw"},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return w.set(args)
 		},
@@ -121,6 +126,11 @@ func newContextCmd(c *config.Config) *cobra.Command {
 
 func (c *ctx) list() error {
 	ctxs, err := c.c.GetContexts()
+	if err != nil {
+		return err
+	}
+
+	err = sorters.ContextSorter().SortBy(ctxs.Contexts)
 	if err != nil {
 		return err
 	}

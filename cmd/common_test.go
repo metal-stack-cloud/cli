@@ -14,6 +14,7 @@ import (
 	"bou.ke/monkey"
 	"github.com/go-openapi/strfmt"
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	apitests "github.com/metal-stack-cloud/api/go/tests"
 	"github.com/metal-stack-cloud/cli/cmd/completion"
 	"github.com/metal-stack-cloud/cli/cmd/config"
@@ -23,6 +24,7 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/runtime/protoimpl"
 	"sigs.k8s.io/yaml"
 )
 
@@ -213,7 +215,7 @@ func (o *jsonOutputFormat[R]) Validate(t *testing.T, output []byte) {
 	err := json.Unmarshal(output, &got)
 	require.NoError(t, err, string(output))
 
-	if diff := cmp.Diff(o.want, got, testcommon.IgnoreUnexported(), testcommon.StrFmtDateComparer()); diff != "" {
+	if diff := cmp.Diff(o.want, got, testcommon.IgnoreUnexported(), testcommon.StrFmtDateComparer(), cmpopts.IgnoreTypes(protoimpl.MessageState{})); diff != "" {
 		t.Errorf("diff (+got -want):\n %s", diff)
 	}
 }
@@ -232,7 +234,7 @@ func (o *yamlOutputFormat[R]) Validate(t *testing.T, output []byte) {
 	err := yaml.Unmarshal(output, &got)
 	require.NoError(t, err)
 
-	if diff := cmp.Diff(o.want, got, testcommon.IgnoreUnexported(), testcommon.StrFmtDateComparer()); diff != "" {
+	if diff := cmp.Diff(o.want, got, testcommon.IgnoreUnexported(), testcommon.StrFmtDateComparer(), cmpopts.IgnoreTypes(protoimpl.MessageState{})); diff != "" {
 		t.Errorf("diff (+got -want):\n %s", diff)
 	}
 }
@@ -327,4 +329,8 @@ func validateTableRows(t *testing.T, want, got string) {
 
 func commonExcludedFileArgs() []string {
 	return []string{"file", "bulk-output", "skip-security-prompts", "timestamps"}
+}
+
+func appendFromFileCommonArgs(args ...string) []string {
+	return append(args, []string{"-f", "/file.yaml", "--skip-security-prompts", "--bulk-output"}...)
 }

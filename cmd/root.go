@@ -104,6 +104,7 @@ func initConfigWithViperCtx(c *config.Config) error {
 	c.Client = mc
 	c.Completion.Client = mc
 	c.Completion.Ctx = context.Background()
+	c.Completion.Project = c.GetProject()
 
 	return nil
 }

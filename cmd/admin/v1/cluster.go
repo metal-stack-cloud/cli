@@ -36,7 +36,7 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 		Plural:          "clusters",
 		Description:     "manage cluster resources",
 		Sorter:          sorters.ClusterSorter(),
-		ValidArgsFn:     c.Completion.ClusterListCompletion,
+		ValidArgsFn:     c.Completion.ClusterAdminListCompletion,
 		DescribePrinter: func() printers.Printer { return c.DescribePrinter },
 		ListPrinter:     func() printers.Printer { return c.ListPrinter },
 		OnlyCmds:        genericcli.OnlyCmds(genericcli.DescribeCmd, genericcli.ListCmd),
@@ -46,7 +46,6 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 		},
 		ListCmdMutateFn: func(cmd *cobra.Command) {
 			cmd.Flags().StringP("purpose", "", "", "filter by purpose")
-			// must(cmd.RegisterFlagCompletionFunc("id", c.Completion.ClusterListCompletion))
 
 			genericcli.Must(cmd.RegisterFlagCompletionFunc("purpose", c.Completion.ClusterPurposeCompletion))
 		},
@@ -58,7 +57,7 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return w.kubeconfig(args)
 		},
-		ValidArgsFunction: c.Completion.ClusterListCompletion,
+		ValidArgsFunction: c.Completion.ClusterAdminListCompletion,
 	}
 
 	kubeconfigCmd.Flags().DurationP("expiration", "", 8*time.Hour, "kubeconfig will expire after given time")
@@ -88,7 +87,7 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 
 			return c.ListPrinter.Print(resp.Msg.Cluster.Status.LastErrors)
 		},
-		ValidArgsFunction: c.Completion.ClusterListCompletion,
+		ValidArgsFunction: c.Completion.ClusterAdminListCompletion,
 	}
 
 	monitoringCmd := &cobra.Command{
@@ -114,47 +113,21 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 
 			return c.DescribePrinter.Print(resp.Msg.Cluster.Monitoring)
 		},
-		ValidArgsFunction: c.Completion.ClusterListCompletion,
+		ValidArgsFunction: c.Completion.ClusterAdminListCompletion,
 	}
 
 	reconcileCmd := &cobra.Command{
 		Use:   "reconcile",
 		Short: "reconcile a cluster",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx, cancel := c.NewRequestContext()
-			defer cancel()
-
-			id, err := genericcli.GetExactlyOneArg(args)
-			if err != nil {
-				return err
-			}
-
-			operation := adminv1.Operate_OPERATE_RECONCILE
-			if viper.GetBool("maintain") {
-				operation = adminv1.Operate_OPERATE_MAINTAIN
-			}
-			if viper.GetBool("retry") {
-				operation = adminv1.Operate_OPERATE_RETRY
-			}
-
-			req := &adminv1.ClusterServiceOperateRequest{
-				Uuid:    id,
-				Operate: operation,
-			}
-
-			resp, err := c.Client.Adminv1().Cluster().Operate(ctx, connect.NewRequest(req))
-			if err != nil {
-				return fmt.Errorf("failed to reconcile cluster: %w", err)
-			}
-
-			return c.ListPrinter.Print(resp.Msg.Cluster)
+			return w.reconcile(args)
 		},
-		ValidArgsFunction: c.Completion.ClusterListCompletion,
+		ValidArgsFunction: c.Completion.ClusterAdminListCompletion,
 	}
 
-	reconcileCmd.Flags().Bool("reconcile", true, "trigger cluster reconciliation")
-	reconcileCmd.Flags().Bool("maintain", false, "trigger cluster maintain reconciliation")
-	reconcileCmd.Flags().Bool("retry", false, "trigger cluster retry reconciliation")
+	reconcileCmd.Flags().String("operation", "reconcile", "specifies the reconcile operation to trigger")
+
+	genericcli.Must(reconcileCmd.RegisterFlagCompletionFunc("operation", c.Completion.ClusterAdminOperationCompletion))
 
 	return genericcli.NewCmds(cmdsConfig, kubeconfigCmd, reconcileCmd, logsCmd, monitoringCmd)
 }
@@ -213,7 +186,32 @@ func (c *cluster) List() ([]*apiv1.Cluster, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to get clusters: %w", err)
 	}
-	return resp.Msg.Clusters, nil
+
+	var (
+		seeds  []*apiv1.Cluster
+		shoots []*apiv1.Cluster
+	)
+
+	for _, cluster := range resp.Msg.Clusters {
+		cluster := cluster
+
+		if pointer.SafeDeref(cluster.Purpose) == "infrastructure" {
+			seeds = append(seeds, cluster)
+		} else {
+			shoots = append(shoots, cluster)
+		}
+	}
+
+	err = c.c.ListPrinter.Print(shoots)
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Fprintln(c.c.Out)
+	fmt.Fprintln(c.c.Out, "Seeds:")
+	fmt.Fprintln(c.c.Out)
+
+	return seeds, nil
 }
 
 func (c *cluster) Convert(r *apiv1.Cluster) (string, any, any, error) {
@@ -266,4 +264,39 @@ func (c *cluster) kubeconfig(args []string) error {
 	fmt.Fprintf(c.c.Out, "%s merged context %q into %s\n", color.GreenString("✔"), merged.ContextName, merged.Path)
 
 	return nil
+}
+
+func (c *cluster) reconcile(args []string) error {
+	ctx, cancel := c.c.NewRequestContext()
+	defer cancel()
+
+	id, err := genericcli.GetExactlyOneArg(args)
+	if err != nil {
+		return err
+	}
+
+	var operation adminv1.Operate
+
+	switch op := viper.GetString("operation"); op {
+	case "reconcile":
+		operation = adminv1.Operate_OPERATE_RECONCILE
+	case "maintain":
+		operation = adminv1.Operate_OPERATE_MAINTAIN
+	case "retry":
+		operation = adminv1.Operate_OPERATE_RETRY
+	default:
+		return fmt.Errorf("unsupported operation: %s", op)
+	}
+
+	req := &adminv1.ClusterServiceOperateRequest{
+		Uuid:    id,
+		Operate: operation,
+	}
+
+	resp, err := c.c.Client.Adminv1().Cluster().Operate(ctx, connect.NewRequest(req))
+	if err != nil {
+		return fmt.Errorf("failed to reconcile cluster: %w", err)
+	}
+
+	return c.c.DescribePrinter.Print(resp.Msg.Cluster)
 }
