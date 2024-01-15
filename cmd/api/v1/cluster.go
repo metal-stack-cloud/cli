@@ -54,6 +54,12 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 			cmd.Flags().Int32("maintenance-minute", 0, "minute in which cluster maintenance is allowed to take place")
 			cmd.Flags().String("maintenance-timezone", time.Local.String(), "timezone used for the maintenance time window") // nolint
 			cmd.Flags().Duration("maintenance-duration", 2*time.Hour, "duration in which cluster maintenance is allowed to take place")
+			cmd.Flags().String("worker-name", "group-0", "the name of the initial worker group")
+			cmd.Flags().Uint32("worker-min", 1, "the minimum amount of worker nodes of the worker group")
+			cmd.Flags().Uint32("worker-max", 3, "the maximum amount of worker nodes of the worker group")
+			cmd.Flags().Uint32("worker-max-surge", 1, "the maximum amount of new worker nodes added to the worker group during a rolling update")
+			cmd.Flags().Uint32("worker-max-unavailable", 0, "the maximum amount of worker nodes removed from the worker group during a rolling update")
+			cmd.Flags().String("worker-type", "", "the worker type of the initial worker group")
 
 			genericcli.Must(cmd.RegisterFlagCompletionFunc("project", c.Completion.ProjectListCompletion))
 			genericcli.Must(cmd.RegisterFlagCompletionFunc("partition", c.Completion.PartitionAssetListCompletion))
@@ -164,6 +170,22 @@ func (c *cluster) createFromCLI() (*apiv1.ClusterServiceCreateRequest, error) {
 			},
 			Duration: durationpb.New(viper.GetDuration("maintenance-duration")),
 		}
+	}
+
+	if viper.IsSet("worker-name") ||
+		viper.IsSet("worker-min") ||
+		viper.IsSet("worker-max") ||
+		viper.IsSet("worker-max-surge") ||
+		viper.IsSet("worker-max-unavailable") ||
+		viper.IsSet("worker-type") {
+		rq.Workers = append(rq.Workers, &apiv1.Worker{
+			Name:           viper.GetString("worker-name"),
+			MachineType:    viper.GetString("worker-type"),
+			Minsize:        viper.GetUint32("worker-min"),
+			Maxsize:        viper.GetUint32("worker-max"),
+			Maxsurge:       viper.GetUint32("worker-max-surge"),
+			Maxunavailable: viper.GetUint32("worker-max-unavailable"),
+		})
 	}
 
 	return rq, nil

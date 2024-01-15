@@ -30,8 +30,12 @@ var (
 			Kubernetes: &apiv1.KubernetesSpec{Version: "1.25.10"},
 			Workers: []*apiv1.Worker{
 				{
-					Minsize: 1,
-					Maxsize: 3,
+					Name:           "group-0",
+					MachineType:    "c1-xlarge-x86",
+					Minsize:        1,
+					Maxsize:        3,
+					Maxsurge:       1,
+					Maxunavailable: 0,
 				},
 			},
 			Maintenance: &apiv1.Maintenance{
@@ -320,6 +324,12 @@ ID                                     TENANT        PROJECT   NAME       PARTIT
 					"--maintenance-hour", strconv.Itoa(int(want.Maintenance.TimeWindow.Begin.Hour)),
 					"--maintenance-minute", strconv.Itoa(int(want.Maintenance.TimeWindow.Begin.Minute)),
 					"--maintenance-timezone", want.Maintenance.TimeWindow.Begin.Timezone,
+					"--worker-name", want.Workers[0].Name,
+					"--worker-min", strconv.Itoa(int(want.Workers[0].Minsize)),
+					"--worker-max", strconv.Itoa(int(want.Workers[0].Maxsize)),
+					"--worker-max-surge", strconv.Itoa(int(want.Workers[0].Maxsurge)),
+					"--worker-max-unavailable", strconv.Itoa(int(want.Workers[0].Maxunavailable)),
+					"--worker-type", want.Workers[0].MachineType,
 				}
 				AssertExhaustiveArgs(t, args, commonExcludedFileArgs()...)
 				return args
@@ -328,7 +338,6 @@ ID                                     TENANT        PROJECT   NAME       PARTIT
 				Apiv1Mocks: &apitests.Apiv1MockFns{
 					Cluster: func(m *mock.Mock) {
 						req := cluster1()
-						req.Workers = nil
 						req.Maintenance.KubernetesAutoupdate = nil
 						req.Maintenance.MachineimageAutoupdate = nil
 						m.On("Create", mock.Anything, testcommon.MatchByCmpDiff(t, connect.NewRequest(v1.ClusterResponseToCreate(req)), cmpopts.IgnoreTypes(protoimpl.MessageState{}))).Return(connect.NewResponse(&apiv1.ClusterServiceCreateResponse{
