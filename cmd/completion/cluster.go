@@ -23,6 +23,21 @@ func (c *Completion) ClusterAdminListCompletion(cmd *cobra.Command, args []strin
 	return names, cobra.ShellCompDirectiveNoFileComp
 }
 
+func (c *Completion) ClusterNameAdminListCompletion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	req := &adminv1.ClusterServiceListRequest{
+		Project: pointer.PointerOrNil(c.Project),
+	}
+	resp, err := c.Client.Adminv1().Cluster().List(c.Ctx, connect.NewRequest(req))
+	if err != nil {
+		return nil, cobra.ShellCompDirectiveError
+	}
+	var names []string
+	for _, s := range resp.Msg.Clusters {
+		names = append(names, s.Name)
+	}
+	return names, cobra.ShellCompDirectiveNoFileComp
+}
+
 func (c *Completion) ClusterListCompletion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	req := &apiv1.ClusterServiceListRequest{
 		Project: c.Project,

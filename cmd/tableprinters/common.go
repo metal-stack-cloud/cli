@@ -39,9 +39,11 @@ func (t *TablePrinter) ToHeaderAndRows(data any, wide bool) ([]string, [][]strin
 	case []*apiv1.Coupon:
 		return t.CouponTable(d, wide)
 	case *apiv1.Cluster:
-		return t.ClusterTable(pointer.WrapInSlice(d), wide)
+		return t.ClusterTable(pointer.WrapInSlice(d), nil, wide)
 	case []*apiv1.Cluster:
-		return t.ClusterTable(d, wide)
+		return t.ClusterTable(d, nil, wide)
+	case *adminv1.ClusterServiceGetResponse:
+		return t.ClusterMachineTable(pointer.WrapInSlice(d), wide)
 	case *apiv1.ClusterStatusLastError:
 		return t.ClusterStatusLastErrorTable(pointer.WrapInSlice(d), wide)
 	case []*apiv1.ClusterStatusLastError:
