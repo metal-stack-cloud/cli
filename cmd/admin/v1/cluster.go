@@ -11,9 +11,11 @@ import (
 	"github.com/metal-stack-cloud/cli/cmd/config"
 	"github.com/metal-stack-cloud/cli/cmd/kubernetes"
 	"github.com/metal-stack-cloud/cli/cmd/sorters"
+	"github.com/metal-stack-cloud/cli/pkg/helpers"
 	"github.com/metal-stack/metal-lib/pkg/genericcli"
 	"github.com/metal-stack/metal-lib/pkg/genericcli/printers"
 	"github.com/metal-stack/metal-lib/pkg/pointer"
+	"github.com/metal-stack/metal-lib/pkg/tag"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -36,20 +38,29 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 		Plural:          "clusters",
 		Description:     "manage cluster resources",
 		Sorter:          sorters.ClusterSorter(),
-		ValidArgsFn:     c.Completion.ClusterAdminListCompletion,
+		ValidArgsFn:     c.Completion.AdminClusterListCompletion,
 		DescribePrinter: func() printers.Printer { return c.DescribePrinter },
 		ListPrinter:     func() printers.Printer { return c.ListPrinter },
 		OnlyCmds:        genericcli.OnlyCmds(genericcli.DescribeCmd, genericcli.ListCmd),
-
-		DescribeCmdMutateFn: func(cmd *cobra.Command) {
-			cmd.Flags().BoolP("machines", "", false, "show machines of a cluster")
-		},
 		ListCmdMutateFn: func(cmd *cobra.Command) {
-			cmd.Flags().StringP("purpose", "", "", "filter by purpose")
+			cmd.Flags().String("id", "", "filter by id")
+			cmd.Flags().StringP("project", "p", "", "filter by project")
+			cmd.Flags().String("tenant", "", "filter by tenant")
+			cmd.Flags().String("partition", "", "filter by partition")
+			cmd.Flags().String("seed", "", "filter by seed")
+			cmd.Flags().String("name", "", "filter by name")
+			cmd.Flags().String("labels", "", "filter by labels")
+			cmd.Flags().String("purpose", "", "filter by purpose")
 
+			genericcli.Must(cmd.RegisterFlagCompletionFunc("id", c.Completion.AdminClusterListCompletion))
+			genericcli.Must(cmd.RegisterFlagCompletionFunc("project", c.Completion.ProjectListCompletion))
+			genericcli.Must(cmd.RegisterFlagCompletionFunc("partition", c.Completion.PartitionAssetListCompletion))
+			genericcli.Must(cmd.RegisterFlagCompletionFunc("name", c.Completion.AdminClusterNameListCompletion))
 			genericcli.Must(cmd.RegisterFlagCompletionFunc("purpose", c.Completion.ClusterPurposeCompletion))
 		},
 	}
+
+	// metal admin cluster kubeconfig
 
 	kubeconfigCmd := &cobra.Command{
 		Use:   "kubeconfig",
@@ -57,64 +68,25 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return w.kubeconfig(args)
 		},
-		ValidArgsFunction: c.Completion.ClusterAdminListCompletion,
+		ValidArgsFunction: c.Completion.AdminClusterListCompletion,
 	}
 
 	kubeconfigCmd.Flags().DurationP("expiration", "", 8*time.Hour, "kubeconfig will expire after given time")
 	kubeconfigCmd.Flags().Bool("merge", true, "merges the kubeconfig into default kubeconfig instead of printing it to the console")
 	kubeconfigCmd.Flags().String("kubeconfig", "", "specify an explicit path for the merged kubeconfig to be written, defaults to default kubeconfig paths if not provided")
 
+	// metal admin cluster logs
+
 	logsCmd := &cobra.Command{
 		Use:   "logs",
 		Short: "fetch logs of a cluster",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx, cancel := c.NewRequestContext()
-			defer cancel()
-
-			id, err := genericcli.GetExactlyOneArg(args)
-			if err != nil {
-				return err
-			}
-
-			req := &adminv1.ClusterServiceGetRequest{
-				Uuid: id,
-			}
-
-			resp, err := c.Client.Adminv1().Cluster().Get(ctx, connect.NewRequest(req))
-			if err != nil {
-				return fmt.Errorf("failed to get cluster logs: %w", err)
-			}
-
-			return c.ListPrinter.Print(resp.Msg.Cluster.Status.LastErrors)
+			return w.logs(args)
 		},
-		ValidArgsFunction: c.Completion.ClusterAdminListCompletion,
+		ValidArgsFunction: c.Completion.AdminClusterListCompletion,
 	}
 
-	monitoringCmd := &cobra.Command{
-		Use:   "monitoring",
-		Short: "fetch monitoring details of a cluster",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx, cancel := c.NewRequestContext()
-			defer cancel()
-
-			id, err := genericcli.GetExactlyOneArg(args)
-			if err != nil {
-				return err
-			}
-
-			req := &adminv1.ClusterServiceGetRequest{
-				Uuid: id,
-			}
-
-			resp, err := c.Client.Adminv1().Cluster().Get(ctx, connect.NewRequest(req))
-			if err != nil {
-				return fmt.Errorf("failed to get cluster monitoring: %w", err)
-			}
-
-			return c.DescribePrinter.Print(resp.Msg.Cluster.Monitoring)
-		},
-		ValidArgsFunction: c.Completion.ClusterAdminListCompletion,
-	}
+	// metal admin cluster reconcile
 
 	reconcileCmd := &cobra.Command{
 		Use:   "reconcile",
@@ -122,17 +94,51 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return w.reconcile(args)
 		},
-		ValidArgsFunction: c.Completion.ClusterAdminListCompletion,
+		ValidArgsFunction: c.Completion.AdminClusterListCompletion,
 	}
 
 	reconcileCmd.Flags().String("operation", "reconcile", "specifies the reconcile operation to trigger")
 
 	genericcli.Must(reconcileCmd.RegisterFlagCompletionFunc("operation", c.Completion.ClusterAdminOperationCompletion))
 
-	return genericcli.NewCmds(cmdsConfig, kubeconfigCmd, reconcileCmd, logsCmd, monitoringCmd)
-}
+	// metal admin cluster machine list
 
-// TODO: implement firewall ssh, machine/firewall list
+	machineListCmd := &cobra.Command{
+		Use:               "list",
+		Aliases:           []string{"ls"},
+		Short:             "list cluster machines",
+		ValidArgsFunction: c.Completion.AdminClusterListCompletion,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return w.machineList(args)
+		},
+	}
+
+	// metal admin cluster machine ssh
+
+	machineSSHCmd := &cobra.Command{
+		Use:               "ssh",
+		Short:             "ssh to cluster machines",
+		ValidArgsFunction: c.Completion.AdminClusterListCompletion,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return w.machineSSH(args)
+		},
+	}
+
+	machineSSHCmd.Flags().String("machine-id", "", "the firewall's machine id to connect to")
+
+	genericcli.Must(machineSSHCmd.RegisterFlagCompletionFunc("machine-id", c.Completion.AdminClusteFirewallListCompletion))
+
+	// metal admin cluster machine
+
+	machineCmd := &cobra.Command{
+		Use:   "machine",
+		Short: "commands for cluster machines",
+	}
+
+	machineCmd.AddCommand(machineListCmd, machineSSHCmd)
+
+	return genericcli.NewCmds(cmdsConfig, kubeconfigCmd, reconcileCmd, logsCmd, machineCmd)
+}
 
 func (c *cluster) Create(rq any) (*apiv1.Cluster, error) {
 	panic("unimplemented")
@@ -143,43 +149,40 @@ func (c *cluster) Delete(id string) (*apiv1.Cluster, error) {
 }
 
 func (c *cluster) Get(id string) (*apiv1.Cluster, error) {
-	showMachines := viper.GetBool("machines")
-
 	ctx, cancel := c.c.NewRequestContext()
 	defer cancel()
 
 	req := &adminv1.ClusterServiceGetRequest{
-		Uuid:         id,
-		WithMachines: showMachines,
+		Uuid: id,
 	}
 
 	resp, err := c.c.Client.Adminv1().Cluster().Get(ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get clusters: %w", err)
 	}
-	// FIXME refactor to use a Machine TablePrinter
-	if showMachines {
-		fmt.Println("Machines")
-		fmt.Println()
-		for _, m := range resp.Msg.Machines {
-			fmt.Printf("%s: %s %s\n", m.Role, m.Uuid, m.Hostname)
-		}
-		fmt.Println()
-	}
 
-	c.c.ListPrinter.Print(resp.Msg.Cluster)
-	return nil, nil
+	return resp.Msg.Cluster, nil
 }
 
 func (c *cluster) List() ([]*apiv1.Cluster, error) {
-	// FIXME implement filters and paging
 	ctx, cancel := c.c.NewRequestContext()
 	defer cancel()
 
-	req := &adminv1.ClusterServiceListRequest{}
+	var labels map[string]string
+	if viper.IsSet("labels") {
+		tm := tag.NewTagMap(viper.GetStringSlice("labels"))
+		labels = map[string]string(tm)
+	}
 
-	if viper.IsSet("purpose") {
-		req.Purpose = pointer.Pointer(viper.GetString("purpose"))
+	req := &adminv1.ClusterServiceListRequest{
+		Uuid:      pointer.PointerOrNil(viper.GetString("id")),
+		Project:   pointer.PointerOrNil(viper.GetString("project")),
+		Tenant:    pointer.PointerOrNil(viper.GetString("tenant")),
+		Partition: pointer.PointerOrNil(viper.GetString("partition")),
+		Seed:      pointer.PointerOrNil(viper.GetString("seed")),
+		Name:      pointer.PointerOrNil(viper.GetString("name")),
+		Purpose:   pointer.PointerOrNil(viper.GetString("purpose")),
+		Labels:    labels,
 	}
 
 	resp, err := c.c.Client.Adminv1().Cluster().List(ctx, connect.NewRequest(req))
@@ -187,31 +190,7 @@ func (c *cluster) List() ([]*apiv1.Cluster, error) {
 		return nil, fmt.Errorf("failed to get clusters: %w", err)
 	}
 
-	var (
-		seeds  []*apiv1.Cluster
-		shoots []*apiv1.Cluster
-	)
-
-	for _, cluster := range resp.Msg.Clusters {
-		cluster := cluster
-
-		if pointer.SafeDeref(cluster.Purpose) == "infrastructure" {
-			seeds = append(seeds, cluster)
-		} else {
-			shoots = append(shoots, cluster)
-		}
-	}
-
-	err = c.c.ListPrinter.Print(shoots)
-	if err != nil {
-		return nil, err
-	}
-
-	fmt.Fprintln(c.c.Out)
-	fmt.Fprintln(c.c.Out, "Seeds:")
-	fmt.Fprintln(c.c.Out)
-
-	return seeds, nil
+	return resp.Msg.Clusters, nil
 }
 
 func (c *cluster) Convert(r *apiv1.Cluster) (string, any, any, error) {
@@ -299,4 +278,76 @@ func (c *cluster) reconcile(args []string) error {
 	}
 
 	return c.c.DescribePrinter.Print(resp.Msg.Cluster)
+}
+
+func (c *cluster) logs(args []string) error {
+	ctx, cancel := c.c.NewRequestContext()
+	defer cancel()
+
+	id, err := genericcli.GetExactlyOneArg(args)
+	if err != nil {
+		return err
+	}
+
+	req := &adminv1.ClusterServiceGetRequest{
+		Uuid: id,
+	}
+
+	resp, err := c.c.Client.Adminv1().Cluster().Get(ctx, connect.NewRequest(req))
+	if err != nil {
+		return fmt.Errorf("failed to get cluster: %w", err)
+	}
+
+	return c.c.ListPrinter.Print(resp.Msg.Cluster.Status.LastErrors)
+}
+
+func (c *cluster) machineList(args []string) error {
+	ctx, cancel := c.c.NewRequestContext()
+	defer cancel()
+
+	id, err := genericcli.GetExactlyOneArg(args)
+	if err != nil {
+		return err
+	}
+
+	req := &adminv1.ClusterServiceGetRequest{
+		Uuid:         id,
+		WithMachines: true,
+	}
+
+	resp, err := c.c.Client.Adminv1().Cluster().Get(ctx, connect.NewRequest(req))
+	if err != nil {
+		return fmt.Errorf("failed to get cluster: %w", err)
+	}
+
+	return c.c.ListPrinter.Print(resp.Msg)
+}
+
+func (c *cluster) machineSSH(args []string) error {
+	ctx, cancel := c.c.NewRequestContext()
+	defer cancel()
+
+	id, err := genericcli.GetExactlyOneArg(args)
+	if err != nil {
+		return err
+	}
+
+	var (
+		machineID = viper.GetString("machine-id")
+	)
+
+	if machineID == "" {
+		return fmt.Errorf("machine id is required")
+	}
+
+	credsResp, err := c.c.Client.Adminv1().Cluster().Credentials(ctx, connect.NewRequest(&adminv1.ClusterServiceCredentialsRequest{
+		Uuid:    id,
+		WithSsh: true,
+		WithVpn: true,
+	}))
+	if err != nil {
+		return fmt.Errorf("failed to get cluster credentials: %w", err)
+	}
+
+	return helpers.SSHViaVPN(c.c.Out, machineID, credsResp.Msg)
 }

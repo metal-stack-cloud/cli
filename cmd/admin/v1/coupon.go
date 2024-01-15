@@ -56,6 +56,7 @@ func (c *coupon) List() ([]*apiv1.Coupon, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to get coupons: %w", err)
 	}
+
 	return resp.Msg.Coupons, nil
 }
 

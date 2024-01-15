@@ -6,13 +6,13 @@ import (
 
 	"github.com/dustin/go-humanize"
 	"github.com/fatih/color"
+	adminv1 "github.com/metal-stack-cloud/api/go/admin/v1"
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
 	"github.com/metal-stack/metal-lib/pkg/pointer"
 	"github.com/olekukonko/tablewriter"
 )
 
-func (t *TablePrinter) ClusterTable(data []*apiv1.Cluster, wide bool) ([]string, [][]string, error) {
-
+func (t *TablePrinter) ClusterTable(clusters []*apiv1.Cluster, machines map[string][]*adminv1.Machine, wide bool) ([]string, [][]string, error) {
 	var (
 		rows   [][]string
 		header = []string{"", "Tenant", "Project", "ID", "Name", "Partition", "Version", "Size", "Age"}
@@ -44,7 +44,7 @@ func (t *TablePrinter) ClusterTable(data []*apiv1.Cluster, wide bool) ([]string,
 		header = []string{"ID", "Tenant", "Project", "Name", "Partition", "Purpose", "Version", "Operation", "Progress", "Api", "Control", "Nodes", "Sys", "Size", "Age"}
 	}
 
-	for _, cluster := range data {
+	for _, cluster := range clusters {
 		cluster := cluster
 
 		var (
@@ -107,6 +107,36 @@ func (t *TablePrinter) ClusterTable(data []*apiv1.Cluster, wide bool) ([]string,
 				nodesRange,
 				humanize.Time(cluster.CreatedAt.AsTime()),
 			})
+
+			for i, machine := range machines[cluster.Uuid] {
+				machine := machine
+
+				prefix := "├"
+				if i == len(machines[cluster.Uuid])-1 {
+					prefix = "└"
+				}
+				prefix += "─╴"
+
+				status := machine.Liveliness
+				switch status {
+				case "Alive":
+					status = color.GreenString("✔")
+				default:
+					status = color.RedString("✗")
+				}
+
+				rows = append(rows, []string{
+					status,
+					"",
+					"",
+					prefix + machine.Uuid,
+					machine.Hostname,
+					machine.Partition,
+					machine.Image,
+					machine.Size,
+					humanize.Time(machine.Created.AsTime()),
+				})
+			}
 		}
 	}
 
@@ -136,7 +166,6 @@ func (t *TablePrinter) ClusterTable(data []*apiv1.Cluster, wide bool) ([]string,
 }
 
 func (t *TablePrinter) ClusterStatusLastErrorTable(data []*apiv1.ClusterStatusLastError, wide bool) ([]string, [][]string, error) {
-
 	var (
 		rows   [][]string
 		header = []string{"Time", "Description", "Codes", "Task"}
@@ -154,4 +183,20 @@ func (t *TablePrinter) ClusterStatusLastErrorTable(data []*apiv1.ClusterStatusLa
 
 	return header, rows, nil
 
+}
+
+func (t *TablePrinter) ClusterMachineTable(data []*adminv1.ClusterServiceGetResponse, wide bool) ([]string, [][]string, error) {
+	var (
+		clusters []*apiv1.Cluster
+		machines = map[string][]*adminv1.Machine{}
+	)
+
+	for _, cluster := range data {
+		cluster := cluster
+
+		clusters = append(clusters, cluster.Cluster)
+		machines[cluster.Cluster.Uuid] = append(machines[cluster.Cluster.Uuid], cluster.Machines...)
+	}
+
+	return t.ClusterTable(clusters, machines, wide)
 }

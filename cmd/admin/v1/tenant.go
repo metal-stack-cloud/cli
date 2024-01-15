@@ -67,8 +67,12 @@ func newTenantCmd(c *config.Config) *cobra.Command {
 
 			return c.DescribePrinter.Print(resp.Msg.Tenant)
 		},
+		ValidArgsFunction: c.Completion.AdminTenantListCompletion,
 	}
+
 	admitCmd.Flags().StringP("coupon-id", "", "", "optional add a coupon with given id, see coupon list for available coupons")
+
+	genericcli.Must(admitCmd.RegisterFlagCompletionFunc("coupon-id", c.Completion.AdminPaymentCouponListCompletion))
 
 	revokeCmd := &cobra.Command{
 		Use:   "revoke",
@@ -92,6 +96,7 @@ func newTenantCmd(c *config.Config) *cobra.Command {
 
 			return c.DescribePrinter.Print(resp.Msg.Tenant)
 		},
+		ValidArgsFunction: c.Completion.AdminTenantListCompletion,
 	}
 
 	return genericcli.NewCmds(cmdsConfig, admitCmd, revokeCmd)
