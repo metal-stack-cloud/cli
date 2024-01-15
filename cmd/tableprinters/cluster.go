@@ -117,8 +117,16 @@ func (t *TablePrinter) ClusterTable(clusters []*apiv1.Cluster, machines map[stri
 				}
 				prefix += "─╴"
 
+				status := machine.Liveliness
+				switch status {
+				case "Alive":
+					status = color.GreenString("✔")
+				default:
+					status = color.RedString("✗")
+				}
+
 				rows = append(rows, []string{
-					"",
+					status,
 					"",
 					"",
 					prefix + machine.Uuid,
