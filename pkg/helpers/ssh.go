@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"os"
 
 	adminv1 "github.com/metal-stack-cloud/api/go/admin/v1"
 
@@ -12,40 +11,27 @@ import (
 	metalvpn "github.com/metal-stack/metal-lib/pkg/vpn"
 )
 
-func FirewallSSHViaVPN(out io.Writer, machineID string, vpn *adminv1.VPN, sshPrivateKey []byte) (err error) {
-	fmt.Fprintf(out, "accessing firewall through vpn at %s ", vpn.Address)
+func SSHViaVPN(out io.Writer, machineID string, creds *adminv1.ClusterServiceCredentialsResponse) error {
+	if creds.SshKeypair == nil || len(creds.SshKeypair.Privatekey) == 0 {
+		return fmt.Errorf("no ssh key found")
+	}
+	if creds.Vpn == nil || creds.Vpn.Authkey == "" {
+		return fmt.Errorf("no vpn connection possible")
+	}
+
+	fmt.Fprintf(out, "accessing firewall through vpn at %s ", creds.Vpn.Address)
 
 	ctx := context.Background()
-	v, err := metalvpn.Connect(ctx, machineID, vpn.Address, vpn.Authkey)
+	v, err := metalvpn.Connect(ctx, machineID, creds.Vpn.Address, creds.Vpn.Authkey)
 	if err != nil {
 		return err
 	}
 	defer v.Close()
 
-	s, err := metalssh.NewClientWithConnection("metal", v.TargetIP, sshPrivateKey, v.Conn)
+	s, err := metalssh.NewClientWithConnection("metal", v.TargetIP, creds.SshKeypair.Privatekey, v.Conn)
 	if err != nil {
 		return err
 	}
 
 	return s.Connect(nil)
-}
-
-// sshClient opens an interactive ssh session to the host on port with user, authenticated by the key.
-func sshClient(user, keyfile, host string, port int, idToken *string) error {
-	privateKey, err := os.ReadFile(keyfile)
-	if err != nil {
-		return err
-	}
-
-	s, err := metalssh.NewClient(user, host, privateKey, port)
-	if err != nil {
-		return err
-	}
-
-	var env *metalssh.Env
-	if idToken != nil {
-		env = &metalssh.Env{"LC_METAL_STACK_OIDC_TOKEN": *idToken}
-	}
-
-	return s.Connect(env)
 }

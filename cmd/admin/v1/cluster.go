@@ -124,6 +124,10 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 		},
 	}
 
+	machineSSHCmd.Flags().String("machine-id", "", "the firewall's machine id to connect to")
+
+	genericcli.Must(machineSSHCmd.RegisterFlagCompletionFunc("machine-id", c.Completion.AdminClusteFirewallListCompletion))
+
 	// metal admin cluster machine
 
 	machineCmd := &cobra.Command{
@@ -328,17 +332,15 @@ func (c *cluster) machineSSH(args []string) error {
 		return err
 	}
 
-	req := &adminv1.ClusterServiceGetRequest{
-		Uuid:         id,
-		WithMachines: true,
+	var (
+		machineID = viper.GetString("machine-id")
+	)
+
+	if machineID == "" {
+		return fmt.Errorf("machine id is required")
 	}
 
-	resp, err := c.c.Client.Adminv1().Cluster().Get(ctx, connect.NewRequest(req))
-	if err != nil {
-		return fmt.Errorf("failed to get cluster: %w", err)
-	}
-
-	sshResp, err := c.c.Client.Adminv1().Cluster().Credentials(ctx, connect.NewRequest(&adminv1.ClusterServiceCredentialsRequest{
+	credsResp, err := c.c.Client.Adminv1().Cluster().Credentials(ctx, connect.NewRequest(&adminv1.ClusterServiceCredentialsRequest{
 		Uuid:    id,
 		WithSsh: true,
 		WithVpn: true,
@@ -347,19 +349,5 @@ func (c *cluster) machineSSH(args []string) error {
 		return fmt.Errorf("failed to get cluster credentials: %w", err)
 	}
 
-	var firewall *adminv1.Machine
-	for _, machine := range resp.Msg.Machines {
-		machine := machine
-
-		if machine.Role == "firewall" {
-			firewall = machine
-			break
-		}
-	}
-
-	if firewall == nil {
-		return fmt.Errorf("no firewall found in cluster")
-	}
-
-	return helpers.FirewallSSHViaVPN(c.c.Out, firewall.Uuid, sshResp.Msg.Vpn, sshResp.Msg.SshKeypair.Privatekey)
+	return helpers.SSHViaVPN(c.c.Out, machineID, credsResp.Msg)
 }
