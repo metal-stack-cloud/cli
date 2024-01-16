@@ -13,6 +13,7 @@ import (
 	"github.com/metal-stack-cloud/cli/cmd/config"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
+	"github.com/spf13/cobra/doc"
 	"github.com/spf13/viper"
 	"golang.org/x/net/context"
 )
@@ -37,6 +38,7 @@ func Execute() {
 }
 
 func newRootCmd(c *config.Config) *cobra.Command {
+
 	rootCmd := &cobra.Command{
 		Use:          config.BinaryName,
 		Aliases:      []string{"m"},
@@ -54,7 +56,9 @@ func newRootCmd(c *config.Config) *cobra.Command {
 	}
 	rootCmd.PersistentFlags().StringP("config", "c", "", "alternative config file path, (default is ~/.metal-stack-cloud/config.yaml)")
 	rootCmd.PersistentFlags().StringP("output-format", "o", "table", "output format (table|wide|markdown|json|yaml|template|jsonraw|yamlraw), wide is a table with more columns, jsonraw and yamlraw do not translate proto enums into string types but leave the original int32 values intact.")
+
 	genericcli.Must(rootCmd.RegisterFlagCompletionFunc("output-format", cobra.FixedCompletions([]string{"table", "wide", "markdown", "json", "yaml", "template"}, cobra.ShellCompDirectiveNoFileComp)))
+
 	rootCmd.PersistentFlags().StringP("template", "", "", `output template for template output-format, go template format. For property names inspect the output of -o json or -o yaml for reference.`)
 	rootCmd.PersistentFlags().Bool("force-color", false, "force colored output even without tty")
 	rootCmd.PersistentFlags().Bool("debug", false, "debug output")
@@ -66,7 +70,20 @@ func newRootCmd(c *config.Config) *cobra.Command {
 
 	genericcli.Must(viper.BindPFlags(rootCmd.PersistentFlags()))
 
+	markdownCmd := &cobra.Command{
+		Use:   "markdown",
+		Short: "create markdown documentation",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return doc.GenMarkdownTree(rootCmd, "./docs")
+		},
+		DisableAutoGenTag: true,
+		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+			recursiveAutoGenDisable(rootCmd)
+		},
+	}
+
 	rootCmd.AddCommand(newContextCmd(c))
+	rootCmd.AddCommand(markdownCmd)
 	adminv1.AddCmds(rootCmd, c)
 	apiv1.AddCmds(rootCmd, c)
 
@@ -107,4 +124,11 @@ func initConfigWithViperCtx(c *config.Config) error {
 	c.Completion.Project = c.GetProject()
 
 	return nil
+}
+
+func recursiveAutoGenDisable(cmd *cobra.Command) {
+	cmd.DisableAutoGenTag = true
+	for _, child := range cmd.Commands() {
+		recursiveAutoGenDisable(child)
+	}
 }

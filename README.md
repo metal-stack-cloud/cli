@@ -11,73 +11,46 @@ $ metal ctx add project-xyz --api-token <your-token> --default-project project-x
 
 The configuration file is by default written to `~/.metal-stack-cloud/config.yaml`.
 
-## Basic commands
+The generated markdown documentation of all the commands can be found [here](./docs/metal.md).
 
-Documentation on how to interact with the CLI (maybe just necessary during development):
+## Installation
 
-### IP
+Download locations:
+
+- [metal-linux-amd64](https://github.com/metal-stack-cloud/cli/releases/latest/download/metal-linux-amd64)
+- [metal-darwin-amd64](https://github.com/metal-stack-cloud/cli/releases/latest/download/metal-darwin-amd64)
+- [metal-darwin-arm64](https://github.com/metal-stack-cloud/cli/releases/latest/download/metal-darwin-arm64)
+- [metal-windows-amd64](https://github.com/metal-stack-cloud/cli/releases/latest/download/metal-windows-amd64)
+
+### Installation on Linux
 
 ```bash
-# list ips
-$ bin/metal ip list --project <project-id>
+curl -LO https://github.com/metal-stack-cloud/cli/releases/latest/download/metal-linux-amd64
+chmod +x metal-linux-amd64
+sudo mv metal-linux-amd64 /usr/local/bin/metal
 ```
 
+### Installation on MacOS
+
+For x86 based Macs:
+
 ```bash
-# create ip from cli
-$ bin/metal ip create --project <project-id> --name <name> --network <network>
+curl -LO https://github.com/metal-stack-cloud/cli/releases/latest/download/metal-darwin-amd64
+chmod +x metal-darwin-amd64
+sudo mv metal-darwin-amd64 /usr/local/bin/metal
 ```
 
-```bash
-# create ip with file option
-#
-#
-# ip.yaml file:
-# name: <ip-name>
-# network: <network>
-# project: <project-id>
-# description: <description>
-# type: <ephemeral | static>
-#
-#
+For Apple Silicon (M1) based Macs:
 
-$ bin/metal ip create -f <file-name>
+```bash
+curl -LO https://github.com/metal-stack-cloud/cli/releases/latest/download/metal-darwin-arm64
+chmod +x metal-darwin-arm64
+sudo mv metal-darwin-arm64 /usr/local/bin/metal
 ```
 
-```bash
-# describe ip
-$ bin/metal ip describe --project <project-id> <ip-uuid>
-```
+### Installation on Windows
 
 ```bash
-# update command to make the ip static
-$ bin/metal ip update --project <project-id> --uuid <ip-uuid>
-```
-
-```bash
-# update ip with file option
-#
-#
-# ip.yaml file:
-# project: <project-id>
-# uuid: <ip-uuid>
-#
-#
-
-$ bin/metal ip update -f <file-name>
-```
-
-### Admin
-
-```bash
-# list all tenants
-$ bin/metal admin tenant list
-
-# admit a tenant
-$ bin/metal admin tenant admit <tenant-id>
-
-# revoke a tenant
-$ bin/metal admin tenant revoke <tenant-id>
-
-# list all coupons
-$ bin/metal admin coupon list
+curl -LO https://github.com/metal-stack-cloud/cli/releases/latest/download/metal-windows-amd64
+copy metal-windows-amd64 metal.exe
 ```

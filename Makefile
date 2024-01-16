@@ -19,7 +19,7 @@ LINKMODE := $(LINKMODE) \
 		 -X 'github.com/metal-stack/v.GitSHA1=$(SHA)' \
 		 -X 'github.com/metal-stack/v.BuildDate=$(BUILDDATE)'
 
-all: test cli
+all: test cli markdown
 
 .PHONY: cli
 cli:
@@ -38,3 +38,9 @@ test:
 .PHONY: golint
 golint:
 	golangci-lint run -p bugs -p unused -D protogetter
+
+.PHONY: markdown
+markdown:
+	rm -rf docs
+	mkdir -p docs
+	bin/$(BINARY) markdown
