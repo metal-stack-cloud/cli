@@ -1,6 +1,6 @@
 # metal-stack-cloud cli
 
-[![Markdown Docs](https://img.shields.io/badge/markdown-docs-blue?link=https%3A%2F%2Fgithub.com%2Fmetal-stack-cloud%2Fcli%2Fdocs)](./docs)
+[![Markdown Docs](https://img.shields.io/badge/markdown-docs-blue?link=https%3A%2F%2Fgithub.com%2Fmetal-stack-cloud%2Fcli%2Fdocs)](./docs/metal.md)
 
 To work with this CLI, it is first necessary to create a metalstack.cloud api-token. This can be issued through the cloud console.
 
