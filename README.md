@@ -5,8 +5,8 @@ To work with this CLI, it is first necessary to create a metalstack.cloud api-to
 Once you got the token, you probably want to create a CLI context:
 
 ```bash
-$ metal ctx add project-xyz --api-token <your-token> --default-project project-xyz --activate
-✔ added context "project-xyz"
+$ metal ctx add devel --api-token <your-token> --default-project project-xyz --activate
+✔ added context "devel"
 ```
 
 The configuration file is by default written to `~/.metal-stack-cloud/config.yaml`.
