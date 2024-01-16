@@ -75,32 +75,6 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 	kubeconfigCmd.Flags().Bool("merge", true, "merges the kubeconfig into default kubeconfig instead of printing it to the console")
 	kubeconfigCmd.Flags().String("kubeconfig", "", "specify an explicit path for the merged kubeconfig to be written, defaults to default kubeconfig paths if not provided")
 
-	// metal admin cluster logs
-
-	logsCmd := &cobra.Command{
-		Use:   "logs",
-		Short: "fetch logs of a cluster",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return w.logs(args)
-		},
-		ValidArgsFunction: c.Completion.AdminClusterListCompletion,
-	}
-
-	// metal admin cluster reconcile
-
-	reconcileCmd := &cobra.Command{
-		Use:   "reconcile",
-		Short: "reconcile a cluster",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return w.reconcile(args)
-		},
-		ValidArgsFunction: c.Completion.AdminClusterListCompletion,
-	}
-
-	reconcileCmd.Flags().String("operation", "reconcile", "specifies the reconcile operation to trigger")
-
-	genericcli.Must(reconcileCmd.RegisterFlagCompletionFunc("operation", c.Completion.ClusterAdminOperationCompletion))
-
 	// metal admin cluster machine list
 
 	machineListCmd := &cobra.Command{
@@ -137,7 +111,7 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 
 	machineCmd.AddCommand(machineListCmd, machineSSHCmd)
 
-	return genericcli.NewCmds(cmdsConfig, kubeconfigCmd, reconcileCmd, logsCmd, machineCmd)
+	return genericcli.NewCmds(cmdsConfig, kubeconfigCmd, machineCmd)
 }
 
 func (c *cluster) Create(rq any) (*apiv1.Cluster, error) {
@@ -243,62 +217,6 @@ func (c *cluster) kubeconfig(args []string) error {
 	fmt.Fprintf(c.c.Out, "%s merged context %q into %s\n", color.GreenString("✔"), merged.ContextName, merged.Path)
 
 	return nil
-}
-
-func (c *cluster) reconcile(args []string) error {
-	ctx, cancel := c.c.NewRequestContext()
-	defer cancel()
-
-	id, err := genericcli.GetExactlyOneArg(args)
-	if err != nil {
-		return err
-	}
-
-	var operation adminv1.Operate
-
-	switch op := viper.GetString("operation"); op {
-	case "reconcile":
-		operation = adminv1.Operate_OPERATE_RECONCILE
-	case "maintain":
-		operation = adminv1.Operate_OPERATE_MAINTAIN
-	case "retry":
-		operation = adminv1.Operate_OPERATE_RETRY
-	default:
-		return fmt.Errorf("unsupported operation: %s", op)
-	}
-
-	req := &adminv1.ClusterServiceOperateRequest{
-		Uuid:    id,
-		Operate: operation,
-	}
-
-	resp, err := c.c.Client.Adminv1().Cluster().Operate(ctx, connect.NewRequest(req))
-	if err != nil {
-		return fmt.Errorf("failed to reconcile cluster: %w", err)
-	}
-
-	return c.c.DescribePrinter.Print(resp.Msg.Cluster)
-}
-
-func (c *cluster) logs(args []string) error {
-	ctx, cancel := c.c.NewRequestContext()
-	defer cancel()
-
-	id, err := genericcli.GetExactlyOneArg(args)
-	if err != nil {
-		return err
-	}
-
-	req := &adminv1.ClusterServiceGetRequest{
-		Uuid: id,
-	}
-
-	resp, err := c.c.Client.Adminv1().Cluster().Get(ctx, connect.NewRequest(req))
-	if err != nil {
-		return fmt.Errorf("failed to get cluster: %w", err)
-	}
-
-	return c.c.ListPrinter.Print(resp.Msg.Cluster.Status.LastErrors)
 }
 
 func (c *cluster) machineList(args []string) error {

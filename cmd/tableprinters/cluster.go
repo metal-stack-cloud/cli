@@ -2,7 +2,7 @@ package tableprinters
 
 import (
 	"fmt"
-	"strings"
+	"time"
 
 	"github.com/dustin/go-humanize"
 	"github.com/fatih/color"
@@ -168,21 +168,60 @@ func (t *TablePrinter) ClusterTable(clusters []*apiv1.Cluster, machines map[stri
 func (t *TablePrinter) ClusterStatusLastErrorTable(data []*apiv1.ClusterStatusLastError, wide bool) ([]string, [][]string, error) {
 	var (
 		rows   [][]string
-		header = []string{"Time", "Description", "Codes", "Task"}
+		header = []string{"Time", "Description", "Task"}
 	)
 
 	for _, e := range data {
+		e := e
+
 		rows = append(rows, []string{
-			e.LastUpdateTime.String(),
+			e.LastUpdateTime.AsTime().Format(time.RFC1123),
 			e.Description,
-			strings.Join(e.Codes, ","),
 			*e.TaskId,
 		},
 		)
 	}
 
-	return header, rows, nil
+	t.t.MutateTable(func(table *tablewriter.Table) {
+		table.SetAutoWrapText(false)
+	})
 
+	return header, rows, nil
+}
+
+func (t *TablePrinter) ClusterStatusConditionsTable(data []*apiv1.ClusterStatusCondition, wide bool) ([]string, [][]string, error) {
+	var (
+		rows   [][]string
+		header = []string{"", "Type", "Message", "Reason", "Last Update"}
+	)
+
+	for _, condition := range data {
+		condition := condition
+
+		status := condition.Status
+		switch status {
+		case "True":
+			status = color.GreenString("✔")
+		case "False":
+			status = color.RedString("✗")
+		default:
+			status = color.YellowString("?")
+		}
+
+		rows = append(rows, []string{
+			status,
+			condition.Type,
+			condition.StatusMessage,
+			condition.Reason,
+			condition.LastUpdateTime.AsTime().Format(time.RFC1123),
+		})
+	}
+
+	t.t.MutateTable(func(table *tablewriter.Table) {
+		table.SetAutoWrapText(false)
+	})
+
+	return header, rows, nil
 }
 
 func (t *TablePrinter) ClusterMachineTable(data []*adminv1.ClusterServiceGetResponse, wide bool) ([]string, [][]string, error) {
