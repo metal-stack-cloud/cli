@@ -18,8 +18,28 @@ func (c *Completion) ClusterListCompletion(cmd *cobra.Command, args []string, to
 		return nil, cobra.ShellCompDirectiveError
 	}
 	var names []string
-	for _, s := range resp.Msg.Clusters {
-		names = append(names, s.Uuid+"\t"+s.Name)
+	for _, c := range resp.Msg.Clusters {
+		c := c
+		names = append(names, c.Uuid+"\t"+c.Name)
+	}
+	return names, cobra.ShellCompDirectiveNoFileComp
+}
+
+func (c *Completion) ClusterWorkerGroupsCompletion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	req := &apiv1.ClusterServiceListRequest{
+		Project: c.Project,
+	}
+	resp, err := c.Client.Apiv1().Cluster().List(c.Ctx, connect.NewRequest(req))
+	if err != nil {
+		return nil, cobra.ShellCompDirectiveError
+	}
+	var names []string
+	for _, c := range resp.Msg.Clusters {
+		c := c
+		for _, w := range c.Workers {
+			w := w
+			names = append(names, w.Name)
+		}
 	}
 	return names, cobra.ShellCompDirectiveNoFileComp
 }

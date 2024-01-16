@@ -324,7 +324,7 @@ ID                                     TENANT        PROJECT   NAME       PARTIT
 					"--maintenance-hour", strconv.Itoa(int(want.Maintenance.TimeWindow.Begin.Hour)),
 					"--maintenance-minute", strconv.Itoa(int(want.Maintenance.TimeWindow.Begin.Minute)),
 					"--maintenance-timezone", want.Maintenance.TimeWindow.Begin.Timezone,
-					"--worker-name", want.Workers[0].Name,
+					"--worker-group", want.Workers[0].Name,
 					"--worker-min", strconv.Itoa(int(want.Workers[0].Minsize)),
 					"--worker-max", strconv.Itoa(int(want.Workers[0].Maxsize)),
 					"--worker-max-surge", strconv.Itoa(int(want.Workers[0].Maxsurge)),
@@ -358,8 +358,16 @@ ID                                     TENANT        PROJECT   NAME       PARTIT
 					"--maintenance-hour", strconv.Itoa(int(want.Maintenance.TimeWindow.Begin.Hour)),
 					"--maintenance-minute", strconv.Itoa(int(want.Maintenance.TimeWindow.Begin.Minute)),
 					"--maintenance-timezone", want.Maintenance.TimeWindow.Begin.Timezone,
+					"--worker-group", want.Workers[0].Name,
+					"--worker-min", strconv.Itoa(int(want.Workers[0].Minsize)),
+					"--worker-max", strconv.Itoa(int(want.Workers[0].Maxsize)),
+					"--worker-max-surge", strconv.Itoa(int(want.Workers[0].Maxsurge)),
+					"--worker-max-unavailable", strconv.Itoa(int(want.Workers[0].Maxunavailable)),
+					"--worker-type", want.Workers[0].MachineType,
+					"--skip-security-prompts",
 				}
-				AssertExhaustiveArgs(t, args, commonExcludedFileArgs()...)
+				exclude := append(commonExcludedFileArgs(), "remove-worker-group")
+				AssertExhaustiveArgs(t, args, exclude...)
 				return args
 			},
 			ClientMocks: &apitests.ClientMockFns{

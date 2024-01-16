@@ -2,6 +2,7 @@ package v1
 
 import (
 	"fmt"
+	"slices"
 	"time"
 
 	"connectrpc.com/connect"
@@ -54,7 +55,7 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 			cmd.Flags().Int32("maintenance-minute", 0, "minute in which cluster maintenance is allowed to take place")
 			cmd.Flags().String("maintenance-timezone", time.Local.String(), "timezone used for the maintenance time window") // nolint
 			cmd.Flags().Duration("maintenance-duration", 2*time.Hour, "duration in which cluster maintenance is allowed to take place")
-			cmd.Flags().String("worker-name", "group-0", "the name of the initial worker group")
+			cmd.Flags().String("worker-group", "group-0", "the name of the initial worker group")
 			cmd.Flags().Uint32("worker-min", 1, "the minimum amount of worker nodes of the worker group")
 			cmd.Flags().Uint32("worker-max", 3, "the maximum amount of worker nodes of the worker group")
 			cmd.Flags().Uint32("worker-max-surge", 1, "the maximum amount of new worker nodes added to the worker group during a rolling update")
@@ -83,9 +84,18 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 			cmd.Flags().Uint32("maintenance-minute", 0, "minute in which cluster maintenance is allowed to take place")
 			cmd.Flags().String("maintenance-timezone", time.Local.String(), "timezone used for the maintenance time window") // nolint
 			cmd.Flags().Duration("maintenance-duration", 2*time.Hour, "duration in which cluster maintenance is allowed to take place")
+			cmd.Flags().String("worker-group", "", "the name of the worker group to add, update or remove")
+			cmd.Flags().Uint32("worker-min", 1, "the minimum amount of worker nodes of the worker group")
+			cmd.Flags().Uint32("worker-max", 3, "the maximum amount of worker nodes of the worker group")
+			cmd.Flags().Uint32("worker-max-surge", 1, "the maximum amount of new worker nodes added to the worker group during a rolling update")
+			cmd.Flags().Uint32("worker-max-unavailable", 0, "the maximum amount of worker nodes removed from the worker group during a rolling update")
+			cmd.Flags().String("worker-type", "", "the worker type of the initial worker group")
+			cmd.Flags().Bool("remove-worker-group", false, "if set the selected worker group is being removed")
 
 			genericcli.Must(cmd.RegisterFlagCompletionFunc("project", c.Completion.ProjectListCompletion))
 			genericcli.Must(cmd.RegisterFlagCompletionFunc("kubernetes-version", c.Completion.KubernetesVersionAssetListCompletion))
+			genericcli.Must(cmd.RegisterFlagCompletionFunc("worker-type", c.Completion.MachineTypeAssetListCompletion))
+			genericcli.Must(cmd.RegisterFlagCompletionFunc("worker-group", c.Completion.ClusterWorkerGroupsCompletion))
 		},
 		UpdateRequestFromCLI: w.updateFromCLI,
 	}
@@ -173,14 +183,9 @@ func (c *cluster) createFromCLI() (*apiv1.ClusterServiceCreateRequest, error) {
 		}
 	}
 
-	if viper.IsSet("worker-name") ||
-		viper.IsSet("worker-min") ||
-		viper.IsSet("worker-max") ||
-		viper.IsSet("worker-max-surge") ||
-		viper.IsSet("worker-max-unavailable") ||
-		viper.IsSet("worker-type") {
+	if helpers.IsAnyViperFlagSet("worker-group", "worker-min", "worker-max", "worker-max-surge", "worker-max-unavailable", "worker-type") {
 		rq.Workers = append(rq.Workers, &apiv1.Worker{
-			Name:           viper.GetString("worker-name"),
+			Name:           viper.GetString("worker-group"),
 			MachineType:    viper.GetString("worker-type"),
 			Minsize:        viper.GetUint32("worker-min"),
 			Maxsize:        viper.GetUint32("worker-max"),
@@ -267,11 +272,33 @@ func ClusterResponseToCreate(r *apiv1.Cluster) *apiv1.ClusterServiceCreateReques
 
 func ClusterResponseToUpdate(r *apiv1.Cluster) *apiv1.ClusterServiceUpdateRequest {
 	return &apiv1.ClusterServiceUpdateRequest{
-		Uuid:       r.Uuid,
-		Project:    r.Project,
-		Kubernetes: r.Kubernetes,
-		// Workers:     workers, // TODO
+		Uuid:        r.Uuid,
+		Project:     r.Project,
+		Kubernetes:  r.Kubernetes,
+		Workers:     clusterWorkersToWorkerUpdate(r.Workers),
 		Maintenance: r.Maintenance,
+	}
+}
+
+func clusterWorkersToWorkerUpdate(workers []*apiv1.Worker) []*apiv1.WorkerUpdate {
+	var res []*apiv1.WorkerUpdate
+	for _, worker := range workers {
+		worker := worker
+
+		res = append(res, clusterWorkerToWorkerUpdate(worker))
+	}
+
+	return res
+}
+
+func clusterWorkerToWorkerUpdate(worker *apiv1.Worker) *apiv1.WorkerUpdate {
+	return &apiv1.WorkerUpdate{
+		Name:           worker.Name,
+		MachineType:    pointer.Pointer(worker.MachineType),
+		Minsize:        pointer.Pointer(worker.Minsize),
+		Maxsize:        pointer.Pointer(worker.Maxsize),
+		Maxsurge:       pointer.Pointer(worker.Maxsurge),
+		Maxunavailable: pointer.Pointer(worker.Maxunavailable),
 	}
 }
 
@@ -299,10 +326,8 @@ func (c *cluster) updateFromCLI(args []string) (*apiv1.ClusterServiceUpdateReque
 	}
 
 	rq := &apiv1.ClusterServiceUpdateRequest{
-		Uuid:        uuid,
-		Project:     c.c.GetProject(),
-		Kubernetes:  &apiv1.KubernetesSpec{},
-		Maintenance: &apiv1.Maintenance{},
+		Uuid:    uuid,
+		Project: cluster.Project,
 	}
 
 	if viper.IsSet("maintenance-hour") || viper.IsSet("maintenance-minute") || viper.IsSet("maintenance-duration") {
@@ -323,7 +348,120 @@ func (c *cluster) updateFromCLI(args []string) (*apiv1.ClusterServiceUpdateReque
 	}
 
 	if viper.IsSet("kubernetes-version") {
+		rq.Kubernetes = cluster.Kubernetes
+
 		rq.Kubernetes.Version = viper.GetString("kubernetes-version")
+	}
+
+	findWorkerGroup := func() (*apiv1.Worker, error) {
+		if viper.GetString("worker-group") == "" {
+			if len(cluster.Workers) != 1 {
+				return nil, fmt.Errorf("please specify the group to act on using the flag --worker-group")
+			}
+
+			return cluster.Workers[0], nil
+		}
+
+		for _, worker := range cluster.Workers {
+			worker := worker
+			if worker.Name == viper.GetString("worker-group") {
+				return worker, nil
+			}
+		}
+
+		return nil, nil
+	}
+
+	if helpers.IsAnyViperFlagSet("worker-group", "worker-min", "worker-max", "worker-max-surge", "worker-max-unavailable", "worker-type", "remove-worker-group") {
+		type operation string
+
+		const (
+			update operation = "Updating"
+			delete operation = "Deleting"
+			add    operation = "Adding"
+		)
+
+		var (
+			newWorkers []*apiv1.WorkerUpdate
+			showPrompt = func(op operation, name string) error {
+				if viper.GetBool("skip-security-prompts") {
+					return nil
+				}
+
+				return genericcli.PromptCustom(&genericcli.PromptConfig{
+					Message:     fmt.Sprintf("%s worker group %q, continue?", op, name),
+					ShowAnswers: true,
+					Out:         c.c.Out,
+				})
+			}
+		)
+
+		selectedGroup, err := findWorkerGroup()
+		if err != nil {
+			return nil, err
+		}
+
+		if selectedGroup == nil {
+			if viper.IsSet("remove-worker-group") {
+				return nil, fmt.Errorf("cluster has no worker group with name %q", selectedGroup.Name)
+			}
+
+			if err := showPrompt(add, viper.GetString("worker-group")); err != nil {
+				return nil, err
+			}
+
+			newWorkers = append(clusterWorkersToWorkerUpdate(cluster.Workers), &apiv1.WorkerUpdate{
+				Name:           viper.GetString("worker-group"),
+				MachineType:    pointer.PointerOrNil(viper.GetString("worker-type")),
+				Minsize:        pointer.PointerOrNil(viper.GetUint32("worker-min")),
+				Maxsize:        pointer.PointerOrNil(viper.GetUint32("worker-max")),
+				Maxsurge:       pointer.PointerOrNil(viper.GetUint32("worker-max-surge")),
+				Maxunavailable: pointer.PointerOrNil(viper.GetUint32("worker-max-unavailable")),
+			})
+		} else {
+			if viper.IsSet("remove-worker-group") {
+				if err := showPrompt(delete, selectedGroup.Name); err != nil {
+					return nil, err
+				}
+
+				newWorkers = clusterWorkersToWorkerUpdate(cluster.Workers)
+				slices.DeleteFunc(newWorkers, func(w *apiv1.WorkerUpdate) bool {
+					return w.Name == selectedGroup.Name
+				})
+			} else {
+				if err := showPrompt(update, selectedGroup.Name); err != nil {
+					return nil, err
+				}
+
+				for _, worker := range cluster.Workers {
+					worker := worker
+
+					workerUpdate := clusterWorkerToWorkerUpdate(worker)
+
+					if worker.Name == selectedGroup.Name {
+						if viper.IsSet("worker-min") {
+							workerUpdate.Minsize = pointer.Pointer(viper.GetUint32("worker-min"))
+						}
+						if viper.IsSet("worker-max") {
+							workerUpdate.Maxsize = pointer.Pointer(viper.GetUint32("worker-max"))
+						}
+						if viper.IsSet("worker-max-surge") {
+							workerUpdate.Maxsurge = pointer.Pointer(viper.GetUint32("worker-max-surge"))
+						}
+						if viper.IsSet("worker-max-unavailable") {
+							workerUpdate.Maxunavailable = pointer.Pointer(viper.GetUint32("worker-max-unavailable"))
+						}
+						if viper.IsSet("worker-type") {
+							workerUpdate.MachineType = pointer.Pointer(viper.GetString("worker-type"))
+						}
+					}
+
+					newWorkers = append(newWorkers, workerUpdate)
+				}
+			}
+		}
+
+		rq.Workers = newWorkers
 	}
 
 	return rq, nil
