@@ -22,6 +22,8 @@ func Execute() {
 	cfg := &config.Config{
 		Fs:         afero.NewOsFs(),
 		Out:        os.Stdout,
+		PromptOut:  os.Stdout,
+		In:         os.Stdin,
 		Completion: &completion.Completion{},
 	}
 

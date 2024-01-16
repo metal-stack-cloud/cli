@@ -25,7 +25,9 @@ const (
 
 type Config struct {
 	Fs              afero.Fs
+	In              io.Reader
 	Out             io.Writer
+	PromptOut       io.Writer
 	Client          client.Client
 	ListPrinter     printers.Printer
 	DescribePrinter printers.Printer

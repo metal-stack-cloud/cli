@@ -33,11 +33,11 @@ metal cluster create [flags]
   -p, --project string                  project of the cluster
       --skip-security-prompts           skips security prompt for bulk operations
       --timestamps                      when used with --file (bulk operation): prints timestamps in-between the operations
+      --worker-group string             the name of the initial worker group (default "group-0")
       --worker-max uint32               the maximum amount of worker nodes of the worker group (default 3)
       --worker-max-surge uint32         the maximum amount of new worker nodes added to the worker group during a rolling update (default 1)
       --worker-max-unavailable uint32   the maximum amount of worker nodes removed from the worker group during a rolling update
       --worker-min uint32               the minimum amount of worker nodes of the worker group (default 1)
-      --worker-name string              the name of the initial worker group (default "group-0")
       --worker-type string              the worker type of the initial worker group
 ```
 
