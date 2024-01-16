@@ -403,7 +403,7 @@ func (c *cluster) updateFromCLI(args []string) (*apiv1.ClusterServiceUpdateReque
 
 		if selectedGroup == nil {
 			if viper.IsSet("remove-worker-group") {
-				return nil, fmt.Errorf("cluster has no worker group with name %q", selectedGroup.Name)
+				return nil, fmt.Errorf("cluster has no worker group with name %q", viper.GetString("worker-group"))
 			}
 
 			if err := showPrompt(add, viper.GetString("worker-group")); err != nil {
