@@ -2,7 +2,7 @@
 
 [![Markdown Docs](https://img.shields.io/badge/markdown-docs-blue?link=https%3A%2F%2Fgithub.com%2Fmetal-stack-cloud%2Fcli%2Fdocs)](./docs/metal.md)
 
-This is the official CLI for accessing the [metalstack.cloud](https://metalstack.cloud) API.
+This is the official CLI for accessing the API of [metalstack.cloud](https://metalstack.cloud).
 
 To work with this CLI, it is first necessary to create an api-token. This can be issued through the [cloud console](https://console.metalstack.cloud/token).
 
