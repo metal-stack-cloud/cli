@@ -36,5 +36,7 @@ manage kubernetes clusters
 * [metal cluster kubeconfig](metal_cluster_kubeconfig.md)	 - fetch kubeconfig of a cluster
 * [metal cluster list](metal_cluster_list.md)	 - list all clusters
 * [metal cluster monitoring](metal_cluster_monitoring.md)	 - fetch endpoints and access credentials to cluster monitoring
+* [metal cluster reconcile](metal_cluster_reconcile.md)	 - reconcile a cluster
+* [metal cluster status](metal_cluster_status.md)	 - fetch status of a cluster
 * [metal cluster update](metal_cluster_update.md)	 - updates the cluster
 

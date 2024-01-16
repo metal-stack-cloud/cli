@@ -100,6 +100,8 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 		UpdateRequestFromCLI: w.updateFromCLI,
 	}
 
+	// cluster kubeconfig
+
 	kubeconfigCmd := &cobra.Command{
 		Use:   "kubeconfig",
 		Short: "fetch kubeconfig of a cluster",
@@ -115,6 +117,8 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 	kubeconfigCmd.Flags().String("kubeconfig", "", "specify an explicit path for the merged kubeconfig to be written, defaults to default kubeconfig paths if not provided")
 
 	genericcli.Must(kubeconfigCmd.RegisterFlagCompletionFunc("project", c.Completion.ProjectListCompletion))
+
+	// cluster monitoring
 
 	monitoringCmd := &cobra.Command{
 		Use:   "monitoring",
@@ -139,7 +143,33 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 
 	genericcli.Must(monitoringCmd.RegisterFlagCompletionFunc("project", c.Completion.ProjectListCompletion))
 
-	return genericcli.NewCmds(cmdsConfig, kubeconfigCmd, monitoringCmd)
+	// cluster reconcile
+
+	reconcileCmd := &cobra.Command{
+		Use:   "reconcile",
+		Short: "reconcile a cluster",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return w.reconcile(args)
+		},
+		ValidArgsFunction: c.Completion.ClusterListCompletion,
+	}
+
+	reconcileCmd.Flags().String("operation", "reconcile", "specifies the reconcile operation to trigger")
+
+	genericcli.Must(reconcileCmd.RegisterFlagCompletionFunc("operation", c.Completion.ClusterOperationCompletion))
+
+	// metal cluster status
+
+	statusCmd := &cobra.Command{
+		Use:   "status",
+		Short: "fetch status of a cluster",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return w.status(args)
+		},
+		ValidArgsFunction: c.Completion.ClusterListCompletion,
+	}
+
+	return genericcli.NewCmds(cmdsConfig, kubeconfigCmd, monitoringCmd, reconcileCmd, statusCmd)
 }
 
 func (c *cluster) Create(req *apiv1.ClusterServiceCreateRequest) (*apiv1.Cluster, error) {
@@ -516,4 +546,74 @@ func (c *cluster) kubeconfig(args []string) error {
 	fmt.Fprintf(c.c.Out, "%s merged context %q into %s\n", color.GreenString("✔"), merged.ContextName, merged.Path)
 
 	return nil
+}
+
+func (c *cluster) reconcile(args []string) error {
+	ctx, cancel := c.c.NewRequestContext()
+	defer cancel()
+
+	id, err := genericcli.GetExactlyOneArg(args)
+	if err != nil {
+		return err
+	}
+
+	var operation apiv1.Operate
+
+	switch op := viper.GetString("operation"); op {
+	case "reconcile":
+		operation = apiv1.Operate_OPERATE_RECONCILE
+	case "maintain":
+		operation = apiv1.Operate_OPERATE_MAINTAIN
+	case "retry":
+		operation = apiv1.Operate_OPERATE_RETRY
+	default:
+		return fmt.Errorf("unsupported operation: %s", op)
+	}
+
+	req := &apiv1.ClusterServiceOperateRequest{
+		Uuid:    id,
+		Project: c.c.GetProject(),
+		Operate: operation,
+	}
+
+	resp, err := c.c.Client.Apiv1().Cluster().Operate(ctx, connect.NewRequest(req))
+	if err != nil {
+		return fmt.Errorf("failed to reconcile cluster: %w", err)
+	}
+
+	return c.c.DescribePrinter.Print(resp.Msg.Cluster)
+}
+
+func (c *cluster) status(args []string) error {
+	ctx, cancel := c.c.NewRequestContext()
+	defer cancel()
+
+	id, err := genericcli.GetExactlyOneArg(args)
+	if err != nil {
+		return err
+	}
+
+	req := &apiv1.ClusterServiceGetRequest{
+		Uuid:    id,
+		Project: c.c.GetProject(),
+	}
+
+	resp, err := c.c.Client.Apiv1().Cluster().Get(ctx, connect.NewRequest(req))
+	if err != nil {
+		return fmt.Errorf("failed to get cluster: %w", err)
+	}
+
+	err = c.c.ListPrinter.Print(resp.Msg.Cluster.Status.Conditions)
+	if err != nil {
+		return err
+	}
+
+	if len(resp.Msg.Cluster.Status.LastErrors) == 0 {
+		return nil
+	}
+
+	fmt.Fprintln(c.c.Out)
+	fmt.Fprintln(c.c.Out, "Last Errors:")
+
+	return c.c.ListPrinter.Print(resp.Msg.Cluster.Status.LastErrors)
 }
