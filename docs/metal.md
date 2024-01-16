@@ -5,7 +5,6 @@ cli for managing entities in metal-stack-cloud
 ### Options
 
 ```
-      --api-ca-file string     the path to the ca file of the api server
       --api-token string       the token used for api requests
       --api-url string         the url to the metalstack.cloud api (default "https://api.metalstack.cloud")
   -c, --config string          alternative config file path, (default is ~/.metal-stack-cloud/config.yaml)

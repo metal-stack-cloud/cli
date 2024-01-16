@@ -68,7 +68,6 @@ func newRootCmd(c *config.Config) *cobra.Command {
 
 	rootCmd.PersistentFlags().String("api-url", "https://api.metalstack.cloud", "the url to the metalstack.cloud api")
 	rootCmd.PersistentFlags().String("api-token", "", "the token used for api requests")
-	rootCmd.PersistentFlags().String("api-ca-file", "", "the path to the ca file of the api server")
 
 	genericcli.Must(viper.BindPFlags(rootCmd.PersistentFlags()))
 

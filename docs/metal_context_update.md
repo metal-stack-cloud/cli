@@ -20,7 +20,6 @@ metal context update <context-name> [flags]
 ### Options inherited from parent commands
 
 ```
-      --api-ca-file string     the path to the ca file of the api server
   -c, --config string          alternative config file path, (default is ~/.metal-stack-cloud/config.yaml)
       --debug                  debug output
       --force-color            force colored output even without tty
