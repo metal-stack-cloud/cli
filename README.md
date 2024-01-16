@@ -1,5 +1,7 @@
 # metal-stack-cloud cli
 
+![Markdown Docs](https://img.shields.io/badge/markdown-docs-blue)
+
 To work with this CLI, it is first necessary to create a metalstack.cloud api-token. This can be issues through the cloud console.
 
 Once you got the token, you probably want to create a CLI context:
