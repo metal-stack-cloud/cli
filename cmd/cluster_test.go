@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bytes"
 	"strconv"
 	"testing"
 	"time"
@@ -364,12 +365,12 @@ ID                                     TENANT        PROJECT   NAME       PARTIT
 					"--worker-max-surge", strconv.Itoa(int(want.Workers[0].Maxsurge)),
 					"--worker-max-unavailable", strconv.Itoa(int(want.Workers[0].Maxunavailable)),
 					"--worker-type", want.Workers[0].MachineType,
-					"--skip-security-prompts",
 				}
 				exclude := append(commonExcludedFileArgs(), "remove-worker-group")
 				AssertExhaustiveArgs(t, args, exclude...)
 				return args
 			},
+			MockStdin: bytes.NewBufferString("y"),
 			ClientMocks: &apitests.ClientMockFns{
 				Apiv1Mocks: &apitests.Apiv1MockFns{
 					Cluster: func(m *mock.Mock) {

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 	"testing"
@@ -40,6 +41,7 @@ type Test[R any] struct {
 
 	ClientMocks *apitests.ClientMockFns
 	FsMocks     func(fs afero.Fs, want R)
+	MockStdin   *bytes.Buffer
 
 	DisableMockClient bool // can switch off mock client creation
 
@@ -93,11 +95,18 @@ func (c *Test[R]) newMockConfig(t *testing.T) (any, *bytes.Buffer, *config.Confi
 		c.FsMocks(fs, c.Want)
 	}
 
+	var in io.Reader
+	if c.MockStdin != nil {
+		in = bytes.NewReader(c.MockStdin.Bytes())
+	}
+
 	var (
 		out    bytes.Buffer
 		config = &config.Config{
 			Fs:         fs,
 			Out:        &out,
+			In:         in,
+			PromptOut:  io.Discard,
 			Completion: &completion.Completion{},
 			Client:     mock.Client(c.ClientMocks),
 		}

@@ -391,7 +391,8 @@ func (c *cluster) updateFromCLI(args []string) (*apiv1.ClusterServiceUpdateReque
 				return genericcli.PromptCustom(&genericcli.PromptConfig{
 					Message:     fmt.Sprintf("%s worker group %q, continue?", op, name),
 					ShowAnswers: true,
-					Out:         c.c.Out,
+					Out:         c.c.PromptOut,
+					In:          c.c.In,
 				})
 			}
 		)
