@@ -23,21 +23,31 @@ func newProjectCmd(c *config.Config) *cobra.Command {
 		c: c,
 	}
 
-	cmdsConfig := &genericcli.CmdsConfig[any, any, *apiv1.Project]{
+	cmdsConfig := &genericcli.CmdsConfig[*apiv1.ProjectServiceCreateRequest, *apiv1.ProjectServiceUpdateRequest, *apiv1.Project]{
 		BinaryName:      config.BinaryName,
-		GenericCLI:      genericcli.NewGenericCLI[any, any, *apiv1.Project](w).WithFS(c.Fs),
+		GenericCLI:      genericcli.NewGenericCLI[*apiv1.ProjectServiceCreateRequest, *apiv1.ProjectServiceUpdateRequest, *apiv1.Project](w).WithFS(c.Fs),
 		Singular:        "project",
 		Plural:          "projects",
 		Description:     "manage api projects",
 		Sorter:          sorters.ProjectSorter(),
 		DescribePrinter: func() printers.Printer { return c.DescribePrinter },
 		ListPrinter:     func() printers.Printer { return c.ListPrinter },
-		OnlyCmds:        genericcli.OnlyCmds(genericcli.ListCmd, genericcli.DescribeCmd),
 		ListCmdMutateFn: func(cmd *cobra.Command) {
 			cmd.Flags().String("name", "", "lists only projects with the given name")
 			cmd.Flags().String("tenant", "", "lists only project with the given tenant")
 		},
-		ValidArgsFn: w.c.Completion.ProjectListCompletion,
+		CreateCmdMutateFn: func(cmd *cobra.Command) {
+			cmd.Flags().String("name", "", "the name of the project to create")
+			cmd.Flags().String("description", "", "the description of the project to create")
+			cmd.Flags().String("tenant", "", "the tenant of this project, defaults to tenant of the default project")
+		},
+		CreateRequestFromCLI: w.createRequestFromCLI,
+		UpdateCmdMutateFn: func(cmd *cobra.Command) {
+			cmd.Flags().String("name", "", "the name of the project to update")
+			cmd.Flags().String("description", "", "the description of the project to update")
+		},
+		UpdateRequestFromCLI: w.updateRequestFromCLI,
+		ValidArgsFn:          w.c.Completion.ProjectListCompletion,
 	}
 
 	return genericcli.NewCmds(cmdsConfig)
@@ -76,18 +86,91 @@ func (c *project) List() ([]*apiv1.Project, error) {
 	return resp.Msg.GetProjects(), nil
 }
 
-func (t *project) Create(rq any) (*apiv1.Project, error) {
-	panic("unimplemented")
+func (c *project) Create(rq *apiv1.ProjectServiceCreateRequest) (*apiv1.Project, error) {
+	ctx, cancel := c.c.NewRequestContext()
+	defer cancel()
+
+	resp, err := c.c.Client.Apiv1().Project().Create(ctx, connect.NewRequest(rq))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create project: %w", err)
+	}
+
+	return resp.Msg.Project, nil
 }
 
-func (t *project) Delete(id string) (*apiv1.Project, error) {
-	panic("unimplemented")
+func (c *project) Delete(id string) (*apiv1.Project, error) {
+	ctx, cancel := c.c.NewRequestContext()
+	defer cancel()
+
+	resp, err := c.c.Client.Apiv1().Project().Delete(ctx, connect.NewRequest(&apiv1.ProjectServiceDeleteRequest{
+		Project: id,
+	}))
+	if err != nil {
+		return nil, fmt.Errorf("failed to delete project: %w", err)
+	}
+
+	return resp.Msg.Project, nil
 }
 
-func (t *project) Convert(r *apiv1.Project) (string, any, any, error) {
-	panic("unimplemented")
+func (c *project) Convert(r *apiv1.Project) (string, *apiv1.ProjectServiceCreateRequest, *apiv1.ProjectServiceUpdateRequest, error) {
+	return r.Uuid, &apiv1.ProjectServiceCreateRequest{
+			Login:       r.Tenant,
+			Name:        r.Name,
+			Description: r.Description,
+		}, &apiv1.ProjectServiceUpdateRequest{
+			Project:     r.Uuid,
+			Name:        pointer.Pointer(r.Name),
+			Description: pointer.Pointer(r.Description),
+		}, nil
 }
 
-func (t *project) Update(rq any) (*apiv1.Project, error) {
-	panic("unimplemented")
+func (c *project) Update(rq *apiv1.ProjectServiceUpdateRequest) (*apiv1.Project, error) {
+	ctx, cancel := c.c.NewRequestContext()
+	defer cancel()
+
+	resp, err := c.c.Client.Apiv1().Project().Update(ctx, connect.NewRequest(rq))
+	if err != nil {
+		return nil, fmt.Errorf("failed to update project: %w", err)
+	}
+
+	return resp.Msg.Project, nil
+}
+
+func (c *project) createRequestFromCLI() (*apiv1.ProjectServiceCreateRequest, error) {
+	tenant := viper.GetString("tenant")
+
+	if tenant == "" && c.c.GetProject() != "" {
+		project, err := c.Get(c.c.GetProject())
+		if err != nil {
+			return nil, fmt.Errorf("unable to derive tenant from project: %w", err)
+		}
+
+		tenant = project.Tenant
+	}
+
+	if viper.GetString("name") == "" {
+		return nil, fmt.Errorf("name must be given")
+	}
+	if viper.GetString("description") == "" {
+		return nil, fmt.Errorf("description must be given")
+	}
+
+	return &apiv1.ProjectServiceCreateRequest{
+		Login:       tenant,
+		Name:        viper.GetString("name"),
+		Description: viper.GetString("description"),
+	}, nil
+}
+
+func (c *project) updateRequestFromCLI(args []string) (*apiv1.ProjectServiceUpdateRequest, error) {
+	id, err := genericcli.GetExactlyOneArg(args)
+	if err != nil {
+		return nil, err
+	}
+
+	return &apiv1.ProjectServiceUpdateRequest{
+		Project:     id,
+		Name:        pointer.PointerOrNil(viper.GetString("name")),
+		Description: pointer.PointerOrNil(viper.GetString("description")),
+	}, nil
 }
