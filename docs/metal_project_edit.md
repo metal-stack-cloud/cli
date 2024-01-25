@@ -1,15 +1,15 @@
-## metal project
+## metal project edit
 
-manage project entities
+edit the project through an editor and update
 
-### Synopsis
-
-manage api projects
+```
+metal project edit <id> [flags]
+```
 
 ### Options
 
 ```
-  -h, --help   help for project
+  -h, --help   help for edit
 ```
 
 ### Options inherited from parent commands
@@ -27,12 +27,5 @@ manage api projects
 
 ### SEE ALSO
 
-* [metal](metal.md)	 - cli for managing entities in metal-stack-cloud
-* [metal project apply](metal_project_apply.md)	 - applies one or more projects from a given file
-* [metal project create](metal_project_create.md)	 - creates the project
-* [metal project delete](metal_project_delete.md)	 - deletes the project
-* [metal project describe](metal_project_describe.md)	 - describes the project
-* [metal project edit](metal_project_edit.md)	 - edit the project through an editor and update
-* [metal project list](metal_project_list.md)	 - list all projects
-* [metal project update](metal_project_update.md)	 - updates the project
+* [metal project](metal_project.md)	 - manage project entities
 
