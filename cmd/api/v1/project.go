@@ -145,8 +145,6 @@ func (c *project) createRequestFromCLI() (*apiv1.ProjectServiceCreateRequest, er
 			return nil, fmt.Errorf("unable to derive tenant from project: %w", err)
 		}
 
-		fmt.Printf("found tenant to use: %s\n", project.Tenant)
-
 		tenant = project.Tenant
 	}
 
