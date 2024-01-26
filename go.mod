@@ -9,7 +9,7 @@ require (
 	github.com/fatih/color v1.16.0
 	github.com/go-openapi/strfmt v0.22.0
 	github.com/google/go-cmp v0.6.0
-	github.com/metal-stack-cloud/api v0.7.4
+	github.com/metal-stack-cloud/api v0.7.5-0.20240126122205-935c3e9ea87d
 	github.com/metal-stack/metal-lib v0.14.3
 	github.com/metal-stack/v v1.0.3
 	github.com/olekukonko/tablewriter v0.0.5

@@ -1,15 +1,15 @@
-## metal project
+## metal project join
 
-manage project entities
+join a project of someone who shared an invite secret with you
 
-### Synopsis
-
-manage api projects
+```
+metal project join <secret> [flags]
+```
 
 ### Options
 
 ```
-  -h, --help   help for project
+  -h, --help   help for join
 ```
 
 ### Options inherited from parent commands
@@ -27,14 +27,5 @@ manage api projects
 
 ### SEE ALSO
 
-* [metal](metal.md)	 - cli for managing entities in metal-stack-cloud
-* [metal project apply](metal_project_apply.md)	 - applies one or more projects from a given file
-* [metal project create](metal_project_create.md)	 - creates the project
-* [metal project delete](metal_project_delete.md)	 - deletes the project
-* [metal project describe](metal_project_describe.md)	 - describes the project
-* [metal project edit](metal_project_edit.md)	 - edit the project through an editor and update
-* [metal project invite](metal_project_invite.md)	 - manage project invites
-* [metal project join](metal_project_join.md)	 - join a project of someone who shared an invite secret with you
-* [metal project list](metal_project_list.md)	 - list all projects
-* [metal project update](metal_project_update.md)	 - updates the project
+* [metal project](metal_project.md)	 - manage project entities
 

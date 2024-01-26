@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	"connectrpc.com/connect"
+	"github.com/dustin/go-humanize"
+	"github.com/fatih/color"
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
 	"github.com/metal-stack-cloud/cli/cmd/config"
 	"github.com/metal-stack-cloud/cli/cmd/sorters"
@@ -50,7 +52,64 @@ func newProjectCmd(c *config.Config) *cobra.Command {
 		ValidArgsFn:          w.c.Completion.ProjectListCompletion,
 	}
 
-	return genericcli.NewCmds(cmdsConfig)
+	inviteCmd := &cobra.Command{
+		Use:   "invite",
+		Short: "manage project invites",
+	}
+
+	generateInviteCmd := &cobra.Command{
+		Use:   "generate-join-secret",
+		Short: "generate an invite secret to share with the new member",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return w.generateInvite()
+		},
+	}
+
+	generateInviteCmd.Flags().StringP("project", "p", "", "the project for which to generate the invite")
+	generateInviteCmd.Flags().String("role", "", "the role that the new member will assume when joining through the invite secret")
+
+	genericcli.Must(generateInviteCmd.RegisterFlagCompletionFunc("project", c.Completion.ProjectListCompletion))
+	genericcli.Must(generateInviteCmd.RegisterFlagCompletionFunc("role", c.Completion.ProjectRoleCompletion))
+
+	deleteInviteCmd := &cobra.Command{
+		Use:     "delete <secret>",
+		Aliases: []string{"destroy", "rm", "remove"},
+		Short:   "deletes a pending invite",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return w.deleteInvite(args)
+		},
+	}
+
+	deleteInviteCmd.Flags().StringP("project", "p", "", "the project in which to delete the invite")
+
+	genericcli.Must(deleteInviteCmd.RegisterFlagCompletionFunc("project", c.Completion.ProjectListCompletion))
+
+	listInvitesCmd := &cobra.Command{
+		Use:     "list",
+		Aliases: []string{"ls"},
+		Short:   "lists the currently pending invites",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return w.listInvites()
+		},
+	}
+
+	listInvitesCmd.Flags().StringP("project", "p", "", "the project for which to list the invites")
+
+	genericcli.AddSortFlag(listInvitesCmd, sorters.ProjectInviteSorter())
+
+	genericcli.Must(listInvitesCmd.RegisterFlagCompletionFunc("project", c.Completion.ProjectListCompletion))
+
+	joinProjectCmd := &cobra.Command{
+		Use:   "join <secret>",
+		Short: "join a project of someone who shared an invite secret with you",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return w.join(args)
+		},
+	}
+
+	inviteCmd.AddCommand(generateInviteCmd, deleteInviteCmd, listInvitesCmd, joinProjectCmd)
+
+	return genericcli.NewCmds(cmdsConfig, joinProjectCmd, inviteCmd)
 }
 
 func (c *project) Get(id string) (*apiv1.Project, error) {
@@ -173,4 +232,82 @@ func (c *project) updateRequestFromCLI(args []string) (*apiv1.ProjectServiceUpda
 		Name:        pointer.PointerOrNil(viper.GetString("name")),
 		Description: pointer.PointerOrNil(viper.GetString("description")),
 	}, nil
+}
+
+func (c *project) join(args []string) error {
+	secret, err := genericcli.GetExactlyOneArg(args)
+	if err != nil {
+		return err
+	}
+
+	ctx, cancel := c.c.NewRequestContext()
+	defer cancel()
+
+	resp, err := c.c.Client.Apiv1().Project().InviteAccept(ctx, connect.NewRequest(&apiv1.ProjectServiceInviteAcceptRequest{
+		Secret: secret,
+	}))
+	if err != nil {
+		return fmt.Errorf("failed to join project: %w", err)
+	}
+
+	fmt.Fprintf(c.c.Out, "%s successfully joined project %q\n", color.GreenString("✔"), color.GreenString(resp.Msg.String())) // FIXME
+
+	return nil
+}
+
+func (c *project) generateInvite() error {
+	ctx, cancel := c.c.NewRequestContext()
+	defer cancel()
+
+	resp, err := c.c.Client.Apiv1().Project().Invite(ctx, connect.NewRequest(&apiv1.ProjectServiceInviteRequest{
+		Project: c.c.GetProject(),
+		Role:    apiv1.ProjectRole(apiv1.ProjectRole_value[viper.GetString("role")]),
+	}))
+	if err != nil {
+		return fmt.Errorf("failed to generate an invite: %w", err)
+	}
+
+	fmt.Fprintf(c.c.Out, "You can share this secret with the member to join, it expires in %s:\n\n", humanize.Time(resp.Msg.Invite.ExpiresAt.AsTime()))
+	fmt.Fprintf(c.c.Out, "%s (https://console.metalstack.cloud/invite/%s)", resp.Msg.Invite.Secret, resp.Msg.Invite.Secret)
+
+	return nil
+}
+
+func (c *project) listInvites() error {
+	ctx, cancel := c.c.NewRequestContext()
+	defer cancel()
+
+	resp, err := c.c.Client.Apiv1().Project().InvitesList(ctx, connect.NewRequest(&apiv1.ProjectServiceInvitesListRequest{
+		Project: c.c.GetProject(),
+	}))
+	if err != nil {
+		return fmt.Errorf("failed to list invites: %w", err)
+	}
+
+	err = sorters.ProjectInviteSorter().SortBy(resp.Msg.Invites)
+	if err != nil {
+		return err
+	}
+
+	return c.c.ListPrinter.Print(resp.Msg.Invites)
+}
+
+func (c *project) deleteInvite(args []string) error {
+	secret, err := genericcli.GetExactlyOneArg(args)
+	if err != nil {
+		return err
+	}
+
+	ctx, cancel := c.c.NewRequestContext()
+	defer cancel()
+
+	_, err = c.c.Client.Apiv1().Project().InviteDelete(ctx, connect.NewRequest(&apiv1.ProjectServiceInviteDeleteRequest{
+		Project: c.c.GetProject(),
+		Secret:  secret,
+	}))
+	if err != nil {
+		return fmt.Errorf("failed to delete invite: %w", err)
+	}
+
+	return nil
 }

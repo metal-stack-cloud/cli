@@ -21,3 +21,13 @@ func (c *Completion) ProjectListCompletion(cmd *cobra.Command, args []string, to
 
 	return names, cobra.ShellCompDirectiveNoFileComp
 }
+
+func (c *Completion) ProjectRoleCompletion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	var names []string
+
+	for name := range apiv1.ProjectRole_value {
+		names = append(names, name)
+	}
+
+	return names, cobra.ShellCompDirectiveNoFileComp
+}

@@ -18,3 +18,20 @@ func ProjectSorter() *multisort.Sorter[*apiv1.Project] {
 		},
 	}, multisort.Keys{{ID: "tenant"}, {ID: "name"}, {ID: "id"}})
 }
+
+func ProjectInviteSorter() *multisort.Sorter[*apiv1.ProjectInvite] {
+	return multisort.New(multisort.FieldMap[*apiv1.ProjectInvite]{
+		"project": func(a, b *apiv1.ProjectInvite, descending bool) multisort.CompareResult {
+			return multisort.Compare(a.Project, b.Project, descending)
+		},
+		"secret": func(a, b *apiv1.ProjectInvite, descending bool) multisort.CompareResult {
+			return multisort.Compare(a.Secret, b.Secret, descending)
+		},
+		"role": func(a, b *apiv1.ProjectInvite, descending bool) multisort.CompareResult {
+			return multisort.Compare(a.Role, b.Role, descending)
+		},
+		"expiration": func(a, b *apiv1.ProjectInvite, descending bool) multisort.CompareResult {
+			return multisort.Compare(a.ExpiresAt.AsTime().UnixMilli(), b.ExpiresAt.AsTime().UnixMilli(), descending)
+		},
+	}, multisort.Keys{{ID: "project"}, {ID: "role"}, {ID: "expiration"}})
+}
