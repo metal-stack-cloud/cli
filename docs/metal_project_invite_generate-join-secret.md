@@ -11,7 +11,7 @@ metal project invite generate-join-secret [flags]
 ```
   -h, --help             help for generate-join-secret
   -p, --project string   the project for which to generate the invite
-      --role string      the role that the new member will assume when joining through the invite secret
+      --role string      the role that the new member will assume when joining through the invite secret (default "PROJECT_ROLE_VIEWER")
 ```
 
 ### Options inherited from parent commands

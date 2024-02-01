@@ -25,8 +25,29 @@ func (c *Completion) ProjectListCompletion(cmd *cobra.Command, args []string, to
 func (c *Completion) ProjectRoleCompletion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	var names []string
 
-	for name := range apiv1.ProjectRole_value {
+	for value, name := range apiv1.ProjectRole_name {
+		if value == 0 {
+			continue
+		}
+
 		names = append(names, name)
+	}
+
+	return names, cobra.ShellCompDirectiveNoFileComp
+}
+
+func (c *Completion) ProjectInviteListCompletion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	resp, err := c.Client.Apiv1().Project().InvitesList(c.Ctx, connect.NewRequest(&apiv1.ProjectServiceInvitesListRequest{
+		Project: c.Project,
+	}))
+	if err != nil {
+		return nil, cobra.ShellCompDirectiveError
+	}
+
+	var names []string
+
+	for _, invite := range resp.Msg.Invites {
+		names = append(names, invite.Secret+"\t"+invite.Role.String())
 	}
 
 	return names, cobra.ShellCompDirectiveNoFileComp

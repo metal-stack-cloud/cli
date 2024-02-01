@@ -66,7 +66,7 @@ func newProjectCmd(c *config.Config) *cobra.Command {
 	}
 
 	generateInviteCmd.Flags().StringP("project", "p", "", "the project for which to generate the invite")
-	generateInviteCmd.Flags().String("role", "", "the role that the new member will assume when joining through the invite secret")
+	generateInviteCmd.Flags().String("role", apiv1.ProjectRole_PROJECT_ROLE_VIEWER.String(), "the role that the new member will assume when joining through the invite secret")
 
 	genericcli.Must(generateInviteCmd.RegisterFlagCompletionFunc("project", c.Completion.ProjectListCompletion))
 	genericcli.Must(generateInviteCmd.RegisterFlagCompletionFunc("role", c.Completion.ProjectRoleCompletion))
@@ -78,6 +78,7 @@ func newProjectCmd(c *config.Config) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return w.deleteInvite(args)
 		},
+		ValidArgsFunction: c.Completion.ProjectInviteListCompletion,
 	}
 
 	deleteInviteCmd.Flags().StringP("project", "p", "", "the project in which to delete the invite")
@@ -250,7 +251,7 @@ func (c *project) join(args []string) error {
 		return fmt.Errorf("failed to join project: %w", err)
 	}
 
-	fmt.Fprintf(c.c.Out, "%s successfully joined project %q\n", color.GreenString("✔"), color.GreenString(resp.Msg.String())) // FIXME
+	fmt.Fprintf(c.c.Out, "%s successfully joined project \"%s\"\n", color.GreenString("✔"), color.GreenString(resp.Msg.ProjectName))
 
 	return nil
 }
@@ -268,7 +269,7 @@ func (c *project) generateInvite() error {
 	}
 
 	fmt.Fprintf(c.c.Out, "You can share this secret with the member to join, it expires in %s:\n\n", humanize.Time(resp.Msg.Invite.ExpiresAt.AsTime()))
-	fmt.Fprintf(c.c.Out, "%s (https://console.metalstack.cloud/invite/%s)", resp.Msg.Invite.Secret, resp.Msg.Invite.Secret)
+	fmt.Fprintf(c.c.Out, "%s (https://console.metalstack.cloud/invite/%s)\n", resp.Msg.Invite.Secret, resp.Msg.Invite.Secret)
 
 	return nil
 }
