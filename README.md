@@ -6,10 +6,10 @@ This is the official CLI for accessing the API of [metalstack.cloud](https://met
 
 To work with this CLI, it is first necessary to create an api-token. This can be issued through the [cloud console](https://console.metalstack.cloud/token).
 
-Once you got the token, you probably want to create a CLI context:
+Once you got the token, you probably want to create a CLI context. The project's ID can be copied from the UI, the button is located right next to the poject title in the project dashboard.
 
 ```bash
-$ metal ctx add devel --api-token <your-token> --default-project project-xyz --activate
+$ metal ctx add devel --activate --default-project <project-uuid> --api-token <your-token>
 ✔ added context "devel"
 ```
 
