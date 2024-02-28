@@ -113,7 +113,7 @@ func (c *Config) WriteContexts(ctxs *Contexts) error {
 
 	// when path is in the default path, we ensure the directory exists
 	if defaultPath, err := DefaultConfigDirectory(); err == nil && defaultPath == path.Dir(dest) {
-		err = c.Fs.MkdirAll(defaultPath, 0600)
+		err = c.Fs.MkdirAll(defaultPath, 0700)
 		if err != nil {
 			return fmt.Errorf("unable to ensure default config directory: %w", err)
 		}

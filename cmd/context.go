@@ -143,7 +143,9 @@ func (c *ctx) short() error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(ctxs.CurrentContext)
+
+	fmt.Fprintf(c.c.Out, ctxs.CurrentContext)
+
 	return nil
 }
 
@@ -173,7 +175,7 @@ func (c *ctx) add(args []string) error {
 
 	ctxs.Contexts = append(ctxs.Contexts, ctx)
 
-	if viper.GetBool("activate") {
+	if viper.GetBool("activate") || ctxs.CurrentContext == "" {
 		ctxs.PreviousContext = ctxs.CurrentContext
 		ctxs.CurrentContext = ctx.Name
 	}
