@@ -108,9 +108,19 @@ func newProjectCmd(c *config.Config) *cobra.Command {
 		},
 	}
 
+	removeProjectMemberCmd := &cobra.Command{
+		Use:   "remove-member <member>",
+		Short: "remove member from a project",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return w.removeMember(args)
+		},
+	}
+
+	removeProjectMemberCmd.Flags().StringP("project", "p", "", "the project in which to remove the member")
+
 	inviteCmd.AddCommand(generateInviteCmd, deleteInviteCmd, listInvitesCmd, joinProjectCmd)
 
-	return genericcli.NewCmds(cmdsConfig, joinProjectCmd, inviteCmd)
+	return genericcli.NewCmds(cmdsConfig, joinProjectCmd, removeProjectMemberCmd, inviteCmd)
 }
 
 func (c *project) Get(id string) (*apiv1.Project, error) {
@@ -309,6 +319,28 @@ func (c *project) deleteInvite(args []string) error {
 	if err != nil {
 		return fmt.Errorf("failed to delete invite: %w", err)
 	}
+
+	return nil
+}
+
+func (c *project) removeMember(args []string) error {
+	member, err := genericcli.GetExactlyOneArg(args)
+	if err != nil {
+		return err
+	}
+
+	ctx, cancel := c.c.NewRequestContext()
+	defer cancel()
+
+	_, err = c.c.Client.Apiv1().Project().RemoveMember(ctx, connect.NewRequest(&apiv1.ProjectServiceRemoveMemberRequest{
+		Project:  c.c.GetProject(),
+		MemberId: member,
+	}))
+	if err != nil {
+		return fmt.Errorf("failed to remove member from project: %w", err)
+	}
+
+	fmt.Fprintf(c.c.Out, "%s successfully removed member %q\n", color.GreenString("✔"), member)
 
 	return nil
 }

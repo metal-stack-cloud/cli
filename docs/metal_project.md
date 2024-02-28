@@ -36,5 +36,6 @@ manage api projects
 * [metal project invite](metal_project_invite.md)	 - manage project invites
 * [metal project join](metal_project_join.md)	 - join a project of someone who shared an invite secret with you
 * [metal project list](metal_project_list.md)	 - list all projects
+* [metal project remove-member](metal_project_remove-member.md)	 - remove member from a project
 * [metal project update](metal_project_update.md)	 - updates the project
 

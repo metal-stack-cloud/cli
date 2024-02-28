@@ -456,7 +456,7 @@ func (c *cluster) updateFromCLI(args []string) (*apiv1.ClusterServiceUpdateReque
 				}
 
 				newWorkers = clusterWorkersToWorkerUpdate(cluster.Workers)
-				slices.DeleteFunc(newWorkers, func(w *apiv1.WorkerUpdate) bool {
+				newWorkers = slices.DeleteFunc(newWorkers, func(w *apiv1.WorkerUpdate) bool {
 					return w.Name == selectedGroup.Name
 				})
 			} else {
