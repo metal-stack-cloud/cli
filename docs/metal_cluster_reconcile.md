@@ -11,6 +11,7 @@ metal cluster reconcile [flags]
 ```
   -h, --help               help for reconcile
       --operation string   specifies the reconcile operation to trigger (default "reconcile")
+  -p, --project string     project of the cluster
 ```
 
 ### Options inherited from parent commands
