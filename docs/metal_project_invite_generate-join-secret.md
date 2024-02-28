@@ -1,15 +1,17 @@
-## metal project
+## metal project invite generate-join-secret
 
-manage project entities
+generate an invite secret to share with the new member
 
-### Synopsis
-
-manage api projects
+```
+metal project invite generate-join-secret [flags]
+```
 
 ### Options
 
 ```
-  -h, --help   help for project
+  -h, --help             help for generate-join-secret
+  -p, --project string   the project for which to generate the invite
+      --role string      the role that the new member will assume when joining through the invite secret (default "PROJECT_ROLE_VIEWER")
 ```
 
 ### Options inherited from parent commands
@@ -27,15 +29,5 @@ manage api projects
 
 ### SEE ALSO
 
-* [metal](metal.md)	 - cli for managing entities in metal-stack-cloud
-* [metal project apply](metal_project_apply.md)	 - applies one or more projects from a given file
-* [metal project create](metal_project_create.md)	 - creates the project
-* [metal project delete](metal_project_delete.md)	 - deletes the project
-* [metal project describe](metal_project_describe.md)	 - describes the project
-* [metal project edit](metal_project_edit.md)	 - edit the project through an editor and update
 * [metal project invite](metal_project_invite.md)	 - manage project invites
-* [metal project join](metal_project_join.md)	 - join a project of someone who shared an invite secret with you
-* [metal project list](metal_project_list.md)	 - list all projects
-* [metal project remove-member](metal_project_remove-member.md)	 - remove member from a project
-* [metal project update](metal_project_update.md)	 - updates the project
 

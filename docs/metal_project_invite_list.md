@@ -1,15 +1,17 @@
-## metal project
+## metal project invite list
 
-manage project entities
+lists the currently pending invites
 
-### Synopsis
-
-manage api projects
+```
+metal project invite list [flags]
+```
 
 ### Options
 
 ```
-  -h, --help   help for project
+  -h, --help              help for list
+  -p, --project string    the project for which to list the invites
+      --sort-by strings   sort by (comma separated) column(s), sort direction can be changed by appending :asc or :desc behind the column identifier. possible values: expiration|project|role|secret
 ```
 
 ### Options inherited from parent commands
@@ -27,15 +29,5 @@ manage api projects
 
 ### SEE ALSO
 
-* [metal](metal.md)	 - cli for managing entities in metal-stack-cloud
-* [metal project apply](metal_project_apply.md)	 - applies one or more projects from a given file
-* [metal project create](metal_project_create.md)	 - creates the project
-* [metal project delete](metal_project_delete.md)	 - deletes the project
-* [metal project describe](metal_project_describe.md)	 - describes the project
-* [metal project edit](metal_project_edit.md)	 - edit the project through an editor and update
 * [metal project invite](metal_project_invite.md)	 - manage project invites
-* [metal project join](metal_project_join.md)	 - join a project of someone who shared an invite secret with you
-* [metal project list](metal_project_list.md)	 - list all projects
-* [metal project remove-member](metal_project_remove-member.md)	 - remove member from a project
-* [metal project update](metal_project_update.md)	 - updates the project
 
