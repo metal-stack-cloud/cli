@@ -6,6 +6,8 @@ import (
 	"connectrpc.com/connect"
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
 	"github.com/metal-stack-cloud/cli/cmd/config"
+	"github.com/metal-stack-cloud/cli/cmd/sorters"
+	"github.com/metal-stack/metal-lib/pkg/genericcli"
 	"github.com/spf13/cobra"
 )
 
@@ -29,9 +31,18 @@ func newPaymentCmd(c *config.Config) *cobra.Command {
 				return fmt.Errorf("failed to list methods: %w", err)
 			}
 
-			return c.ListPrinter.Print(resp.Msg)
+			prices := resp.Msg.GetPrices()
+
+			err = sorters.PriceSorter().SortBy(prices)
+			if err != nil {
+				return err
+			}
+
+			return c.ListPrinter.Print(prices)
 		},
 	}
+
+	genericcli.AddSortFlag(paymentCmd, sorters.PriceSorter())
 
 	paymentCmd.AddCommand(showDefaultPricesCmd)
 

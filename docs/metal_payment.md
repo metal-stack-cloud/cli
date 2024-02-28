@@ -5,7 +5,8 @@ manage payment of the metalstack.cloud
 ### Options
 
 ```
-  -h, --help   help for payment
+  -h, --help              help for payment
+      --sort-by strings   sort by (comma separated) column(s), sort direction can be changed by appending :asc or :desc behind the column identifier. possible values: name|price|type
 ```
 
 ### Options inherited from parent commands
