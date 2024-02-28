@@ -58,6 +58,11 @@ func (t *TablePrinter) ToHeaderAndRows(data any, wide bool) ([]string, [][]strin
 	case []*apiv1.ClusterStatusCondition:
 		return t.ClusterStatusConditionsTable(d, wide)
 
+	case *apiv1.Price:
+		return t.PaymentPricesTable(pointer.WrapInSlice(d), wide)
+	case []*apiv1.Price:
+		return t.PaymentPricesTable(d, wide)
+
 	case *apiv1.Project:
 		return t.ProjectTable(pointer.WrapInSlice(d), wide)
 	case []*apiv1.Project:
