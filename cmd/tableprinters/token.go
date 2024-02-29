@@ -15,7 +15,7 @@ func (t *TablePrinter) TokenTable(data []*apiv1.Token, _ bool) ([]string, [][]st
 	var (
 		rows [][]string
 	)
-	header := []string{"ID", "Admin", "User", "Description", "Roles", "Perms", "Expires"}
+	header := []string{"Type", "ID", "Admin", "User", "Description", "Roles", "Perms", "Expires"}
 
 	for _, token := range data {
 		expires := token.Expires.AsTime().Format(time.DateTime + " MST")
@@ -23,6 +23,7 @@ func (t *TablePrinter) TokenTable(data []*apiv1.Token, _ bool) ([]string, [][]st
 		admin := isAdminToken(token)
 
 		row := []string{
+			token.TokenType.String(),
 			token.Uuid,
 			strconv.FormatBool(admin),
 			token.UserId,
