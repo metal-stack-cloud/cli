@@ -190,8 +190,8 @@ github.com/mdlayher/sdnotify v1.0.0 h1:Ma9XeLVN/l0qpyx1tNeMSeTjCPH6NtuD6/N9XdTlQ
 github.com/mdlayher/sdnotify v1.0.0/go.mod h1:HQUmpM4XgYkhDLtd+Uad8ZFK1T9D5+pNxnXQjCeJlGE=
 github.com/mdlayher/socket v0.5.0 h1:ilICZmJcQz70vrWVes1MFera4jGiWNocSkykwwoy3XI=
 github.com/mdlayher/socket v0.5.0/go.mod h1:WkcBFfvyG8QENs5+hfQPl1X6Jpd2yeLIYgrGFmJiJxI=
-github.com/metal-stack-cloud/api v0.8.2-0.20240229103244-85e7a6335159 h1:G8RKEIwf4JFeeRfuw+279yR6x4qYeScSCYYy3bt7NE8=
-github.com/metal-stack-cloud/api v0.8.2-0.20240229103244-85e7a6335159/go.mod h1:0dSemUUEyMENFpSBU8i6Z0MO3l7bSyR0WCQbrR5zjtk=
+github.com/metal-stack-cloud/api v0.8.2 h1:76Be2s8Pt/ascUTXupL6e8e9jp/t64P/jos2H1hZcak=
+github.com/metal-stack-cloud/api v0.8.2/go.mod h1:0dSemUUEyMENFpSBU8i6Z0MO3l7bSyR0WCQbrR5zjtk=
 github.com/metal-stack/metal-lib v0.14.4 h1:vm2868vcua6khoyWL7d0to8Hq5RayrjMse0FZTyWEec=
 github.com/metal-stack/metal-lib v0.14.4/go.mod h1:Z3PAh8dkyWC4B19fXsu6EYwXXee0Lk9JZbjoHPLbDbc=
 github.com/metal-stack/v v1.0.3 h1:Sh2oBlnxrCUD+mVpzfC8HiqL045YWkxs0gpTvkjppqs=
