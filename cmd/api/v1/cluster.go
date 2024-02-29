@@ -155,7 +155,9 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 	}
 
 	reconcileCmd.Flags().String("operation", "reconcile", "specifies the reconcile operation to trigger")
+	reconcileCmd.Flags().StringP("project", "p", "", "project of the cluster")
 
+	genericcli.Must(reconcileCmd.RegisterFlagCompletionFunc("project", c.Completion.ProjectListCompletion))
 	genericcli.Must(reconcileCmd.RegisterFlagCompletionFunc("operation", c.Completion.ClusterOperationCompletion))
 
 	// metal cluster status
@@ -168,6 +170,10 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 		},
 		ValidArgsFunction: c.Completion.ClusterListCompletion,
 	}
+
+	statusCmd.Flags().StringP("project", "p", "", "project of the cluster")
+
+	genericcli.Must(statusCmd.RegisterFlagCompletionFunc("project", c.Completion.ProjectListCompletion))
 
 	return genericcli.NewCmds(cmdsConfig, kubeconfigCmd, monitoringCmd, reconcileCmd, statusCmd)
 }
