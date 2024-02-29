@@ -18,6 +18,8 @@ import (
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/durationpb"
 )
 
@@ -182,6 +184,9 @@ func (c *cluster) Create(req *apiv1.ClusterServiceCreateRequest) (*apiv1.Cluster
 
 	resp, err := c.c.Client.Apiv1().Cluster().Create(ctx, connect.NewRequest(req))
 	if err != nil {
+		if s, ok := status.FromError(err); ok && s.Code() == codes.AlreadyExists {
+			return nil, genericcli.AlreadyExistsError()
+		}
 		return nil, fmt.Errorf("failed to create cluster: %w", err)
 	}
 
