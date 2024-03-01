@@ -126,6 +126,7 @@ func newProjectCmd(c *config.Config) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return w.updateMember(args)
 		},
+		ValidArgsFunction: c.Completion.ProjectMemberListCompletion,
 	}
 
 	updateProjectMemberCmd.Flags().StringP("project", "p", "", "the project in which to remove the member")
