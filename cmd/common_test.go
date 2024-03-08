@@ -13,7 +13,6 @@ import (
 	"slices"
 
 	"bou.ke/monkey"
-	"github.com/go-openapi/strfmt"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	apitests "github.com/metal-stack-cloud/api/go/tests"
@@ -203,28 +202,13 @@ func (o *jsonOutputFormat[R]) Args() []string {
 	return []string{"-o", "jsonraw"}
 }
 
-func StrFmtPtrDateComparer() cmp.Option {
-	return cmp.Comparer(func(x, y *strfmt.DateTime) bool {
-		if x == nil && y == nil {
-			return true
-		}
-		if x == nil && y != nil {
-			return false
-		}
-		if x != nil && y == nil {
-			return false
-		}
-		return time.Time(*x).Unix() == time.Time(*y).Unix()
-	})
-}
-
 func (o *jsonOutputFormat[R]) Validate(t *testing.T, output []byte) {
 	var got R
 
 	err := json.Unmarshal(output, &got)
 	require.NoError(t, err, string(output))
 
-	if diff := cmp.Diff(o.want, got, testcommon.IgnoreUnexported(), testcommon.StrFmtDateComparer(), cmpopts.IgnoreTypes(protoimpl.MessageState{})); diff != "" {
+	if diff := cmp.Diff(o.want, got, testcommon.IgnoreUnexported(), cmpopts.IgnoreTypes(protoimpl.MessageState{})); diff != "" {
 		t.Errorf("diff (+got -want):\n %s", diff)
 	}
 }
@@ -243,7 +227,7 @@ func (o *yamlOutputFormat[R]) Validate(t *testing.T, output []byte) {
 	err := yaml.Unmarshal(output, &got)
 	require.NoError(t, err)
 
-	if diff := cmp.Diff(o.want, got, testcommon.IgnoreUnexported(), testcommon.StrFmtDateComparer(), cmpopts.IgnoreTypes(protoimpl.MessageState{})); diff != "" {
+	if diff := cmp.Diff(o.want, got, testcommon.IgnoreUnexported(), cmpopts.IgnoreTypes(protoimpl.MessageState{})); diff != "" {
 		t.Errorf("diff (+got -want):\n %s", diff)
 	}
 }
