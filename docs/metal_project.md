@@ -38,4 +38,5 @@ manage api projects
 * [metal project list](metal_project_list.md)	 - list all projects
 * [metal project remove-member](metal_project_remove-member.md)	 - remove member from a project
 * [metal project update](metal_project_update.md)	 - updates the project
+* [metal project update-member](metal_project_update-member.md)	 - update member from a project
 

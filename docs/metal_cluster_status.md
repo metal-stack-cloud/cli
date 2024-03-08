@@ -9,7 +9,8 @@ metal cluster status [flags]
 ### Options
 
 ```
-  -h, --help   help for status
+  -h, --help             help for status
+  -p, --project string   project of the cluster
 ```
 
 ### Options inherited from parent commands

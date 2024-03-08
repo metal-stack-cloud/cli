@@ -10,7 +10,7 @@ metal token list [flags]
 
 ```
   -h, --help              help for list
-      --sort-by strings   sort by (comma separated) column(s), sort direction can be changed by appending :asc or :desc behind the column identifier. possible values: description|expires|id|user
+      --sort-by strings   sort by (comma separated) column(s), sort direction can be changed by appending :asc or :desc behind the column identifier. possible values: description|expires|id|type|user
 ```
 
 ### Options inherited from parent commands

@@ -1,17 +1,17 @@
-## metal cluster reconcile
+## metal project update-member
 
-reconcile a cluster
+update member from a project
 
 ```
-metal cluster reconcile [flags]
+metal project update-member <member> [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help               help for reconcile
-      --operation string   specifies the reconcile operation to trigger (default "reconcile")
-  -p, --project string     project of the cluster
+  -h, --help             help for update-member
+  -p, --project string   the project in which to remove the member
+      --role string      the role of the member
 ```
 
 ### Options inherited from parent commands
@@ -29,5 +29,5 @@ metal cluster reconcile [flags]
 
 ### SEE ALSO
 
-* [metal cluster](metal_cluster.md)	 - manage cluster entities
+* [metal project](metal_project.md)	 - manage project entities
 
