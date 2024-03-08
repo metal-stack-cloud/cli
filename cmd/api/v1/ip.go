@@ -12,6 +12,8 @@ import (
 	"github.com/metal-stack/metal-lib/pkg/genericcli/printers"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type ip struct {
@@ -114,6 +116,9 @@ func (c *ip) Create(rq *apiv1.IPServiceAllocateRequest) (*apiv1.IP, error) {
 
 	resp, err := c.c.Client.Apiv1().IP().Allocate(ctx, connect.NewRequest(rq))
 	if err != nil {
+		if s, ok := status.FromError(err); ok && s.Code() == codes.AlreadyExists {
+			return nil, genericcli.AlreadyExistsError()
+		}
 		return nil, err
 	}
 
