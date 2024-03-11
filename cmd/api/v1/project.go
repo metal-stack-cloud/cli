@@ -280,6 +280,7 @@ func (c *project) join(args []string) error {
 	}
 
 	err = genericcli.PromptCustom(&genericcli.PromptConfig{
+		ShowAnswers: true,
 		Message: fmt.Sprintf(
 			"Do you want to join project \"%s\" as %s?",
 			color.GreenString(resp.Msg.GetInvite().GetProjectName()),
@@ -292,7 +293,10 @@ func (c *project) join(args []string) error {
 		return err
 	}
 
-	acceptResp, err := c.c.Client.Apiv1().Project().InviteAccept(ctx, connect.NewRequest(&apiv1.ProjectServiceInviteAcceptRequest{
+	ctx2, cancel2 := c.c.NewRequestContext()
+	defer cancel2()
+
+	acceptResp, err := c.c.Client.Apiv1().Project().InviteAccept(ctx2, connect.NewRequest(&apiv1.ProjectServiceInviteAcceptRequest{
 		Secret: secret,
 	}))
 	if err != nil {
