@@ -9,6 +9,7 @@ metal token create [flags]
 ### Options
 
 ```
+      --admin-role string       the admin role to associate with the api token
       --bulk-output             when used with --file (bulk operation): prints results at the end as a list. default is printing results intermediately during the operation, which causes single entities to be printed in a row.
       --description string      a short description for the intention to use this token for
       --expires duration        the duration how long the api token is valid (default 8h0m0s)
@@ -26,8 +27,9 @@ metal token create [flags]
                                 	
   -h, --help                    help for create
       --permissions strings     the permissions to associate with the api token in the form <project>=<methods-colon-separated>
-      --roles strings           the roles to associate with the api token in the form <subject>=<role>
+      --project-roles strings   the project roles to associate with the api token in the form <subject>=<role>
       --skip-security-prompts   skips security prompt for bulk operations
+      --tenant-roles strings    the tenant roles to associate with the api token in the form <subject>=<role>
       --timestamps              when used with --file (bulk operation): prints timestamps in-between the operations
 ```
 
