@@ -57,21 +57,9 @@ func (c *Completion) TokenTenantRolesCompletion(cmd *cobra.Command, args []strin
 }
 
 func (c *Completion) TokenAdminRoleCompletion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-	methods, err := c.Client.Apiv1().Method().TokenScopedList(c.Ctx, connect.NewRequest(&apiv1.MethodServiceTokenScopedListRequest{}))
-	if err != nil {
-		return nil, cobra.ShellCompDirectiveError
-	}
-
 	var roles []string
 
-	if methods.Msg.AdminRole == nil {
-		return roles, cobra.ShellCompDirectiveError
-	}
-
-	for order, role := range apiv1.AdminRole_name {
-		if order < int32(*methods.Msg.AdminRole) {
-			continue
-		}
+	for _, role := range apiv1.AdminRole_name {
 		roles = append(roles, role)
 	}
 
