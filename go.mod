@@ -4,11 +4,11 @@ go 1.22
 
 require (
 	bou.ke/monkey v1.0.2
-	connectrpc.com/connect v1.15.0
+	connectrpc.com/connect v1.16.0
 	github.com/dustin/go-humanize v1.0.1
 	github.com/fatih/color v1.16.0
 	github.com/google/go-cmp v0.6.0
-	github.com/metal-stack-cloud/api v0.8.3-0.20240308153312-091e642fa786
+	github.com/metal-stack-cloud/api v0.9.0
 	github.com/metal-stack/metal-lib v0.15.0
 	github.com/metal-stack/v v1.0.3
 	github.com/olekukonko/tablewriter v0.0.5
