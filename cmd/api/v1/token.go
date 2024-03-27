@@ -11,6 +11,7 @@ import (
 	"github.com/metal-stack-cloud/cli/cmd/sorters"
 	"github.com/metal-stack/metal-lib/pkg/genericcli"
 	"github.com/metal-stack/metal-lib/pkg/genericcli/printers"
+	"github.com/metal-stack/metal-lib/pkg/pointer"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"google.golang.org/protobuf/types/known/durationpb"
@@ -48,36 +49,68 @@ func newTokenCmd(c *config.Config) *cobra.Command {
 				})
 			}
 
-			var roles []*apiv1.TokenRole
-			for _, r := range viper.GetStringSlice("roles") {
-				subject, role, ok := strings.Cut(r, "=")
+			projectRoles := map[string]apiv1.ProjectRole{}
+			for _, r := range viper.GetStringSlice("project-roles") {
+				projectID, roleString, ok := strings.Cut(r, "=")
 				if !ok {
-					return nil, fmt.Errorf("roles must be provided in the form <subject>=<role>")
+					return nil, fmt.Errorf("project roles must be provided in the form <project-id>=<role>")
 				}
 
-				roles = append(roles, &apiv1.TokenRole{
-					Subject: subject,
-					Role:    role,
-				})
+				role, ok := apiv1.ProjectRole_value[roleString]
+				if !ok {
+					return nil, fmt.Errorf("unknown role: %s", roleString)
+				}
+
+				projectRoles[projectID] = apiv1.ProjectRole(role)
+			}
+
+			tenantRoles := map[string]apiv1.TenantRole{}
+			for _, r := range viper.GetStringSlice("tenant-roles") {
+				tenantID, roleString, ok := strings.Cut(r, "=")
+				if !ok {
+					return nil, fmt.Errorf("tenant roles must be provided in the form <tenant-id>=<role>")
+				}
+
+				role, ok := apiv1.TenantRole_value[roleString]
+				if !ok {
+					return nil, fmt.Errorf("unknown role: %s", roleString)
+				}
+
+				tenantRoles[tenantID] = apiv1.TenantRole(role)
+			}
+
+			var adminRole *apiv1.AdminRole
+			if roleString := viper.GetString("admin-role"); roleString != "" {
+				role, ok := apiv1.AdminRole_value[roleString]
+				if !ok {
+					return nil, fmt.Errorf("unknown role: %s", roleString)
+				}
+
+				adminRole = pointer.Pointer(apiv1.AdminRole(role))
 			}
 
 			return &apiv1.TokenServiceCreateRequest{
 				// TODO: api should have an endpoint to list possible permissions and roles
-				Description: viper.GetString("description"),
-				Permissions: permissions,
-				Roles:       roles,
-				Expires:     durationpb.New(viper.GetDuration("expires")),
+				Description:  viper.GetString("description"),
+				Permissions:  permissions,
+				ProjectRoles: projectRoles,
+				TenantRoles:  tenantRoles,
+				AdminRole:    adminRole,
+				Expires:      durationpb.New(viper.GetDuration("expires")),
 			}, nil
 		},
 		CreateCmdMutateFn: func(cmd *cobra.Command) {
 			cmd.Flags().String("description", "", "a short description for the intention to use this token for")
 			cmd.Flags().StringSlice("permissions", nil, "the permissions to associate with the api token in the form <project>=<methods-colon-separated>")
-			cmd.Flags().StringSlice("roles", nil, "the roles to associate with the api token in the form <subject>=<role>")
+			cmd.Flags().StringSlice("project-roles", nil, "the project roles to associate with the api token in the form <subject>=<role>")
+			cmd.Flags().StringSlice("tenant-roles", nil, "the tenant roles to associate with the api token in the form <subject>=<role>")
+			cmd.Flags().String("admin-role", "", "the admin role to associate with the api token")
 			cmd.Flags().Duration("expires", 8*time.Hour, "the duration how long the api token is valid")
 
 			genericcli.Must(cmd.RegisterFlagCompletionFunc("permissions", c.Completion.TokenPermissionsCompletionfunc))
-			genericcli.Must(cmd.RegisterFlagCompletionFunc("roles", c.Completion.TokenRolesCompletion))
-
+			genericcli.Must(cmd.RegisterFlagCompletionFunc("project-roles", c.Completion.TokenProjectRolesCompletion))
+			genericcli.Must(cmd.RegisterFlagCompletionFunc("tenant-roles", c.Completion.TokenTenantRolesCompletion))
+			genericcli.Must(cmd.RegisterFlagCompletionFunc("admin-role", c.Completion.TokenAdminRoleCompletion))
 		},
 		DeleteCmdMutateFn: func(cmd *cobra.Command) {
 			cmd.Aliases = append(cmd.Aliases, "revoke")
@@ -145,10 +178,11 @@ func (c *token) Delete(id string) (*apiv1.Token, error) {
 
 func (t *token) Convert(r *apiv1.Token) (string, *apiv1.TokenServiceCreateRequest, any, error) {
 	return r.Uuid, &apiv1.TokenServiceCreateRequest{
-		Description: r.GetDescription(),
-		Permissions: r.GetPermissions(),
-		Roles:       r.GetRoles(),
-		Expires:     durationpb.New(time.Until(r.GetExpires().AsTime())),
+		Description:  r.GetDescription(),
+		Permissions:  r.GetPermissions(),
+		ProjectRoles: r.GetProjectRoles(),
+		TenantRoles:  r.GetTenantRoles(),
+		Expires:      durationpb.New(time.Until(r.GetExpires().AsTime())),
 	}, nil, nil
 }
 
