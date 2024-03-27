@@ -30,5 +30,6 @@ cli for managing entities in metal-stack-cloud
 * [metal project](metal_project.md)	 - manage project entities
 * [metal storage](metal_storage.md)	 - storage commands
 * [metal token](metal_token.md)	 - manage token entities
+* [metal user](metal_user.md)	 - manage user entities
 * [metal version](metal_version.md)	 - print the client and server version information
 
