@@ -26,7 +26,7 @@ func (c *Completion) TokenListCompletion(cmd *cobra.Command, args []string, toCo
 	return names, cobra.ShellCompDirectiveNoFileComp
 }
 
-func (c *Completion) TokenRolesCompletion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+func (c *Completion) TokenProjectRolesCompletion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	methods, err := c.Client.Apiv1().Method().TokenScopedList(c.Ctx, connect.NewRequest(&apiv1.MethodServiceTokenScopedListRequest{}))
 	if err != nil {
 		return nil, cobra.ShellCompDirectiveError
@@ -34,8 +34,33 @@ func (c *Completion) TokenRolesCompletion(cmd *cobra.Command, args []string, toC
 
 	var roles []string
 
-	for _, r := range methods.Msg.Roles {
-		roles = append(roles, r.Subject+":"+r.Role)
+	for project, role := range methods.Msg.ProjectRoles {
+		roles = append(roles, project+":"+role.String())
+	}
+
+	return roles, cobra.ShellCompDirectiveNoFileComp
+}
+
+func (c *Completion) TokenTenantRolesCompletion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	methods, err := c.Client.Apiv1().Method().TokenScopedList(c.Ctx, connect.NewRequest(&apiv1.MethodServiceTokenScopedListRequest{}))
+	if err != nil {
+		return nil, cobra.ShellCompDirectiveError
+	}
+
+	var roles []string
+
+	for tenant, role := range methods.Msg.TenantRoles {
+		roles = append(roles, tenant+":"+role.String())
+	}
+
+	return roles, cobra.ShellCompDirectiveNoFileComp
+}
+
+func (c *Completion) TokenAdminRoleCompletion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	var roles []string
+
+	for _, role := range apiv1.AdminRole_name {
+		roles = append(roles, role)
 	}
 
 	return roles, cobra.ShellCompDirectiveNoFileComp
