@@ -9,8 +9,10 @@ metal tenant create [flags]
 ### Options
 
 ```
+      --avatar-url string       the avatar url of the tenant to create
       --bulk-output             when used with --file (bulk operation): prints results at the end as a list. default is printing results intermediately during the operation, which causes single entities to be printed in a row.
       --description string      the description of the tenant to create
+      --email string            the email of the tenant to create
   -f, --file string             filename of the create or update request in yaml format, or - for stdin.
                                 
                                 Example:
@@ -25,6 +27,7 @@ metal tenant create [flags]
                                 	
   -h, --help                    help for create
       --name string             the name of the tenant to create
+      --phone string            the phone number of the tenant to create
       --skip-security-prompts   skips security prompt for bulk operations
       --timestamps              when used with --file (bulk operation): prints timestamps in-between the operations
 ```

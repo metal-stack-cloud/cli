@@ -214,10 +214,10 @@ func (c *tenant) Convert(r *apiv1.Tenant) (string, *apiv1.TenantServiceCreateReq
 
 	return r.Login, &apiv1.TenantServiceCreateRequest{
 			Name:        r.Name,
-			Description: r.Description,
-			Email:       r.Email,
-			AvatarUrl:   r.AvatarUrl,
-			PhoneNumber: r.PhoneNumber,
+			Description: &r.Description,
+			Email:       &r.Email,
+			AvatarUrl:   &r.AvatarUrl,
+			PhoneNumber: &r.PhoneNumber,
 		},
 		&apiv1.TenantServiceUpdateRequest{
 			Login:          r.Login,
@@ -244,10 +244,10 @@ func (c *tenant) Update(rq *apiv1.TenantServiceUpdateRequest) (*apiv1.Tenant, er
 func (c *tenant) createRequestFromCLI() (*apiv1.TenantServiceCreateRequest, error) {
 	return &apiv1.TenantServiceCreateRequest{
 		Name:        viper.GetString("name"),
-		Description: viper.GetString("description"),
-		Email:       viper.GetString("email"),
-		AvatarUrl:   viper.GetString("phone"),
-		PhoneNumber: viper.GetString("avatar-url"),
+		Description: pointer.PointerOrNil(viper.GetString("description")),
+		Email:       pointer.PointerOrNil(viper.GetString("email")),
+		AvatarUrl:   pointer.PointerOrNil(viper.GetString("phone")),
+		PhoneNumber: pointer.PointerOrNil(viper.GetString("avatar-url")),
 	}, nil
 }
 

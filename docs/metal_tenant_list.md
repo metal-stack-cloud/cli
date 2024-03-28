@@ -10,6 +10,8 @@ metal tenant list [flags]
 
 ```
   -h, --help              help for list
+      --id string         lists only tenant with the given tenant id
+      --name string       lists only tenants with the given name
       --sort-by strings   sort by (comma separated) column(s), sort direction can be changed by appending :asc or :desc behind the column identifier. possible values: id|name|since
 ```
 
