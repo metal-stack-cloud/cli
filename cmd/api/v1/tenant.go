@@ -42,6 +42,9 @@ func newTenantCmd(c *config.Config) *cobra.Command {
 		CreateCmdMutateFn: func(cmd *cobra.Command) {
 			cmd.Flags().String("name", "", "the name of the tenant to create")
 			cmd.Flags().String("description", "", "the description of the tenant to create")
+			cmd.Flags().String("email", "", "the email of the tenant to create")
+			cmd.Flags().String("phone", "", "the phone number of the tenant to create")
+			cmd.Flags().String("avatar-url", "", "the avatar url of the tenant to create")
 		},
 		CreateRequestFromCLI: w.createRequestFromCLI,
 		UpdateCmdMutateFn: func(cmd *cobra.Command) {
@@ -212,14 +215,20 @@ func (c *tenant) Convert(r *apiv1.Tenant) (string, *apiv1.TenantServiceCreateReq
 	}
 
 	return r.Login, &apiv1.TenantServiceCreateRequest{
-			Tenant: r,
-		}, &apiv1.TenantServiceUpdateRequest{
-			Login:          "",
+			Name:        r.Name,
+			Description: "", // TODO: description field is missing
+			Email:       r.Email,
+			AvatarUrl:   r.AvatarUrl,
+			PhoneNumber: r.PhoneNumber,
+		},
+		&apiv1.TenantServiceUpdateRequest{
+			Login:          r.Login,
 			Name:           pointer.PointerOrNil(r.Name),
 			Email:          pointer.PointerOrNil(r.Email),
 			AvatarUrl:      pointer.PointerOrNil(r.AvatarUrl),
 			PaymentDetails: paymentDetails,
-		}, nil
+		},
+		nil
 }
 
 func (c *tenant) Update(rq *apiv1.TenantServiceUpdateRequest) (*apiv1.Tenant, error) {
@@ -235,7 +244,13 @@ func (c *tenant) Update(rq *apiv1.TenantServiceUpdateRequest) (*apiv1.Tenant, er
 }
 
 func (c *tenant) createRequestFromCLI() (*apiv1.TenantServiceCreateRequest, error) {
-	return nil, fmt.Errorf("not implemented")
+	return &apiv1.TenantServiceCreateRequest{
+		Name:        viper.GetString("name"),
+		Description: viper.GetString("description"),
+		Email:       viper.GetString("email"),
+		AvatarUrl:   viper.GetString("phone"),
+		PhoneNumber: viper.GetString("avatar-url"),
+	}, nil
 }
 
 func (c *tenant) updateRequestFromCLI(args []string) (*apiv1.TenantServiceUpdateRequest, error) {
