@@ -35,9 +35,8 @@ func newTenantCmd(c *config.Config) *cobra.Command {
 		DescribePrinter: func() printers.Printer { return c.DescribePrinter },
 		ListPrinter:     func() printers.Printer { return c.ListPrinter },
 		ListCmdMutateFn: func(cmd *cobra.Command) {
-			// TODO: maybe implement later in API
-			// cmd.Flags().String("name", "", "lists only tenants with the given name")
-			// cmd.Flags().String("id", "", "lists only tenant with the given tenant id")
+			cmd.Flags().String("name", "", "lists only tenants with the given name")
+			cmd.Flags().String("id", "", "lists only tenant with the given tenant id")
 		},
 		CreateCmdMutateFn: func(cmd *cobra.Command) {
 			cmd.Flags().String("name", "", "the name of the tenant to create")
@@ -164,17 +163,16 @@ func (c *tenant) List() ([]*apiv1.Tenant, error) {
 	ctx, cancel := c.c.NewRequestContext()
 	defer cancel()
 
-	// TODO: probably we should offer tenant list endpoint as well
-	req := &apiv1.UserServiceGetRequest{
-		// Name:   pointer.PointerOrNil(viper.GetString("name")),
-		// Tenant: pointer.PointerOrNil(viper.GetString("tenant")),
+	req := &apiv1.TenantServiceListRequest{
+		Name: pointer.PointerOrNil(viper.GetString("name")),
+		Id:   pointer.PointerOrNil(viper.GetString("tenant")),
 	}
-	resp, err := c.c.Client.Apiv1().User().Get(ctx, connect.NewRequest(req))
+	resp, err := c.c.Client.Apiv1().Tenant().List(ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to list tenants: %w", err)
 	}
 
-	return resp.Msg.User.GetTenants(), nil
+	return resp.Msg.GetTenants(), nil
 }
 
 func (c *tenant) Create(rq *apiv1.TenantServiceCreateRequest) (*apiv1.Tenant, error) {
@@ -216,7 +214,7 @@ func (c *tenant) Convert(r *apiv1.Tenant) (string, *apiv1.TenantServiceCreateReq
 
 	return r.Login, &apiv1.TenantServiceCreateRequest{
 			Name:        r.Name,
-			Description: "", // TODO: description field is missing
+			Description: r.Description,
 			Email:       r.Email,
 			AvatarUrl:   r.AvatarUrl,
 			PhoneNumber: r.PhoneNumber,

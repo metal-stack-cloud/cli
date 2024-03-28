@@ -8,14 +8,14 @@ import (
 )
 
 func (c *Completion) TenantListCompletion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-	// TODO: probably we should offer tenant list endpoint as well
-	req := &apiv1.UserServiceGetRequest{}
-	resp, err := c.Client.Apiv1().User().Get(c.Ctx, connect.NewRequest(req))
+	req := &apiv1.TenantServiceListRequest{}
+	resp, err := c.Client.Apiv1().Tenant().List(c.Ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, cobra.ShellCompDirectiveError
 	}
+
 	var names []string
-	for _, t := range resp.Msg.User.Tenants {
+	for _, t := range resp.Msg.Tenants {
 		names = append(names, t.Login+"\t"+t.Name)
 	}
 	return names, cobra.ShellCompDirectiveNoFileComp
