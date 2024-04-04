@@ -151,7 +151,7 @@ func (c *project) Get(id string) (*apiv1.Project, error) {
 
 	resp, err := c.c.Client.Apiv1().Project().Get(ctx, connect.NewRequest(req))
 	if err != nil {
-		return nil, fmt.Errorf("failed to list projects: %w", err)
+		return nil, fmt.Errorf("failed to get project: %w", err)
 	}
 
 	return resp.Msg.GetProject(), nil
