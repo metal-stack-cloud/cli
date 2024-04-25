@@ -49,3 +49,22 @@ func (t *TablePrinter) TenantTable(data []*apiv1.Tenant, wide bool) ([]string, [
 
 	return header, rows, nil
 }
+
+func (t *TablePrinter) TenantMemberTable(data []*apiv1.TenantMember, _ bool) ([]string, [][]string, error) {
+	var (
+		rows [][]string
+	)
+	header := []string{"ID", "Role", "Since"}
+
+	for _, member := range data {
+		row := []string{
+			member.Id,
+			member.Role.String(),
+			humanize.Time(member.CreatedAt.AsTime()),
+		}
+
+		rows = append(rows, row)
+	}
+
+	return header, rows, nil
+}

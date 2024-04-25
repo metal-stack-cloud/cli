@@ -1,16 +1,11 @@
-## metal tenant remove-member
+## metal tenant member
 
-remove member from a tenant
-
-```
-metal tenant remove-member <member> [flags]
-```
+manage tenant members
 
 ### Options
 
 ```
-  -h, --help            help for remove-member
-      --tenant string   the tenant in which to remove the member
+  -h, --help   help for member
 ```
 
 ### Options inherited from parent commands
@@ -29,4 +24,7 @@ metal tenant remove-member <member> [flags]
 ### SEE ALSO
 
 * [metal tenant](metal_tenant.md)	 - manage tenant entities
+* [metal tenant member list](metal_tenant_member_list.md)	 - lists members of a tenant
+* [metal tenant member remove](metal_tenant_member_remove.md)	 - remove member from a tenant
+* [metal tenant member update](metal_tenant_member_update.md)	 - update member from a tenant
 

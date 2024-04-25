@@ -1,17 +1,17 @@
-## metal project update-member
+## metal tenant member update
 
-update member from a project
+update member from a tenant
 
 ```
-metal project update-member <member> [flags]
+metal tenant member update <member> [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help             help for update-member
-  -p, --project string   the project in which to remove the member
-      --role string      the role of the member
+  -h, --help            help for update
+      --role string     the role of the member
+      --tenant string   the tenant in which to remove the member
 ```
 
 ### Options inherited from parent commands
@@ -29,5 +29,5 @@ metal project update-member <member> [flags]
 
 ### SEE ALSO
 
-* [metal project](metal_project.md)	 - manage project entities
+* [metal tenant member](metal_tenant_member.md)	 - manage tenant members
 
