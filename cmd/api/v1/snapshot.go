@@ -35,80 +35,93 @@ func newSnapshotCmd(c *config.Config) *cobra.Command {
 			cmd.Flags().StringP("uuid", "", "", "filter by uuid")
 			cmd.Flags().StringP("name", "", "", "filter by name")
 			cmd.Flags().StringP("partition", "", "", "filter by partition")
-			cmd.Flags().StringP("project", "", "", "filter by project")
+			cmd.Flags().StringP("project", "p", "", "filter by project")
+
+			genericcli.Must(cmd.RegisterFlagCompletionFunc("project", c.Completion.ProjectListCompletion))
+			genericcli.Must(cmd.RegisterFlagCompletionFunc("partition", c.Completion.PartitionAssetListCompletion))
 		},
 		DeleteCmdMutateFn: func(cmd *cobra.Command) {
-			cmd.Flags().StringP("uuid", "", "", "filter by uuid")
-			cmd.Flags().StringP("project", "", "", "filter by project")
+			cmd.Flags().StringP("project", "p", "", "filter by project")
+
+			genericcli.Must(cmd.RegisterFlagCompletionFunc("project", c.Completion.ProjectListCompletion))
 		},
 		DescribeCmdMutateFn: func(cmd *cobra.Command) {
-			cmd.Flags().StringP("uuid", "", "", "filter by uuid")
-			cmd.Flags().StringP("project", "", "", "filter by project")
+			cmd.Flags().StringP("project", "p", "", "filter by project")
+
+			genericcli.Must(cmd.RegisterFlagCompletionFunc("project", c.Completion.ProjectListCompletion))
 		},
 		OnlyCmds: genericcli.OnlyCmds(genericcli.ListCmd, genericcli.DeleteCmd, genericcli.DescribeCmd),
 	}
 	return genericcli.NewCmds(cmdsConfig)
 }
 
-// Create implements genericcli.CRUD
 func (s *snapshot) Create(rq any) (*apiv1.Snapshot, error) {
 	panic("unimplemented")
 }
 
-// Delete implements genericcli.CRUD
-func (s *snapshot) Delete(id string) (*apiv1.Snapshot, error) {
+func (c *snapshot) Delete(id string) (*apiv1.Snapshot, error) {
+	ctx, cancel := c.c.NewRequestContext()
+	defer cancel()
+
 	req := &apiv1.SnapshotServiceDeleteRequest{
 		Uuid:    id,
-		Project: viper.GetString("project"),
+		Project: c.c.GetProject(),
 	}
-	resp, err := s.c.Client.Apiv1().Snapshot().Delete(s.c.Ctx, connect.NewRequest(req))
+
+	resp, err := c.c.Client.Apiv1().Snapshot().Delete(ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to delete snapshots: %w", err)
 	}
+
 	return resp.Msg.Snapshot, nil
 }
 
-// Get implements genericcli.CRUD
-func (s *snapshot) Get(id string) (*apiv1.Snapshot, error) {
+func (c *snapshot) Get(id string) (*apiv1.Snapshot, error) {
+	ctx, cancel := c.c.NewRequestContext()
+	defer cancel()
+
 	req := &apiv1.SnapshotServiceGetRequest{
 		Uuid:    id,
-		Project: viper.GetString("project"),
+		Project: c.c.GetProject(),
 	}
-	resp, err := s.c.Client.Apiv1().Snapshot().Get(s.c.Ctx, connect.NewRequest(req))
+
+	resp, err := c.c.Client.Apiv1().Snapshot().Get(ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get snapshots: %w", err)
 	}
+
 	return resp.Msg.Snapshot, nil
 }
 
-// List implements genericcli.CRUD
-func (s *snapshot) List() ([]*apiv1.Snapshot, error) {
-	req := &apiv1.SnapshotServiceListRequest{}
+func (c *snapshot) List() ([]*apiv1.Snapshot, error) {
+	ctx, cancel := c.c.NewRequestContext()
+	defer cancel()
+
+	req := &apiv1.SnapshotServiceListRequest{
+		Project: c.c.GetProject(),
+	}
 	if viper.IsSet("uuid") {
 		req.Uuid = pointer.Pointer(viper.GetString("uuid"))
 	}
 	if viper.IsSet("name") {
 		req.Name = pointer.Pointer(viper.GetString("name"))
 	}
-	if viper.IsSet("project") {
-		req.Project = viper.GetString("project")
-	}
 	if viper.IsSet("partition") {
 		req.Partition = pointer.Pointer(viper.GetString("partition"))
 	}
-	resp, err := s.c.Client.Apiv1().Snapshot().List(s.c.Ctx, connect.NewRequest(req))
+
+	resp, err := c.c.Client.Apiv1().Snapshot().List(ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get snapshots: %w", err)
 	}
+
 	return resp.Msg.Snapshots, nil
 }
 
-// Convert implements genericcli.CRUD
-func (s *snapshot) Convert(r *apiv1.Snapshot) (string, any, any, error) {
+func (c *snapshot) Convert(r *apiv1.Snapshot) (string, any, any, error) {
 	panic("unimplemented")
 }
 
-// Update implements genericcli.CRUD
-func (s *snapshot) Update(rq any) (*apiv1.Snapshot, error) {
+func (c *snapshot) Update(rq any) (*apiv1.Snapshot, error) {
 	panic("unimplemented")
 }

@@ -1,18 +1,46 @@
 package cmd
 
 import (
+	"strings"
 	"testing"
 
 	"connectrpc.com/connect"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
 	apitests "github.com/metal-stack-cloud/api/go/tests"
+	v1 "github.com/metal-stack-cloud/cli/cmd/api/v1"
 	"github.com/metal-stack/metal-lib/pkg/pointer"
+	"github.com/metal-stack/metal-lib/pkg/tag"
 	"github.com/metal-stack/metal-lib/pkg/testcommon"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/runtime/protoimpl"
+)
+
+var (
+	ip1 = func() *apiv1.IP {
+		return &apiv1.IP{
+			Uuid:        "2e0144a2-09ef-42b7-b629-4263295db6e8",
+			Ip:          "1.1.1.1",
+			Name:        "a",
+			Description: "a description",
+			Project:     "a",
+			Type:        apiv1.IPType_IP_TYPE_STATIC,
+			Tags:        []string{tag.New(tag.ClusterServiceFQN, "<cluster>/default/ingress-nginx")},
+		}
+	}
+	ip2 = func() *apiv1.IP {
+		return &apiv1.IP{
+			Uuid:        "9cef40ec-29c6-4dfa-aee8-47ee1f49223d",
+			Ip:          "4.3.2.1",
+			Name:        "b",
+			Description: "b description",
+			Project:     "b",
+			Type:        apiv1.IPType_IP_TYPE_EPHEMERAL,
+			Tags:        []string{"a=b"},
+		}
+	}
 )
 
 func Test_IPCmd_MultiResult(t *testing.T) {
@@ -30,24 +58,8 @@ func Test_IPCmd_MultiResult(t *testing.T) {
 						})).Return(&connect.Response[apiv1.IPServiceListResponse]{
 							Msg: &apiv1.IPServiceListResponse{
 								Ips: []*apiv1.IP{
-									{
-										Uuid:        "uuid",
-										Ip:          "4.3.2.1",
-										Name:        "b",
-										Description: "b description",
-										Project:     "b",
-										Type:        apiv1.IPType_IP_TYPE_EPHEMERAL,
-										Tags:        []string{"a=b"},
-									},
-									{
-										Uuid:        "uuid",
-										Ip:          "1.1.1.1",
-										Name:        "a",
-										Description: "a description",
-										Project:     "a",
-										Type:        apiv1.IPType_IP_TYPE_EPHEMERAL,
-										Tags:        []string{"a=b"},
-									},
+									ip2(),
+									ip1(),
 								},
 							},
 						}, nil)
@@ -55,34 +67,18 @@ func Test_IPCmd_MultiResult(t *testing.T) {
 				},
 			},
 			Want: []*apiv1.IP{
-				{
-					Uuid:        "uuid",
-					Ip:          "1.1.1.1",
-					Name:        "a",
-					Description: "a description",
-					Project:     "a",
-					Type:        apiv1.IPType_IP_TYPE_EPHEMERAL,
-					Tags:        []string{"a=b"},
-				},
-				{
-					Uuid:        "uuid",
-					Ip:          "4.3.2.1",
-					Name:        "b",
-					Description: "b description",
-					Project:     "b",
-					Type:        apiv1.IPType_IP_TYPE_EPHEMERAL,
-					Tags:        []string{"a=b"},
-				},
+				ip1(),
+				ip2(),
 			},
 			WantTable: pointer.Pointer(`
-IP        ID     PROJECT   NAME   DESCRIPTION     TYPE
-1.1.1.1   uuid   a         a      a description   ephemeral
-4.3.2.1   uuid   b         b      b description   ephemeral
+IP        PROJECT   ID                                     TYPE        NAME   ATTACHED SERVICE
+1.1.1.1   a         2e0144a2-09ef-42b7-b629-4263295db6e8   static      a      ingress-nginx
+4.3.2.1   b         9cef40ec-29c6-4dfa-aee8-47ee1f49223d   ephemeral   b
 `),
 			WantWideTable: pointer.Pointer(`
-IP        ID     PROJECT   NAME   DESCRIPTION     TYPE
-1.1.1.1   uuid   a         a      a description   ephemeral
-4.3.2.1   uuid   b         b      b description   ephemeral
+IP        PROJECT   ID                                     TYPE        NAME   DESCRIPTION     LABELS
+1.1.1.1   a         2e0144a2-09ef-42b7-b629-4263295db6e8   static      a      a description   cluster.metal-stack.io/id/namespace/service=<cluster>/default/ingress-nginx
+4.3.2.1   b         9cef40ec-29c6-4dfa-aee8-47ee1f49223d   ephemeral   b      b description   a=b
 `),
 			Template: pointer.Pointer("{{ .ip }} {{ .project }}"),
 			WantTemplate: pointer.Pointer(`
@@ -90,11 +86,106 @@ IP        ID     PROJECT   NAME   DESCRIPTION     TYPE
 4.3.2.1 b
 			`),
 			WantMarkdown: pointer.Pointer(`
-|   IP    |  ID  | PROJECT | NAME |  DESCRIPTION  |   TYPE    |
-|---------|------|---------|------|---------------|-----------|
-| 1.1.1.1 | uuid | a       | a    | a description | ephemeral |
-| 4.3.2.1 | uuid | b       | b    | b description | ephemeral |
+|   IP    | PROJECT |                  ID                  |   TYPE    | NAME | ATTACHED SERVICE |
+|---------|---------|--------------------------------------|-----------|------|------------------|
+| 1.1.1.1 | a       | 2e0144a2-09ef-42b7-b629-4263295db6e8 | static    | a    | ingress-nginx    |
+| 4.3.2.1 | b       | 9cef40ec-29c6-4dfa-aee8-47ee1f49223d | ephemeral | b    |                  |
 `),
+		},
+		{
+			Name: "apply",
+			Cmd: func(want []*apiv1.IP) []string {
+				return appendFromFileCommonArgs("ip", "apply")
+			},
+			FsMocks: func(fs afero.Fs, want []*apiv1.IP) {
+				require.NoError(t, afero.WriteFile(fs, "/file.yaml", MustMarshalToMultiYAML(t, want), 0755))
+			},
+			ClientMocks: &apitests.ClientMockFns{
+				Apiv1Mocks: &apitests.Apiv1MockFns{
+					IP: func(m *mock.Mock) {
+						m.On("Allocate", mock.Anything, testcommon.MatchByCmpDiff(t, connect.NewRequest(v1.IpResponseToCreate(ip1())), cmpopts.IgnoreTypes(protoimpl.MessageState{}))).Return(connect.NewResponse(&apiv1.IPServiceAllocateResponse{
+							Ip: ip1(),
+						}), nil)
+						m.On("Allocate", mock.Anything, testcommon.MatchByCmpDiff(t, connect.NewRequest(v1.IpResponseToCreate(ip2())), cmpopts.IgnoreTypes(protoimpl.MessageState{}))).Return(connect.NewResponse(&apiv1.IPServiceAllocateResponse{
+							Ip: ip2(),
+						}), nil)
+						// FIXME: API does not return a conflict when already exists, so the update functionality does not work!
+					},
+				},
+			},
+			Want: []*apiv1.IP{
+				ip1(),
+				ip2(),
+			},
+		},
+		{
+			Name: "update from file",
+			Cmd: func(want []*apiv1.IP) []string {
+				return appendFromFileCommonArgs("ip", "update")
+			},
+			FsMocks: func(fs afero.Fs, want []*apiv1.IP) {
+				require.NoError(t, afero.WriteFile(fs, "/file.yaml", MustMarshalToMultiYAML(t, want), 0755))
+			},
+			ClientMocks: &apitests.ClientMockFns{
+				Apiv1Mocks: &apitests.Apiv1MockFns{
+					IP: func(m *mock.Mock) {
+						m.On("Update", mock.Anything, testcommon.MatchByCmpDiff(t, connect.NewRequest(&apiv1.IPServiceUpdateRequest{
+							Project: ip1().Project,
+							Ip:      ip1(),
+						}), cmpopts.IgnoreTypes(protoimpl.MessageState{}))).Return(connect.NewResponse(&apiv1.IPServiceUpdateResponse{
+							Ip: ip1(),
+						}), nil)
+					},
+				},
+			},
+			Want: []*apiv1.IP{
+				ip1(),
+			},
+		},
+		{
+			Name: "create from file",
+			Cmd: func(want []*apiv1.IP) []string {
+				return appendFromFileCommonArgs("ip", "create")
+			},
+			FsMocks: func(fs afero.Fs, want []*apiv1.IP) {
+				require.NoError(t, afero.WriteFile(fs, "/file.yaml", MustMarshalToMultiYAML(t, want), 0755))
+			},
+			ClientMocks: &apitests.ClientMockFns{
+				Apiv1Mocks: &apitests.Apiv1MockFns{
+					IP: func(m *mock.Mock) {
+						m.On("Allocate", mock.Anything, testcommon.MatchByCmpDiff(t, connect.NewRequest(v1.IpResponseToCreate(ip1())), cmpopts.IgnoreTypes(protoimpl.MessageState{}))).Return(connect.NewResponse(&apiv1.IPServiceAllocateResponse{
+							Ip: ip1(),
+						}), nil)
+					},
+				},
+			},
+			Want: []*apiv1.IP{
+				ip1(),
+			},
+		},
+		{
+			Name: "delete from file",
+			Cmd: func(want []*apiv1.IP) []string {
+				return appendFromFileCommonArgs("ip", "delete")
+			},
+			FsMocks: func(fs afero.Fs, want []*apiv1.IP) {
+				require.NoError(t, afero.WriteFile(fs, "/file.yaml", MustMarshalToMultiYAML(t, want), 0755))
+			},
+			ClientMocks: &apitests.ClientMockFns{
+				Apiv1Mocks: &apitests.Apiv1MockFns{
+					IP: func(m *mock.Mock) {
+						m.On("Delete", mock.Anything, testcommon.MatchByCmpDiff(t, connect.NewRequest(&apiv1.IPServiceDeleteRequest{
+							Uuid:    ip1().Uuid,
+							Project: ip1().Project,
+						}), cmpopts.IgnoreTypes(protoimpl.MessageState{}))).Return(connect.NewResponse(&apiv1.IPServiceDeleteResponse{
+							Ip: ip1(),
+						}), nil)
+					},
+				},
+			},
+			Want: []*apiv1.IP{
+				ip1(),
+			},
 		},
 	}
 	for _, tt := range tests {
@@ -107,141 +198,86 @@ func Test_IPCmd_SingleResult(t *testing.T) {
 		{
 			Name: "describe",
 			Cmd: func(want *apiv1.IP) []string {
-				return []string{"ip", "describe", "--project", "a", "uuid"}
+				return []string{"ip", "describe", "--project", want.Project, want.Uuid}
 			},
 			ClientMocks: &apitests.ClientMockFns{
 				Apiv1Mocks: &apitests.Apiv1MockFns{
 					IP: func(m *mock.Mock) {
 						m.On("Get", mock.Anything, testcommon.MatchByCmpDiff(t, connect.NewRequest(&apiv1.IPServiceGetRequest{
-							Project: "a",
-							Uuid:    "uuid",
-						}), cmpopts.IgnoreTypes(protoimpl.MessageState{}))).Return(&connect.Response[apiv1.IPServiceGetResponse]{
-							Msg: &apiv1.IPServiceGetResponse{
-								Ip: &apiv1.IP{
-									Uuid:        "uuid",
-									Ip:          "1.1.1.1",
-									Name:        "a",
-									Description: "a description",
-									Project:     "a",
-									Type:        apiv1.IPType_IP_TYPE_EPHEMERAL,
-									Tags:        []string{"a=b"},
-								},
-							},
-						}, nil)
+							Project: ip1().Project,
+							Uuid:    ip1().Uuid,
+						}), cmpopts.IgnoreTypes(protoimpl.MessageState{}))).Return(connect.NewResponse(&apiv1.IPServiceGetResponse{
+							Ip: ip1(),
+						}), nil)
 					},
 				},
 			},
-			Want: &apiv1.IP{
-				Uuid:        "uuid",
-				Ip:          "1.1.1.1",
-				Name:        "a",
-				Description: "a description",
-				Project:     "a",
-				Type:        apiv1.IPType_IP_TYPE_EPHEMERAL,
-				Tags:        []string{"a=b"},
-			},
+			Want: ip1(),
 			WantTable: pointer.Pointer(`
-IP        ID     PROJECT   NAME   DESCRIPTION     TYPE
-1.1.1.1   uuid   a         a      a description   ephemeral
+IP        PROJECT   ID                                     TYPE     NAME   ATTACHED SERVICE
+1.1.1.1   a         2e0144a2-09ef-42b7-b629-4263295db6e8   static   a      ingress-nginx
 `),
 			WantWideTable: pointer.Pointer(`
-IP        ID     PROJECT   NAME   DESCRIPTION     TYPE
-1.1.1.1   uuid   a         a      a description   ephemeral
+IP        PROJECT   ID                                     TYPE     NAME   DESCRIPTION     LABELS
+1.1.1.1   a         2e0144a2-09ef-42b7-b629-4263295db6e8   static   a      a description   cluster.metal-stack.io/id/namespace/service=<cluster>/default/ingress-nginx
 `),
 			Template: pointer.Pointer("{{ .ip }} {{ .project }}"),
 			WantTemplate: pointer.Pointer(`
 1.1.1.1 a
 			`),
 			WantMarkdown: pointer.Pointer(`
-|   IP    |  ID  | PROJECT | NAME |  DESCRIPTION  |   TYPE    |
-|---------|------|---------|------|---------------|-----------|
-| 1.1.1.1 | uuid | a       | a    | a description | ephemeral |
+|   IP    | PROJECT |                  ID                  |  TYPE  | NAME | ATTACHED SERVICE |
+|---------|---------|--------------------------------------|--------|------|------------------|
+| 1.1.1.1 | a       | 2e0144a2-09ef-42b7-b629-4263295db6e8 | static | a    | ingress-nginx    |
 `),
 		},
 		{
 			Name: "delete",
 			Cmd: func(want *apiv1.IP) []string {
-				return []string{"ip", "rm", "--project", "a", "uuid"}
+				return []string{"ip", "rm", "--project", want.Project, want.Uuid}
 			},
 			ClientMocks: &apitests.ClientMockFns{
 				Apiv1Mocks: &apitests.Apiv1MockFns{
 					IP: func(m *mock.Mock) {
 						m.On("Delete", mock.Anything, testcommon.MatchByCmpDiff(t, connect.NewRequest(&apiv1.IPServiceDeleteRequest{
-							Project: "a",
-							Uuid:    "uuid",
-						}), cmpopts.IgnoreTypes(protoimpl.MessageState{}))).Return(&connect.Response[apiv1.IPServiceDeleteResponse]{
-							Msg: &apiv1.IPServiceDeleteResponse{
-								Ip: &apiv1.IP{
-									Uuid:        "uuid",
-									Ip:          "1.1.1.1",
-									Name:        "a",
-									Description: "a description",
-									Project:     "a",
-									Type:        apiv1.IPType_IP_TYPE_EPHEMERAL,
-									Tags:        []string{"a=b"},
-								},
-							},
-						}, nil)
+							Project: ip1().Project,
+							Uuid:    ip1().Uuid,
+						}), cmpopts.IgnoreTypes(protoimpl.MessageState{}))).Return(connect.NewResponse(&apiv1.IPServiceDeleteResponse{
+							Ip: ip1(),
+						}), nil)
 					},
 				},
 			},
-			Want: &apiv1.IP{
-				Uuid:        "uuid",
-				Ip:          "1.1.1.1",
-				Name:        "a",
-				Description: "a description",
-				Project:     "a",
-				Type:        apiv1.IPType_IP_TYPE_EPHEMERAL,
-				Tags:        []string{"a=b"},
-			},
+			Want: ip1(),
 		},
 		{
 			Name: "create",
 			Cmd: func(want *apiv1.IP) []string {
-				args := []string{"ip", "create", "--project", "a", "--description", "a description", "--name", "a", "--static", "--tags", "a=b"}
+				args := []string{"ip", "create", "--project", want.Project, "--description", want.Description, "--name", want.Name, "--tags", strings.Join(want.Tags, ",")}
+				if want.Type == apiv1.IPType_IP_TYPE_STATIC {
+					args = append(args, "--static")
+				}
 				AssertExhaustiveArgs(t, args, commonExcludedFileArgs()...)
 				return args
 			},
 			ClientMocks: &apitests.ClientMockFns{
-
 				Apiv1Mocks: &apitests.Apiv1MockFns{
 					IP: func(m *mock.Mock) {
-						m.On("Allocate", mock.Anything, testcommon.MatchByCmpDiff(t, connect.NewRequest(&apiv1.IPServiceAllocateRequest{
-							Project:     "a",
-							Name:        "a",
-							Description: "a description",
-							Static:      true,
-							Tags:        []string{"a=b"},
-						}), cmpopts.IgnoreTypes(protoimpl.MessageState{}))).Return(&connect.Response[apiv1.IPServiceAllocateResponse]{
-							Msg: &apiv1.IPServiceAllocateResponse{
-								Ip: &apiv1.IP{
-									Uuid:        "uuid",
-									Ip:          "1.1.1.1",
-									Name:        "a",
-									Description: "a description",
-									Project:     "a",
-									Type:        apiv1.IPType_IP_TYPE_EPHEMERAL,
-									Tags:        []string{"a=b"},
-								},
-							},
-						}, nil)
+						m.On("Allocate", mock.Anything, testcommon.MatchByCmpDiff(t, connect.NewRequest(v1.IpResponseToCreate(ip1())), cmpopts.IgnoreTypes(protoimpl.MessageState{}))).Return(connect.NewResponse(&apiv1.IPServiceAllocateResponse{
+							Ip: ip1(),
+						}), nil)
 					},
 				},
 			},
-			Want: &apiv1.IP{
-				Uuid:        "uuid",
-				Ip:          "1.1.1.1",
-				Name:        "a",
-				Description: "a description",
-				Project:     "a",
-				Type:        apiv1.IPType_IP_TYPE_EPHEMERAL,
-				Tags:        []string{"a=b"},
-			},
+			Want: ip1(),
 		},
 		{
 			Name: "update",
 			Cmd: func(want *apiv1.IP) []string {
-				args := []string{"ip", "update", "--project", "a", "--uuid", "uuid", "--description", "b description", "--name", "b", "--static", "--tags", "c=d"}
+				args := []string{"ip", "update", want.Uuid, "--project", want.Project, "--description", want.Description, "--name", want.Name, "--tags", strings.Join(want.Tags, ",")}
+				if want.Type == apiv1.IPType_IP_TYPE_STATIC {
+					args = append(args, "--static")
+				}
 				AssertExhaustiveArgs(t, args, commonExcludedFileArgs()...)
 				return args
 			},
@@ -249,149 +285,19 @@ IP        ID     PROJECT   NAME   DESCRIPTION     TYPE
 				Apiv1Mocks: &apitests.Apiv1MockFns{
 					IP: func(m *mock.Mock) {
 						m.On("Get", mock.Anything, testcommon.MatchByCmpDiff(t, connect.NewRequest(&apiv1.IPServiceGetRequest{
-							Uuid:    "uuid",
-							Project: "a",
-						}), cmpopts.IgnoreTypes(protoimpl.MessageState{}))).Return(&connect.Response[apiv1.IPServiceGetResponse]{
-							Msg: &apiv1.IPServiceGetResponse{
-								Ip: &apiv1.IP{
-									Uuid:        "uuid",
-									Ip:          "1.1.1.1",
-									Name:        "a",
-									Description: "a description",
-									Project:     "a",
-									Type:        apiv1.IPType_IP_TYPE_EPHEMERAL,
-									Tags:        []string{"a=b"},
-								},
-							},
-						}, nil)
-						m.On("Update", mock.Anything, testcommon.MatchByCmpDiff(t, connect.NewRequest(&apiv1.IPServiceUpdateRequest{
-							Project: "a",
-							Ip: &apiv1.IP{
-								Uuid:        "uuid",
-								Ip:          "1.1.1.1",
-								Name:        "b",
-								Description: "b description",
-								Project:     "a",
-								Type:        apiv1.IPType_IP_TYPE_STATIC,
-								Tags:        []string{"c=d"},
-							},
-						}), cmpopts.IgnoreTypes(protoimpl.MessageState{}))).Return(&connect.Response[apiv1.IPServiceUpdateResponse]{
-							Msg: &apiv1.IPServiceUpdateResponse{
-								Ip: &apiv1.IP{
-									Uuid:        "uuid",
-									Ip:          "1.1.1.1",
-									Name:        "b",
-									Description: "b description",
-									Project:     "a",
-									Type:        apiv1.IPType_IP_TYPE_STATIC,
-									Tags:        []string{"c=d"},
-								},
-							},
-						}, nil)
-					},
-				},
-			},
-			Want: &apiv1.IP{
-				Uuid:        "uuid",
-				Ip:          "1.1.1.1",
-				Name:        "b",
-				Description: "b description",
-				Project:     "a",
-				Type:        apiv1.IPType_IP_TYPE_STATIC,
-				Tags:        []string{"c=d"},
-			},
-		},
-		{
-			Name: "update from file",
-			Cmd: func(want *apiv1.IP) []string {
-				return []string{"ip", "update", "-f", "/file.yaml"}
-			},
-			FsMocks: func(fs afero.Fs, want *apiv1.IP) {
-				require.NoError(t, afero.WriteFile(fs, "/file.yaml", MustMarshal(t, want), 0755))
-			},
+							Uuid:    ip1().Uuid,
+							Project: ip1().Project,
+						}), cmpopts.IgnoreTypes(protoimpl.MessageState{}))).Return(connect.NewResponse(&apiv1.IPServiceGetResponse{
+							Ip: ip1(),
+						}), nil)
 
-			ClientMocks: &apitests.ClientMockFns{
-				Apiv1Mocks: &apitests.Apiv1MockFns{
-					IP: func(m *mock.Mock) {
-						m.On("Update", mock.Anything, testcommon.MatchByCmpDiff(t, connect.NewRequest(&apiv1.IPServiceUpdateRequest{
-							Project: "a",
-							Ip: &apiv1.IP{
-								Uuid:        "uuid",
-								Ip:          "1.1.1.1",
-								Project:     "a",
-								Name:        "a",
-								Description: "a description",
-								Type:        apiv1.IPType_IP_TYPE_STATIC,
-								Tags:        []string{"a=b"},
-							},
-						}), cmpopts.IgnoreTypes(protoimpl.MessageState{}))).Return(&connect.Response[apiv1.IPServiceUpdateResponse]{
-							Msg: &apiv1.IPServiceUpdateResponse{
-								Ip: &apiv1.IP{
-									Uuid:        "uuid",
-									Ip:          "1.1.1.1",
-									Name:        "a",
-									Description: "a description",
-									Project:     "a",
-									Type:        apiv1.IPType_IP_TYPE_STATIC,
-									Tags:        []string{"a=b"},
-								},
-							},
-						}, nil)
+						m.On("Update", mock.Anything, testcommon.MatchByCmpDiff(t, connect.NewRequest(v1.IpResponseToUpdate(ip1())), cmpopts.IgnoreTypes(protoimpl.MessageState{}))).Return(connect.NewResponse(&apiv1.IPServiceUpdateResponse{
+							Ip: ip1(),
+						}), nil)
 					},
 				},
 			},
-			Want: &apiv1.IP{
-				Uuid:        "uuid",
-				Ip:          "1.1.1.1",
-				Name:        "a",
-				Description: "a description",
-				Project:     "a",
-				Type:        apiv1.IPType_IP_TYPE_STATIC,
-				Tags:        []string{"a=b"},
-			},
-		},
-		{
-			Name: "create from file",
-			Cmd: func(want *apiv1.IP) []string {
-				return []string{"ip", "create", "-f", "/file.yaml"}
-			},
-			FsMocks: func(fs afero.Fs, want *apiv1.IP) {
-				require.NoError(t, afero.WriteFile(fs, "/file.yaml", MustMarshal(t, want), 0755))
-			},
-			ClientMocks: &apitests.ClientMockFns{
-				Apiv1Mocks: &apitests.Apiv1MockFns{
-					IP: func(m *mock.Mock) {
-						m.On("Allocate", mock.Anything, testcommon.MatchByCmpDiff(t, connect.NewRequest(&apiv1.IPServiceAllocateRequest{
-							Project:     "a",
-							Name:        "a",
-							Description: "a description",
-							Static:      true,
-							Tags:        []string{"a=b"},
-						}), cmpopts.IgnoreTypes(protoimpl.MessageState{}))).Return(&connect.Response[apiv1.IPServiceAllocateResponse]{
-							Msg: &apiv1.IPServiceAllocateResponse{
-								Ip: &apiv1.IP{
-									Uuid:        "uuid",
-									Ip:          "1.1.1.1",
-									Name:        "a",
-									Description: "a description",
-									Project:     "a",
-									Type:        apiv1.IPType_IP_TYPE_STATIC,
-									Tags:        []string{"a=b"},
-								},
-							},
-						}, nil)
-					},
-				},
-			},
-			Want: &apiv1.IP{
-				Uuid:        "uuid",
-				Ip:          "1.1.1.1",
-				Name:        "a",
-				Description: "a description",
-				Project:     "a",
-				Type:        apiv1.IPType_IP_TYPE_STATIC,
-				Tags:        []string{"a=b"},
-			},
+			Want: ip1(),
 		},
 	}
 	for _, tt := range tests {

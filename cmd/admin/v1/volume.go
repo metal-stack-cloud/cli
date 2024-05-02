@@ -36,7 +36,7 @@ func newVolumeCmd(c *config.Config) *cobra.Command {
 			cmd.Flags().StringP("uuid", "", "", "filter by uuid")
 			cmd.Flags().StringP("name", "", "", "filter by name")
 			cmd.Flags().StringP("partition", "", "", "filter by partition")
-			cmd.Flags().StringP("project", "", "", "filter by project")
+			cmd.Flags().StringP("project", "p", "", "filter by project")
 			cmd.Flags().StringP("tenant", "", "", "filter by tenant")
 		},
 		OnlyCmds: genericcli.OnlyCmds(genericcli.ListCmd, genericcli.DescribeCmd),
@@ -44,34 +44,40 @@ func newVolumeCmd(c *config.Config) *cobra.Command {
 	return genericcli.NewCmds(cmdsConfig)
 }
 
-// Create implements genericcli.CRUD
 func (v *volume) Create(rq any) (*apiv1.Volume, error) {
 	panic("unimplemented")
 }
 
-// Delete implements genericcli.CRUD
 func (v *volume) Delete(id string) (*apiv1.Volume, error) {
 	panic("unimplemented")
 }
 
-// Get implements genericcli.CRUD
-func (v *volume) Get(id string) (*apiv1.Volume, error) {
+func (c *volume) Get(id string) (*apiv1.Volume, error) {
+	ctx, cancel := c.c.NewRequestContext()
+	defer cancel()
+
 	req := &adminv1.StorageServiceListVolumesRequest{
 		Uuid: &id,
 	}
-	resp, err := v.c.Client.Adminv1().Storage().ListVolumes(v.c.Ctx, connect.NewRequest(req))
+
+	resp, err := c.c.Client.Adminv1().Storage().ListVolumes(ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get volumes: %w", err)
 	}
+
 	if len(resp.Msg.Volumes) != 1 {
 		return nil, fmt.Errorf("no volume with ID:%s found", id)
 	}
+
 	return resp.Msg.Volumes[0], nil
 }
 
-// List implements genericcli.CRUD
-func (v *volume) List() ([]*apiv1.Volume, error) {
+func (c *volume) List() ([]*apiv1.Volume, error) {
+	ctx, cancel := c.c.NewRequestContext()
+	defer cancel()
+
 	req := &adminv1.StorageServiceListVolumesRequest{}
+
 	if viper.IsSet("uuid") {
 		req.Uuid = pointer.Pointer(viper.GetString("uuid"))
 	}
@@ -87,19 +93,19 @@ func (v *volume) List() ([]*apiv1.Volume, error) {
 	if viper.IsSet("tenant") {
 		req.Tenant = pointer.Pointer(viper.GetString("tenant"))
 	}
-	resp, err := v.c.Client.Adminv1().Storage().ListVolumes(v.c.Ctx, connect.NewRequest(req))
+
+	resp, err := c.c.Client.Adminv1().Storage().ListVolumes(ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get volumes: %w", err)
 	}
+
 	return resp.Msg.Volumes, nil
 }
 
-// Convert implements genericcli.CRUD
 func (v *volume) Convert(r *apiv1.Volume) (string, any, any, error) {
 	panic("unimplemented")
 }
 
-// Update implements genericcli.CRUD
 func (v *volume) Update(rq any) (*apiv1.Volume, error) {
 	panic("unimplemented")
 }

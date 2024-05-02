@@ -21,11 +21,14 @@ func newVersionCmd(c *config.Config) *cobra.Command {
 		Short: "print the client and server version information",
 		Long:  "print the client and server version information",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			ctx, cancel := c.NewRequestContext()
+			defer cancel()
+
 			v := version{
 				Client: v.V.String(),
 			}
 
-			resp, err := c.Client.Apiv1().Version().Get(c.Ctx, connect.NewRequest(&v1.VersionServiceGetRequest{}))
+			resp, err := c.Client.Apiv1().Version().Get(ctx, connect.NewRequest(&v1.VersionServiceGetRequest{}))
 			if err == nil {
 				v.Server = resp.Msg.Version
 			}
@@ -41,5 +44,6 @@ func newVersionCmd(c *config.Config) *cobra.Command {
 			return nil
 		},
 	}
+
 	return versionCmd
 }
