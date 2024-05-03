@@ -69,7 +69,7 @@ func (t *TablePrinter) ProjectMemberTable(data []*apiv1.ProjectMember, _ bool) (
 		row := []string{
 			member.Id,
 			member.Role.String(),
-			strconv.FormatBool(member.ImplicitMembership),
+			strconv.FormatBool(member.InheritedMembership),
 			humanize.Time(member.CreatedAt.AsTime()),
 		}
 

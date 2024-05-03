@@ -54,7 +54,7 @@ func ProjectMemberSorter() *multisort.Sorter[*apiv1.ProjectMember] {
 				}
 				return 0
 			}
-			return multisort.Compare(boolToInt(a.ImplicitMembership), boolToInt(b.ImplicitMembership), descending)
+			return multisort.Compare(boolToInt(a.InheritedMembership), boolToInt(b.InheritedMembership), descending)
 		},
 	}, multisort.Keys{{ID: "inherited", Descending: false}, {ID: "role"}, {ID: "id"}})
 }
