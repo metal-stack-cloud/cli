@@ -100,6 +100,10 @@ func (t *TablePrinter) ToHeaderAndRows(data any, wide bool) ([]string, [][]strin
 		return t.TenantTable(pointer.WrapInSlice(d), wide)
 	case []*apiv1.Tenant:
 		return t.TenantTable(d, wide)
+	case *apiv1.TenantInvite:
+		return t.TenantInviteTable(pointer.WrapInSlice(d), wide)
+	case []*apiv1.TenantInvite:
+		return t.TenantInviteTable(d, wide)
 	case *apiv1.TenantMember:
 		return t.TenantMemberTable(pointer.WrapInSlice(d), wide)
 	case []*apiv1.TenantMember:
