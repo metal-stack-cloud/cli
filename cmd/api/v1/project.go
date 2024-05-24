@@ -348,7 +348,7 @@ func (c *project) generateInvite() error {
 	}
 
 	fmt.Fprintf(c.c.Out, "You can share this secret with the member to join, it expires in %s:\n\n", humanize.Time(resp.Msg.Invite.ExpiresAt.AsTime()))
-	fmt.Fprintf(c.c.Out, "%s (https://console.metalstack.cloud/invite/%s)\n", resp.Msg.Invite.Secret, resp.Msg.Invite.Secret)
+	fmt.Fprintf(c.c.Out, "%s (https://console.metalstack.cloud/project-invite/%s)\n", resp.Msg.Invite.Secret, resp.Msg.Invite.Secret)
 
 	return nil
 }
