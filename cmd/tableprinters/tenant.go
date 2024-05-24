@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/dustin/go-humanize"
+	"github.com/olekukonko/tablewriter"
 
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
 )
@@ -65,6 +66,30 @@ func (t *TablePrinter) TenantMemberTable(data []*apiv1.TenantMember, _ bool) ([]
 
 		rows = append(rows, row)
 	}
+
+	return header, rows, nil
+}
+
+func (t *TablePrinter) TenantInviteTable(data []*apiv1.TenantInvite, _ bool) ([]string, [][]string, error) {
+	var (
+		rows [][]string
+	)
+	header := []string{"Secret", "Tenant", "Role", "Expires in"}
+
+	for _, invite := range data {
+		row := []string{
+			invite.Secret,
+			invite.Tenant,
+			invite.Role.String(),
+			humanize.Time(invite.ExpiresAt.AsTime()),
+		}
+
+		rows = append(rows, row)
+	}
+
+	t.t.MutateTable(func(table *tablewriter.Table) {
+		table.SetAutoWrapText(false)
+	})
 
 	return header, rows, nil
 }
