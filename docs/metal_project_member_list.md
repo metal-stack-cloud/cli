@@ -1,15 +1,17 @@
-## metal tenant
+## metal project member list
 
-manage tenant entities
+lists members of a project
 
-### Synopsis
-
-manage api tenants
+```
+metal project member list [flags]
+```
 
 ### Options
 
 ```
-  -h, --help   help for tenant
+  -h, --help              help for list
+  -p, --project string    the project of which to list the members
+      --sort-by strings   sort by (comma separated) column(s), sort direction can be changed by appending :asc or :desc behind the column identifier. possible values: created|id|inherited|role
 ```
 
 ### Options inherited from parent commands
@@ -27,15 +29,5 @@ manage api tenants
 
 ### SEE ALSO
 
-* [metal](metal.md)	 - cli for managing entities in metal-stack-cloud
-* [metal tenant apply](metal_tenant_apply.md)	 - applies one or more tenants from a given file
-* [metal tenant create](metal_tenant_create.md)	 - creates the tenant
-* [metal tenant delete](metal_tenant_delete.md)	 - deletes the tenant
-* [metal tenant describe](metal_tenant_describe.md)	 - describes the tenant
-* [metal tenant edit](metal_tenant_edit.md)	 - edit the tenant through an editor and update
-* [metal tenant invite](metal_tenant_invite.md)	 - manage tenant invites
-* [metal tenant join](metal_tenant_join.md)	 - join a tenant of someone who shared an invite secret with you
-* [metal tenant list](metal_tenant_list.md)	 - list all tenants
-* [metal tenant member](metal_tenant_member.md)	 - manage tenant members
-* [metal tenant update](metal_tenant_update.md)	 - updates the tenant
+* [metal project member](metal_project_member.md)	 - manage project members
 

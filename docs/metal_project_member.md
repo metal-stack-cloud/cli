@@ -1,16 +1,11 @@
-## metal project remove-member
+## metal project member
 
-remove member from a project
-
-```
-metal project remove-member <member> [flags]
-```
+manage project members
 
 ### Options
 
 ```
-  -h, --help             help for remove-member
-  -p, --project string   the project in which to remove the member
+  -h, --help   help for member
 ```
 
 ### Options inherited from parent commands
@@ -29,4 +24,7 @@ metal project remove-member <member> [flags]
 ### SEE ALSO
 
 * [metal project](metal_project.md)	 - manage project entities
+* [metal project member delete](metal_project_member_delete.md)	 - remove member from a project
+* [metal project member list](metal_project_member_list.md)	 - lists members of a project
+* [metal project member update](metal_project_member_update.md)	 - update member from a project
 
