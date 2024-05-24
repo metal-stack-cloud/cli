@@ -74,11 +74,12 @@ func (t *TablePrinter) TenantInviteTable(data []*apiv1.TenantInvite, _ bool) ([]
 	var (
 		rows [][]string
 	)
-	header := []string{"Secret", "Tenant", "Role", "Expires in"}
+	header := []string{"Secret", "Tenant", "Invited By", "Role", "Expires in"}
 
 	for _, invite := range data {
 		row := []string{
 			invite.Secret,
+			invite.TargetTenant,
 			invite.Tenant,
 			invite.Role.String(),
 			humanize.Time(invite.ExpiresAt.AsTime()),
