@@ -25,6 +25,7 @@ func AddCmds(cmd *cobra.Command, c *config.Config) {
 	adminCmd.AddCommand(newStorageCmd(c))
 	adminCmd.AddCommand(newClusterCmd(c))
 	adminCmd.AddCommand(newTokenCmd(c))
+	adminCmd.AddCommand(newProjectCmd(c))
 
 	cmd.AddCommand(adminCmd)
 }
