@@ -4,11 +4,11 @@ go 1.22
 
 require (
 	bou.ke/monkey v1.0.2
-	connectrpc.com/connect v1.16.1
+	connectrpc.com/connect v1.16.2
 	github.com/dustin/go-humanize v1.0.1
 	github.com/fatih/color v1.16.0
 	github.com/google/go-cmp v0.6.0
-	github.com/metal-stack-cloud/api v0.9.3-0.20240426084758-9a714a7dec76
+	github.com/metal-stack-cloud/api v0.9.6-0.20240607111424-d4e13b73de36
 	github.com/metal-stack/metal-lib v0.16.2
 	github.com/metal-stack/v v1.0.3
 	github.com/olekukonko/tablewriter v0.0.5
@@ -17,8 +17,8 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.18.2
 	github.com/stretchr/testify v1.9.0
-	golang.org/x/net v0.22.0
-	google.golang.org/protobuf v1.33.1-0.20240408130810-98873a205002
+	golang.org/x/net v0.23.0
+	google.golang.org/protobuf v1.34.1
 	k8s.io/api v0.29.2
 	k8s.io/apimachinery v0.29.2
 	k8s.io/client-go v0.29.2
