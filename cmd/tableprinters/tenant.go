@@ -16,9 +16,9 @@ func (t *TablePrinter) TenantTable(data []*apiv1.Tenant, wide bool) ([]string, [
 		rows [][]string
 	)
 
-	header := []string{"ID", "Name", "Email", "Provider", "Registered", "Admitted", "Coupons"}
+	header := []string{"ID", "Name", "Email", "Provider", "Registered", "Admitted", "Coupons", "Terms And Conditions"}
 	if wide {
-		header = []string{"ID", "Name", "Email", "Provider", "Registered", "Admitted", "Coupons"}
+		header = []string{"ID", "Name", "Email", "Provider", "Registered", "Admitted", "Coupons", "Terms And Conditions"}
 	}
 
 	for _, tenant := range data {
@@ -40,11 +40,15 @@ func (t *TablePrinter) TenantTable(data []*apiv1.Tenant, wide bool) ([]string, [
 			coupons = strings.Join(cs, "\n")
 			couponsWide = strings.Join(csw, "\n")
 		}
+		termsAndConditions := ""
+		if tenant.TermsAndConditions != nil {
+			termsAndConditions = strconv.FormatBool(tenant.TermsAndConditions.Accepted)
+		}
 
 		if wide {
-			rows = append(rows, []string{id, name, email, provider, since, admitted, couponsWide})
+			rows = append(rows, []string{id, name, email, provider, since, admitted, couponsWide, termsAndConditions})
 		} else {
-			rows = append(rows, []string{id, name, email, provider, since, admitted, coupons})
+			rows = append(rows, []string{id, name, email, provider, since, admitted, coupons, termsAndConditions})
 		}
 	}
 
