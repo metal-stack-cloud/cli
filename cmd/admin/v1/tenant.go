@@ -100,11 +100,9 @@ func newTenantCmd(c *config.Config) *cobra.Command {
 		ValidArgsFunction: c.Completion.AdminTenantListCompletion,
 	}
 
-	removeTenantCmd := newRemoveTenantCmd(c)
 	addMemberCmd := newAddMemberCmd(c)
-	removeMemberCmd := newRemoveMemberCmd(c)
 
-	return genericcli.NewCmds(cmdsConfig, admitCmd, revokeCmd, addMemberCmd, removeMemberCmd, removeTenantCmd)
+	return genericcli.NewCmds(cmdsConfig, admitCmd, revokeCmd, addMemberCmd)
 
 }
 
@@ -187,34 +185,6 @@ func (c *tenant) Update(rq any) (*apiv1.Tenant, error) {
 	panic("unimplemented")
 }
 
-func newRemoveTenantCmd(c *config.Config) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "remove-tenant [TENANT_ID]",
-		Short: "Remove a tenant from the system",
-		Long:  `Remove a tenant from the system using its unique identifier.`,
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx, cancel := c.NewRequestContext()
-			defer cancel()
-
-			tenantId := args[0]
-
-			req := &adminv1.TenantServiceRemoveTenantRequest{
-				TenantId: tenantId,
-			}
-
-			_, err := c.Client.Adminv1().Tenant().RemoveTenant(ctx, connect.NewRequest(req))
-			if err != nil {
-				return fmt.Errorf("failed to remove tenant: %w", err)
-			}
-
-			return nil
-		},
-	}
-
-	return cmd
-}
-
 func newAddMemberCmd(c *config.Config) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "add-member",
@@ -249,12 +219,12 @@ func newAddMemberCmd(c *config.Config) *cobra.Command {
 				Role:     apiv1.TenantRole(roleValue),
 			}
 
-			resp, err := c.Client.Adminv1().Tenant().AddMember(ctx, connect.NewRequest(req))
+			_, err := c.Client.Adminv1().Tenant().AddMember(ctx, connect.NewRequest(req))
 			if err != nil {
 				return fmt.Errorf("failed to add member to tenant: %w", err)
 			}
 
-			return c.DescribePrinter.Print(resp.Msg.Member)
+			return nil
 		},
 	}
 
@@ -264,44 +234,6 @@ func newAddMemberCmd(c *config.Config) *cobra.Command {
 	genericcli.Must(cmd.MarkFlagRequired("tenant-id"))
 	genericcli.Must(cmd.MarkFlagRequired("member-id"))
 	genericcli.Must(cmd.MarkFlagRequired("role"))
-
-	return cmd
-}
-
-func newRemoveMemberCmd(c *config.Config) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "remove-member",
-		Short: "Remove a member from a tenant",
-		Long:  `Remove an existing member from a tenant by specifying the tenant ID and the member's ID.`,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx, cancel := c.NewRequestContext()
-			defer cancel()
-
-			tenantId := viper.GetString("tenant-id")
-			memberId := viper.GetString("member-id")
-
-			if tenantId == "" || memberId == "" {
-				return fmt.Errorf("both tenant ID and member ID must be specified")
-			}
-
-			req := &adminv1.TenantServiceRemoveMemberRequest{
-				TenantId: tenantId,
-				MemberId: memberId,
-			}
-
-			_, err := c.Client.Adminv1().Tenant().RemoveMember(ctx, connect.NewRequest(req))
-			if err != nil {
-				return fmt.Errorf("failed to remove member from tenant: %w", err)
-			}
-
-			return nil
-		},
-	}
-
-	cmd.Flags().String("tenant-id", "", "ID of the tenant from which the member is to be removed")
-	cmd.Flags().String("member-id", "", "ID of the member to remove")
-	genericcli.Must(cmd.MarkFlagRequired("tenant-id"))
-	genericcli.Must(cmd.MarkFlagRequired("member-id"))
 
 	return cmd
 }
