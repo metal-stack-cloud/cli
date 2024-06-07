@@ -26,7 +26,7 @@ func newProjectCmd(c *config.Config) *cobra.Command {
 
 	cmdsConfig := &genericcli.CmdsConfig[any, any, *apiv1.Project]{
 		BinaryName:      config.BinaryName,
-		GenericCLI:      genericcli.NewGenericCLI[any, any, *apiv1.Project](w).WithFS(c.Fs),
+		GenericCLI:      genericcli.NewGenericCLI(w).WithFS(c.Fs),
 		Singular:        "project",
 		Plural:          "projects",
 		Description:     "a project in metalstack.cloud",
@@ -55,7 +55,7 @@ func (c *project) Get(id string) (*apiv1.Project, error) {
 	panic("unimplemented")
 }
 
-var nextPage *uint64 
+var nextPage *uint64
 
 func (p *project) List() ([]*apiv1.Project, error) {
 	ctx, cancel := p.c.NewRequestContext()
@@ -69,7 +69,6 @@ func (p *project) List() ([]*apiv1.Project, error) {
 			Page:  nextPage,
 		}
 	}
-	
 
 	resp, err := p.c.Client.Adminv1().Project().List(ctx, connect.NewRequest(req))
 	if err != nil {
@@ -86,7 +85,6 @@ func (p *project) List() ([]*apiv1.Project, error) {
 
 	return resp.Msg.Projects, nil
 }
-
 
 func (c *project) Convert(r *apiv1.Project) (string, any, any, error) {
 	panic("unimplemented")
