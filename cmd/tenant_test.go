@@ -33,6 +33,9 @@ func Test_TenantCmd_MultiResult(t *testing.T) {
 										OauthProvider: apiv1.OAuthProvider_O_AUTH_PROVIDER_GITHUB,
 										Admitted:      false,
 										CreatedAt:     timestamppb.New(time.Now().Add(-1 * time.Hour)),
+										TermsAndConditions: &apiv1.TermsAndConditions{
+											Accepted: false,
+										},
 									},
 									{
 										Login:         "loginTwo",
@@ -41,6 +44,9 @@ func Test_TenantCmd_MultiResult(t *testing.T) {
 										OauthProvider: apiv1.OAuthProvider_O_AUTH_PROVIDER_AZURE,
 										Admitted:      true,
 										CreatedAt:     timestamppb.New(time.Now().Add(-1 * time.Minute)),
+										TermsAndConditions: &apiv1.TermsAndConditions{
+											Accepted: true,
+										},
 									},
 								},
 							},
@@ -56,6 +62,9 @@ func Test_TenantCmd_MultiResult(t *testing.T) {
 					OauthProvider: apiv1.OAuthProvider_O_AUTH_PROVIDER_AZURE,
 					Admitted:      true,
 					CreatedAt:     timestamppb.New(time.Now().Add(-1 * time.Minute)),
+					TermsAndConditions: &apiv1.TermsAndConditions{
+						Accepted: true,
+					},
 				},
 				{
 					Login:         "loginOne",
@@ -64,28 +73,31 @@ func Test_TenantCmd_MultiResult(t *testing.T) {
 					OauthProvider: apiv1.OAuthProvider_O_AUTH_PROVIDER_GITHUB,
 					Admitted:      false,
 					CreatedAt:     timestamppb.New(time.Now().Add(-1 * time.Hour)),
+					TermsAndConditions: &apiv1.TermsAndConditions{
+						Accepted: false,
+					},
 				},
 			},
 			WantTable: pointer.Pointer(`
-ID         NAME      EMAIL              PROVIDER                 REGISTERED     ADMITTED   COUPONS
-loginTwo   nameTwo   testtwo@mail.com   O_AUTH_PROVIDER_AZURE    1 minute ago   true       -
-loginOne   nameOne   testone@mail.com   O_AUTH_PROVIDER_GITHUB   1 hour ago     false      -
+ID         NAME      EMAIL              PROVIDER                 REGISTERED     ADMITTED   COUPONS   TERMS AND CONDITIONS
+loginTwo   nameTwo   testtwo@mail.com   O_AUTH_PROVIDER_AZURE    1 minute ago   true       -         true
+loginOne   nameOne   testone@mail.com   O_AUTH_PROVIDER_GITHUB   1 hour ago     false      -         false
 `),
 			WantWideTable: pointer.Pointer(`
-ID         NAME      EMAIL              PROVIDER                 REGISTERED     ADMITTED   COUPONS
-loginTwo   nameTwo   testtwo@mail.com   O_AUTH_PROVIDER_AZURE    1 minute ago   true       -
-loginOne   nameOne   testone@mail.com   O_AUTH_PROVIDER_GITHUB   1 hour ago     false      -
+ID         NAME      EMAIL              PROVIDER                 REGISTERED     ADMITTED   COUPONS   TERMS AND CONDITIONS
+loginTwo   nameTwo   testtwo@mail.com   O_AUTH_PROVIDER_AZURE    1 minute ago   true       -         true
+loginOne   nameOne   testone@mail.com   O_AUTH_PROVIDER_GITHUB   1 hour ago     false      -         false
 `),
-			Template: pointer.Pointer("{{ .login }} {{ .name }} {{ .email }} {{ .oauth_provider }} {{ if .admitted }}true{{ else }}false{{ end }}"),
+			Template: pointer.Pointer("{{ .login }} {{ .name }} {{ .email }} {{ .oauth_provider }} {{ if .admitted }}true{{ else }}false{{ end }} {{ if .terms_and_conditions.accepted }}true{{ else }}false{{ end }}"),
 			WantTemplate: pointer.Pointer(`
-loginTwo nameTwo testtwo@mail.com 2 true
-loginOne nameOne testone@mail.com 1 false
+loginTwo nameTwo testtwo@mail.com 2 true true
+loginOne nameOne testone@mail.com 1 false false
 			`),
 			WantMarkdown: pointer.Pointer(`
-|    ID    |  NAME   |      EMAIL       |        PROVIDER        |  REGISTERED  | ADMITTED | COUPONS |
-|----------|---------|------------------|------------------------|--------------|----------|---------|
-| loginTwo | nameTwo | testtwo@mail.com | O_AUTH_PROVIDER_AZURE  | 1 minute ago | true     | -       |
-| loginOne | nameOne | testone@mail.com | O_AUTH_PROVIDER_GITHUB | 1 hour ago   | false    | -       |
+|    ID    |  NAME   |      EMAIL       |        PROVIDER        |  REGISTERED  | ADMITTED | COUPONS | TERMS AND CONDITIONS |
+|----------|---------|------------------|------------------------|--------------|----------|---------|----------------------|
+| loginTwo | nameTwo | testtwo@mail.com | O_AUTH_PROVIDER_AZURE  | 1 minute ago | true     | -       | true                 |
+| loginOne | nameOne | testone@mail.com | O_AUTH_PROVIDER_GITHUB | 1 hour ago   | false    | -       | false                |
 `),
 		},
 	}
