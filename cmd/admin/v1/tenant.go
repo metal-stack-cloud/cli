@@ -190,11 +190,6 @@ func newAddMemberCmd(c *config.Config) *cobra.Command {
 		Use:   "add-member",
 		Short: "Add a new member to a tenant",
 		Long:  `Add a new member to an existing tenant by specifying the tenant ID, member's ID, and role.`,
-		PreRun: func(cmd *cobra.Command, args []string) {
-			viper.BindPFlag("tenant-id", cmd.Flags().Lookup("tenant-id"))
-			viper.BindPFlag("member-id", cmd.Flags().Lookup("member-id"))
-			viper.BindPFlag("role", cmd.Flags().Lookup("role"))
-		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx, cancel := c.NewRequestContext()
 			defer cancel()
