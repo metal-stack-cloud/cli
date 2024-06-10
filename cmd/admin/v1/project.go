@@ -37,6 +37,8 @@ func newProjectCmd(c *config.Config) *cobra.Command {
 		ListCmdMutateFn: func(cmd *cobra.Command) {
 			cmd.Flags().Uint64("limit", 100, "limit results returned")
 			cmd.Flags().StringP("owner", "w", "", "filter by project owner")
+			cmd.Flags().String("tenant-id", "", "Tenant ID to filter projects")
+			cmd.Flags().StringToString("annotations", nil, "Annotations key-value pairs to filter projects")
 		},
 	}
 
@@ -68,6 +70,15 @@ func (p *project) List() ([]*apiv1.Project, error) {
 			Count: pointer.Pointer(viper.GetUint64("limit")),
 			Page:  nextPage,
 		}
+	}
+
+	if viper.IsSet("tenant-id") {
+		tenantID := viper.GetString("tenant-id")
+		req.TenantId = &tenantID
+	}
+
+	if viper.IsSet("annotations") {
+		req.Annotations = viper.GetStringMapString("annotations")
 	}
 
 	resp, err := p.c.Client.Adminv1().Project().List(ctx, connect.NewRequest(req))
