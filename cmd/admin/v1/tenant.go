@@ -61,6 +61,10 @@ func newTenantCmd(c *config.Config) *cobra.Command {
 				req.CouponId = pointer.Pointer(viper.GetString("coupon-id"))
 			}
 			if viper.IsSet("add-balance") {
+				balance := viper.GetInt64("add-balance")
+				if balance < 0 {
+					return fmt.Errorf("it is only possible to add a positive balance")
+				}
 				req.BalanceToAdd = pointer.Pointer(viper.GetInt64("add-balance"))
 			}
 			resp, err := c.Client.Adminv1().Tenant().Admit(ctx, connect.NewRequest(req))
@@ -74,7 +78,7 @@ func newTenantCmd(c *config.Config) *cobra.Command {
 	}
 
 	admitCmd.Flags().StringP("coupon-id", "", "", "optional add a coupon with given id, see coupon list for available coupons")
-	admitCmd.Flags().StringP("add-balance", "", "", "optional add a balance in cent to the customer balance")
+	admitCmd.Flags().Int64P("add-balance", "", 0, "optional add a balance in cent to the customer balance")
 
 	genericcli.Must(admitCmd.RegisterFlagCompletionFunc("coupon-id", c.Completion.AdminPaymentCouponListCompletion))
 
