@@ -65,7 +65,7 @@ func newTenantCmd(c *config.Config) *cobra.Command {
 				if balance < 0 {
 					return fmt.Errorf("it is only possible to add a positive balance")
 				}
-				req.BalanceToAdd = pointer.Pointer(viper.GetInt64("add-balance"))
+				req.BalanceToAdd = pointer.Pointer(balance)
 			}
 			resp, err := c.Client.Adminv1().Tenant().Admit(ctx, connect.NewRequest(req))
 			if err != nil {
