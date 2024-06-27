@@ -63,7 +63,7 @@ func (c *Completion) ProjectMemberListCompletion(cmd *cobra.Command, args []stri
 
 	var names []string
 
-	for _, member := range resp.Msg.Project.GetProjectMembers() {
+	for _, member := range resp.Msg.ProjectMembers {
 		names = append(names, member.Id+"\t"+member.Role.String())
 	}
 

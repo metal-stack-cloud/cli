@@ -110,21 +110,41 @@ func newTenantCmd(c *config.Config) *cobra.Command {
 		},
 	}
 
-	removeTenantMemberCmd := &cobra.Command{
-		Use:   "remove-member <member>",
-		Short: "remove member from a tenant",
+	memberCmd := &cobra.Command{
+		Use:     "member",
+		Aliases: []string{"members"},
+		Short:   "manage tenant members",
+	}
+
+	listMembersCmd := &cobra.Command{
+		Use:     "list",
+		Aliases: []string{"ls"},
+		Short:   "lists members of a tenant",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return w.listMembers()
+		},
+	}
+
+	listMembersCmd.Flags().String("tenant", "", "the tenant in which to remove the member")
+
+	genericcli.AddSortFlag(listMembersCmd, sorters.TenantMemberSorter())
+
+	removeMemberCmd := &cobra.Command{
+		Use:     "remove <member>",
+		Short:   "remove member from a tenant",
+		Aliases: []string{"destroy", "rm", "remove"},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return w.removeMember(args)
 		},
 		ValidArgsFunction: c.Completion.TenantMemberListCompletion,
 	}
 
-	removeTenantMemberCmd.Flags().String("tenant", "", "the tenant in which to remove the member")
+	removeMemberCmd.Flags().String("tenant", "", "the tenant in which to remove the member")
 
-	genericcli.Must(removeTenantMemberCmd.RegisterFlagCompletionFunc("tenant", c.Completion.TenantListCompletion))
+	genericcli.Must(removeMemberCmd.RegisterFlagCompletionFunc("tenant", c.Completion.TenantListCompletion))
 
-	updateTenantMemberCmd := &cobra.Command{
-		Use:   "update-member <member>",
+	updateMemberCmd := &cobra.Command{
+		Use:   "update <member>",
 		Short: "update member from a tenant",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return w.updateMember(args)
@@ -132,15 +152,17 @@ func newTenantCmd(c *config.Config) *cobra.Command {
 		ValidArgsFunction: c.Completion.TenantMemberListCompletion,
 	}
 
-	updateTenantMemberCmd.Flags().String("tenant", "", "the tenant in which to remove the member")
-	updateTenantMemberCmd.Flags().String("role", "", "the role of the member")
+	updateMemberCmd.Flags().String("tenant", "", "the tenant in which to remove the member")
+	updateMemberCmd.Flags().String("role", "", "the role of the member")
 
-	genericcli.Must(updateTenantMemberCmd.RegisterFlagCompletionFunc("tenant", c.Completion.TenantListCompletion))
-	genericcli.Must(updateTenantMemberCmd.RegisterFlagCompletionFunc("role", c.Completion.TenantRoleCompletion))
+	genericcli.Must(updateMemberCmd.RegisterFlagCompletionFunc("tenant", c.Completion.TenantListCompletion))
+	genericcli.Must(updateMemberCmd.RegisterFlagCompletionFunc("role", c.Completion.TenantRoleCompletion))
+
+	memberCmd.AddCommand(removeMemberCmd, updateMemberCmd, listMembersCmd)
 
 	inviteCmd.AddCommand(generateInviteCmd, deleteInviteCmd, listInvitesCmd, joinTenantCmd)
 
-	return genericcli.NewCmds(cmdsConfig, joinTenantCmd, removeTenantMemberCmd, updateTenantMemberCmd, inviteCmd)
+	return genericcli.NewCmds(cmdsConfig, joinTenantCmd, inviteCmd, memberCmd)
 }
 
 func (c *tenant) Get(id string) (*apiv1.Tenant, error) {
@@ -318,7 +340,7 @@ func (c *tenant) generateInvite() error {
 	}
 
 	fmt.Fprintf(c.c.Out, "You can share this secret with the member to join, it expires in %s:\n\n", humanize.Time(resp.Msg.Invite.ExpiresAt.AsTime()))
-	fmt.Fprintf(c.c.Out, "%s (https://console.metalstack.cloud/invite/%s)\n", resp.Msg.Invite.Secret, resp.Msg.Invite.Secret)
+	fmt.Fprintf(c.c.Out, "%s (https://console.metalstack.cloud/organization-invite/%s)\n", resp.Msg.Invite.Secret, resp.Msg.Invite.Secret)
 
 	return nil
 }
@@ -423,4 +445,29 @@ func (c *tenant) updateMember(args []string) error {
 	}
 
 	return c.c.DescribePrinter.Print(resp.Msg.GetTenantMember())
+}
+
+func (c *tenant) listMembers() error {
+	ctx, cancel := c.c.NewRequestContext()
+	defer cancel()
+
+	tenant, err := c.c.GetTenant()
+	if err != nil {
+		return err
+	}
+
+	resp, err := c.c.Client.Apiv1().Tenant().Get(ctx, connect.NewRequest(&apiv1.TenantServiceGetRequest{
+		Login: tenant,
+	}))
+	if err != nil {
+		return fmt.Errorf("failed to get tenant: %w", err)
+	}
+
+	members := resp.Msg.GetTenantMembers()
+
+	if err := sorters.TenantMemberSorter().SortBy(members); err != nil {
+		return err
+	}
+
+	return c.c.ListPrinter.Print(members)
 }

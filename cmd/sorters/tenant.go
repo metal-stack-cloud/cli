@@ -35,3 +35,17 @@ func TenantInviteSorter() *multisort.Sorter[*apiv1.TenantInvite] {
 		},
 	}, multisort.Keys{{ID: "tenant"}, {ID: "role"}, {ID: "expiration"}})
 }
+
+func TenantMemberSorter() *multisort.Sorter[*apiv1.TenantMember] {
+	return multisort.New(multisort.FieldMap[*apiv1.TenantMember]{
+		"id": func(a, b *apiv1.TenantMember, descending bool) multisort.CompareResult {
+			return multisort.Compare(a.Id, b.Id, descending)
+		},
+		"role": func(a, b *apiv1.TenantMember, descending bool) multisort.CompareResult {
+			return multisort.Compare(a.Role, b.Role, descending)
+		},
+		"created": func(a, b *apiv1.TenantMember, descending bool) multisort.CompareResult {
+			return multisort.Compare(a.CreatedAt.AsTime().UnixMilli(), b.CreatedAt.AsTime().UnixMilli(), descending)
+		},
+	}, multisort.Keys{{ID: "role"}, {ID: "id"}})
+}

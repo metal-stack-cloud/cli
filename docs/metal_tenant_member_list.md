@@ -1,17 +1,17 @@
-## metal tenant update-member
+## metal tenant member list
 
-update member from a tenant
+lists members of a tenant
 
 ```
-metal tenant update-member <member> [flags]
+metal tenant member list [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help            help for update-member
-      --role string     the role of the member
-      --tenant string   the tenant in which to remove the member
+  -h, --help              help for list
+      --sort-by strings   sort by (comma separated) column(s), sort direction can be changed by appending :asc or :desc behind the column identifier. possible values: created|id|role
+      --tenant string     the tenant in which to remove the member
 ```
 
 ### Options inherited from parent commands
@@ -29,5 +29,5 @@ metal tenant update-member <member> [flags]
 
 ### SEE ALSO
 
-* [metal tenant](metal_tenant.md)	 - manage tenant entities
+* [metal tenant member](metal_tenant_member.md)	 - manage tenant members
 

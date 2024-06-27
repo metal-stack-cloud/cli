@@ -60,8 +60,15 @@ func (c *Completion) TenantInviteListCompletion(cmd *cobra.Command, args []strin
 }
 
 func (c *Completion) TenantMemberListCompletion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-	resp, err := c.Client.Apiv1().Project().Get(c.Ctx, connect.NewRequest(&apiv1.ProjectServiceGetRequest{
+	projectResp, err := c.Client.Apiv1().Project().Get(c.Ctx, connect.NewRequest(&apiv1.ProjectServiceGetRequest{
 		Project: c.Project,
+	}))
+	if err != nil {
+		return nil, cobra.ShellCompDirectiveError
+	}
+
+	resp, err := c.Client.Apiv1().Tenant().Get(c.Ctx, connect.NewRequest(&apiv1.TenantServiceGetRequest{
+		Login: projectResp.Msg.Project.Tenant,
 	}))
 	if err != nil {
 		return nil, cobra.ShellCompDirectiveError
@@ -69,7 +76,7 @@ func (c *Completion) TenantMemberListCompletion(cmd *cobra.Command, args []strin
 
 	var names []string
 
-	for _, member := range resp.Msg.Project.GetProjectMembers() {
+	for _, member := range resp.Msg.TenantMembers {
 		names = append(names, member.Id+"\t"+member.Role.String())
 	}
 
