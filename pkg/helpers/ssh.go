@@ -28,7 +28,9 @@ func SSHViaVPN(out io.Writer, machineID string, creds *adminv1.ClusterServiceCre
 	}
 	defer v.Close()
 
-	s, err := metalssh.NewClientWithConnection("metal", v.TargetIP, creds.SshKeypair.Privatekey, v.Conn)
+	opts := []metalssh.ConnectOpt{metalssh.ConnectOptOutputPrivateKey(creds.SshKeypair.Privatekey)}
+
+	s, err := metalssh.NewClientWithConnection("metal", v.TargetIP, v.Conn, opts)
 	if err != nil {
 		return err
 	}
