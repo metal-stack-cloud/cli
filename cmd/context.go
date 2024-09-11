@@ -144,7 +144,7 @@ func (c *ctx) short() error {
 		return err
 	}
 
-	fmt.Fprintf(c.c.Out, ctxs.CurrentContext)
+	fmt.Fprint(c.c.Out, ctxs.CurrentContext)
 
 	return nil
 }
