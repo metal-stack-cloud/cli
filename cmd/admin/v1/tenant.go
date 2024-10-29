@@ -54,20 +54,10 @@ func newTenantCmd(c *config.Config) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			req := &adminv1.TenantServiceAdmitRequest{
+
+			resp, err := c.Client.Adminv1().Tenant().Admit(ctx, connect.NewRequest(&adminv1.TenantServiceAdmitRequest{
 				TenantId: id,
-			}
-			if viper.IsSet("coupon-id") {
-				req.CouponId = pointer.Pointer(viper.GetString("coupon-id"))
-			}
-			if viper.IsSet("add-balance") {
-				balance := viper.GetInt64("add-balance")
-				if balance < 0 {
-					return fmt.Errorf("it is only possible to add a positive balance")
-				}
-				req.BalanceToAdd = pointer.Pointer(balance)
-			}
-			resp, err := c.Client.Adminv1().Tenant().Admit(ctx, connect.NewRequest(req))
+			}))
 			if err != nil {
 				return fmt.Errorf("failed to admit tenant: %w", err)
 			}
@@ -77,10 +67,45 @@ func newTenantCmd(c *config.Config) *cobra.Command {
 		ValidArgsFunction: c.Completion.AdminTenantListCompletion,
 	}
 
-	admitCmd.Flags().StringP("coupon-id", "", "", "optional add a coupon with given id, see coupon list for available coupons")
-	admitCmd.Flags().Int64P("add-balance", "", 0, "optional add a balance in cent to the customer balance")
+	addBalanceCmd := &cobra.Command{
+		Use:   "add-balance",
+		Short: "add balance for a tenant",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			ctx, cancel := c.NewRequestContext()
+			defer cancel()
 
-	genericcli.Must(admitCmd.RegisterFlagCompletionFunc("coupon-id", c.Completion.AdminPaymentCouponListCompletion))
+			id, err := genericcli.GetExactlyOneArg(args)
+			if err != nil {
+				return err
+			}
+
+			amount := viper.GetUint64("euro")
+
+			err = genericcli.PromptCustom(&genericcli.PromptConfig{
+				Message:     fmt.Sprintf("Adding %d.00€ to the balance of %s. Continue?", amount, id),
+				ShowAnswers: true,
+				In:          w.c.In,
+				Out:         w.c.Out,
+			})
+			if err != nil {
+				return err
+			}
+
+			resp, err := c.Client.Adminv1().Payment().AddBalanceToCustomer(ctx, connect.NewRequest(&adminv1.PaymentServiceAddBalanceToCustomerRequest{
+				TenantId:     id,
+				BalanceToAdd: amount * 100, // this is in cent, so we convert
+			}))
+			if err != nil {
+				return err
+			}
+
+			return c.DescribePrinter.Print(resp.Msg.Customer)
+		},
+		ValidArgsFunction: c.Completion.AdminTenantListCompletion,
+	}
+
+	addBalanceCmd.Flags().Uint64P("euro", "", 0, "optional add a balance in euro to the customer balance")
+	genericcli.Must(addBalanceCmd.MarkFlagRequired("euro"))
 
 	revokeCmd := &cobra.Command{
 		Use:   "revoke",
@@ -107,7 +132,7 @@ func newTenantCmd(c *config.Config) *cobra.Command {
 		ValidArgsFunction: c.Completion.AdminTenantListCompletion,
 	}
 
-	return genericcli.NewCmds(cmdsConfig, admitCmd, revokeCmd)
+	return genericcli.NewCmds(cmdsConfig, admitCmd, revokeCmd, addBalanceCmd)
 }
 
 func (c *tenant) Create(rq any) (*apiv1.Tenant, error) {
