@@ -104,7 +104,7 @@ func newTenantCmd(c *config.Config) *cobra.Command {
 		ValidArgsFunction: c.Completion.AdminTenantListCompletion,
 	}
 
-	addBalanceCmd.Flags().Uint64P("euro", "", 0, "optional add a balance in cent to the customer balance")
+	addBalanceCmd.Flags().Uint64P("euro", "", 0, "optional add a balance in euro to the customer balance")
 	genericcli.Must(addBalanceCmd.MarkFlagRequired("euro"))
 
 	revokeCmd := &cobra.Command{
