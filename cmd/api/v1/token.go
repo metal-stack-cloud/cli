@@ -26,9 +26,9 @@ func newTokenCmd(c *config.Config) *cobra.Command {
 		c: c,
 	}
 
-	cmdsConfig := &genericcli.CmdsConfig[*apiv1.TokenServiceCreateRequest, any, *apiv1.Token]{
+	cmdsConfig := &genericcli.CmdsConfig[*apiv1.TokenServiceCreateRequest, *apiv1.TokenServiceUpdateRequest, *apiv1.Token]{
 		BinaryName:      config.BinaryName,
-		GenericCLI:      genericcli.NewGenericCLI[*apiv1.TokenServiceCreateRequest, any, *apiv1.Token](w).WithFS(c.Fs),
+		GenericCLI:      genericcli.NewGenericCLI(w).WithFS(c.Fs),
 		Singular:        "token",
 		Plural:          "tokens",
 		Description:     "manage api tokens for accessing the metalstack.cloud api",
@@ -115,14 +115,25 @@ func newTokenCmd(c *config.Config) *cobra.Command {
 		DeleteCmdMutateFn: func(cmd *cobra.Command) {
 			cmd.Aliases = append(cmd.Aliases, "revoke")
 		},
-		OnlyCmds:    genericcli.OnlyCmds(genericcli.ListCmd, genericcli.DeleteCmd, genericcli.CreateCmd),
 		ValidArgsFn: w.c.Completion.TokenListCompletion,
 	}
 	return genericcli.NewCmds(cmdsConfig)
 }
 
 func (c *token) Get(id string) (*apiv1.Token, error) {
-	panic("unimplemented")
+	ctx, cancel := c.c.NewRequestContext()
+	defer cancel()
+
+	req := &apiv1.TokenServiceGetRequest{
+		Uuid: id,
+	}
+
+	resp, err := c.c.Client.Apiv1().Token().Get(ctx, connect.NewRequest(req))
+	if err != nil {
+		return nil, fmt.Errorf("failed to get token: %w", err)
+	}
+
+	return resp.Msg.GetToken(), nil
 }
 
 func (c *token) List() ([]*apiv1.Token, error) {
@@ -176,16 +187,31 @@ func (c *token) Delete(id string) (*apiv1.Token, error) {
 	}, nil
 }
 
-func (t *token) Convert(r *apiv1.Token) (string, *apiv1.TokenServiceCreateRequest, any, error) {
+func (c *token) Convert(r *apiv1.Token) (string, *apiv1.TokenServiceCreateRequest, *apiv1.TokenServiceUpdateRequest, error) {
 	return r.Uuid, &apiv1.TokenServiceCreateRequest{
-		Description:  r.GetDescription(),
-		Permissions:  r.GetPermissions(),
-		ProjectRoles: r.GetProjectRoles(),
-		TenantRoles:  r.GetTenantRoles(),
-		Expires:      durationpb.New(time.Until(r.GetExpires().AsTime())),
-	}, nil, nil
+			Description:  r.GetDescription(),
+			Permissions:  r.GetPermissions(),
+			ProjectRoles: r.GetProjectRoles(),
+			TenantRoles:  r.GetTenantRoles(),
+			Expires:      durationpb.New(time.Until(r.GetExpires().AsTime())),
+		}, &apiv1.TokenServiceUpdateRequest{
+			Uuid:         r.Uuid,
+			Description:  r.Description,
+			Permissions:  r.Permissions,
+			ProjectRoles: r.ProjectRoles,
+			TenantRoles:  r.TenantRoles,
+			AdminRole:    r.AdminRole,
+		}, nil
 }
 
-func (t *token) Update(rq any) (*apiv1.Token, error) {
-	panic("unimplemented")
+func (c *token) Update(rq *apiv1.TokenServiceUpdateRequest) (*apiv1.Token, error) {
+	ctx, cancel := c.c.NewRequestContext()
+	defer cancel()
+
+	resp, err := c.c.Client.Apiv1().Token().Update(ctx, connect.NewRequest(rq))
+	if err != nil {
+		return nil, fmt.Errorf("failed to update token: %w", err)
+	}
+
+	return resp.Msg.GetToken(), nil
 }
