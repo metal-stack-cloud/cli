@@ -13,9 +13,9 @@ func (t *TablePrinter) VolumeTable(data []*apiv1.Volume, wide bool) ([]string, [
 	var (
 		rows [][]string
 	)
-	header := []string{"ID", "Name", "Size", "Usage", "Replicas", "State", "ClusterName", "StorageClass", "Project", "Partition"}
+	header := []string{"ID", "Name", "Size", "Usage", "Replicas", "ClusterName", "StorageClass", "Project", "Partition"}
 	if wide {
-		header = []string{"ID", "Name", "Size", "Usage", "Replicas", "State", "ClusterName", "StorageClass", "Project", "Partition", "Nodes"}
+		header = []string{"ID", "Name", "Size", "Usage", "Replicas", "ClusterName", "StorageClass", "Project", "Partition", "Nodes"}
 	}
 
 	sort.SliceStable(data, func(i, j int) bool { return data[i].Uuid < data[j].Uuid })
@@ -25,7 +25,6 @@ func (t *TablePrinter) VolumeTable(data []*apiv1.Volume, wide bool) ([]string, [
 		size := humanize.IBytes(vol.Size)
 		usage := humanize.IBytes(vol.Usage)
 		replica := fmt.Sprintf("%d", vol.ReplicaCount)
-		state := vol.State
 		sc := vol.StorageClass
 		partition := vol.Partition
 		project := vol.Project
@@ -35,7 +34,7 @@ func (t *TablePrinter) VolumeTable(data []*apiv1.Volume, wide bool) ([]string, [
 			clusterName = vol.ClusterName
 		}
 
-		short := []string{volumeID, name, size, usage, replica, state, clusterName, sc, project, partition}
+		short := []string{volumeID, name, size, usage, replica, clusterName, sc, project, partition}
 		if wide {
 			short := append(short, strings.Join(nodes, "\n"))
 
