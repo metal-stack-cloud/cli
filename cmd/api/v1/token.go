@@ -187,23 +187,6 @@ func (c *token) Delete(id string) (*apiv1.Token, error) {
 	}, nil
 }
 
-func (c *token) Convert(r *apiv1.Token) (string, *apiv1.TokenServiceCreateRequest, *apiv1.TokenServiceUpdateRequest, error) {
-	return r.Uuid, &apiv1.TokenServiceCreateRequest{
-			Description:  r.GetDescription(),
-			Permissions:  r.GetPermissions(),
-			ProjectRoles: r.GetProjectRoles(),
-			TenantRoles:  r.GetTenantRoles(),
-			Expires:      durationpb.New(time.Until(r.GetExpires().AsTime())),
-		}, &apiv1.TokenServiceUpdateRequest{
-			Uuid:         r.Uuid,
-			Description:  r.Description,
-			Permissions:  r.Permissions,
-			ProjectRoles: r.ProjectRoles,
-			TenantRoles:  r.TenantRoles,
-			AdminRole:    r.AdminRole,
-		}, nil
-}
-
 func (c *token) Update(rq *apiv1.TokenServiceUpdateRequest) (*apiv1.Token, error) {
 	ctx, cancel := c.c.NewRequestContext()
 	defer cancel()
@@ -214,4 +197,21 @@ func (c *token) Update(rq *apiv1.TokenServiceUpdateRequest) (*apiv1.Token, error
 	}
 
 	return resp.Msg.GetToken(), nil
+}
+
+func (c *token) Convert(r *apiv1.Token) (string, *apiv1.TokenServiceCreateRequest, *apiv1.TokenServiceUpdateRequest, error) {
+	return r.Uuid, &apiv1.TokenServiceCreateRequest{
+			Description:  r.GetDescription(),
+			Permissions:  r.GetPermissions(),
+			ProjectRoles: r.GetProjectRoles(),
+			TenantRoles:  r.GetTenantRoles(),
+			Expires:      durationpb.New(time.Until(r.GetExpires().AsTime())),
+		}, &apiv1.TokenServiceUpdateRequest{
+			Uuid:         r.Uuid,
+			Description:  pointer.PointerOrNil(r.Description),
+			Permissions:  r.Permissions,
+			ProjectRoles: r.ProjectRoles,
+			TenantRoles:  r.TenantRoles,
+			AdminRole:    r.AdminRole,
+		}, nil
 }

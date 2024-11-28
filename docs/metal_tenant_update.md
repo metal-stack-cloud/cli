@@ -3,7 +3,7 @@
 updates the tenant
 
 ```
-metal tenant update [flags]
+metal tenant update <id> [flags]
 ```
 
 ### Options
@@ -17,9 +17,9 @@ metal tenant update [flags]
                                 $ metal tenant describe tenant-1 -o yaml > tenant.yaml
                                 $ vi tenant.yaml
                                 $ # either via stdin
-                                $ cat tenant.yaml | metal tenant update -f -
+                                $ cat tenant.yaml | metal tenant update <id> -f -
                                 $ # or via file
-                                $ metal tenant update -f tenant.yaml
+                                $ metal tenant update <id> -f tenant.yaml
                                 
                                 the file can also contain multiple documents and perform a bulk operation.
                                 	
