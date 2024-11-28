@@ -1,30 +1,28 @@
-## metal tenant update
+## metal token apply
 
-updates the tenant
+applies one or more tokens from a given file
 
 ```
-metal tenant update <id> [flags]
+metal token apply [flags]
 ```
 
 ### Options
 
 ```
       --bulk-output             when used with --file (bulk operation): prints results at the end as a list. default is printing results intermediately during the operation, which causes single entities to be printed in a row.
-      --description string      the description of the tenant to update
   -f, --file string             filename of the create or update request in yaml format, or - for stdin.
                                 
                                 Example:
-                                $ metal tenant describe tenant-1 -o yaml > tenant.yaml
-                                $ vi tenant.yaml
+                                $ metal token describe token-1 -o yaml > token.yaml
+                                $ vi token.yaml
                                 $ # either via stdin
-                                $ cat tenant.yaml | metal tenant update <id> -f -
+                                $ cat token.yaml | metal token apply -f -
                                 $ # or via file
-                                $ metal tenant update <id> -f tenant.yaml
+                                $ metal token apply -f token.yaml
                                 
                                 the file can also contain multiple documents and perform a bulk operation.
                                 	
-  -h, --help                    help for update
-      --name string             the name of the tenant to update
+  -h, --help                    help for apply
       --skip-security-prompts   skips security prompt for bulk operations
       --timestamps              when used with --file (bulk operation): prints timestamps in-between the operations
 ```
@@ -44,5 +42,5 @@ metal tenant update <id> [flags]
 
 ### SEE ALSO
 
-* [metal tenant](metal_tenant.md)	 - manage tenant entities
+* [metal token](metal_token.md)	 - manage token entities
 

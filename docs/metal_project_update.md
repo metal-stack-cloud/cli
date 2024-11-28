@@ -3,7 +3,7 @@
 updates the project
 
 ```
-metal project update [flags]
+metal project update <id> [flags]
 ```
 
 ### Options
@@ -17,9 +17,9 @@ metal project update [flags]
                                 $ metal project describe project-1 -o yaml > project.yaml
                                 $ vi project.yaml
                                 $ # either via stdin
-                                $ cat project.yaml | metal project update -f -
+                                $ cat project.yaml | metal project update <id> -f -
                                 $ # or via file
-                                $ metal project update -f project.yaml
+                                $ metal project update <id> -f project.yaml
                                 
                                 the file can also contain multiple documents and perform a bulk operation.
                                 	
