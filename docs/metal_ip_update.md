@@ -3,7 +3,7 @@
 updates the ip
 
 ```
-metal ip update [flags]
+metal ip update <id> [flags]
 ```
 
 ### Options
@@ -17,9 +17,9 @@ metal ip update [flags]
                                 $ metal ip describe ip-1 -o yaml > ip.yaml
                                 $ vi ip.yaml
                                 $ # either via stdin
-                                $ cat ip.yaml | metal ip update -f -
+                                $ cat ip.yaml | metal ip update <id> -f -
                                 $ # or via file
-                                $ metal ip update -f ip.yaml
+                                $ metal ip update <id> -f ip.yaml
                                 
                                 the file can also contain multiple documents and perform a bulk operation.
                                 	

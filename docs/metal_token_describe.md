@@ -1,15 +1,15 @@
-## metal token
+## metal token describe
 
-manage token entities
+describes the token
 
-### Synopsis
-
-manage api tokens for accessing the metalstack.cloud api
+```
+metal token describe <id> [flags]
+```
 
 ### Options
 
 ```
-  -h, --help   help for token
+  -h, --help   help for describe
 ```
 
 ### Options inherited from parent commands
@@ -27,12 +27,5 @@ manage api tokens for accessing the metalstack.cloud api
 
 ### SEE ALSO
 
-* [metal](metal.md)	 - cli for managing entities in metal-stack-cloud
-* [metal token apply](metal_token_apply.md)	 - applies one or more tokens from a given file
-* [metal token create](metal_token_create.md)	 - creates the token
-* [metal token delete](metal_token_delete.md)	 - deletes the token
-* [metal token describe](metal_token_describe.md)	 - describes the token
-* [metal token edit](metal_token_edit.md)	 - edit the token through an editor and update
-* [metal token list](metal_token_list.md)	 - list all tokens
-* [metal token update](metal_token_update.md)	 - updates the token
+* [metal token](metal_token.md)	 - manage token entities
 

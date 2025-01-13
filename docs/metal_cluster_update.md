@@ -3,7 +3,7 @@
 updates the cluster
 
 ```
-metal cluster update [flags]
+metal cluster update <id> [flags]
 ```
 
 ### Options
@@ -16,9 +16,9 @@ metal cluster update [flags]
                                         $ metal cluster describe cluster-1 -o yaml > cluster.yaml
                                         $ vi cluster.yaml
                                         $ # either via stdin
-                                        $ cat cluster.yaml | metal cluster update -f -
+                                        $ cat cluster.yaml | metal cluster update <id> -f -
                                         $ # or via file
-                                        $ metal cluster update -f cluster.yaml
+                                        $ metal cluster update <id> -f cluster.yaml
                                         
                                         the file can also contain multiple documents and perform a bulk operation.
                                         	

@@ -35,7 +35,7 @@ func (c *Completion) TokenProjectRolesCompletion(cmd *cobra.Command, args []stri
 	var roles []string
 
 	for project, role := range methods.Msg.ProjectRoles {
-		roles = append(roles, project+":"+role.String())
+		roles = append(roles, project+"="+role.String())
 	}
 
 	return roles, cobra.ShellCompDirectiveNoFileComp
@@ -50,7 +50,7 @@ func (c *Completion) TokenTenantRolesCompletion(cmd *cobra.Command, args []strin
 	var roles []string
 
 	for tenant, role := range methods.Msg.TenantRoles {
-		roles = append(roles, tenant+":"+role.String())
+		roles = append(roles, tenant+"="+role.String())
 	}
 
 	return roles, cobra.ShellCompDirectiveNoFileComp
