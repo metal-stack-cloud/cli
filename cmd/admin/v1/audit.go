@@ -10,6 +10,7 @@ import (
 	"github.com/metal-stack-cloud/cli/cmd/sorters"
 	"github.com/metal-stack/metal-lib/pkg/genericcli"
 	"github.com/metal-stack/metal-lib/pkg/genericcli/printers"
+	"github.com/metal-stack/metal-lib/pkg/pointer"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -26,7 +27,7 @@ func newAuditCmd(c *config.Config) *cobra.Command {
 
 	cmdsConfig := &genericcli.CmdsConfig[*apiv1.AuditServiceGetRequest, *apiv1.AuditServiceListRequest, *apiv1.AuditTrace]{
 		BinaryName:      config.BinaryName,
-		GenericCLI:      genericcli.NewGenericCLI[*apiv1.AuditServiceGetRequest, *apiv1.AuditServiceListRequest, *apiv1.AuditTrace](a).WithFS(c.Fs),
+		GenericCLI:      genericcli.NewGenericCLI(a).WithFS(c.Fs),
 		Singular:        "audit trace",
 		Plural:          "audit traces",
 		Description:     "show audit traces of the api-server",
@@ -56,24 +57,24 @@ func newAuditCmd(c *config.Config) *cobra.Command {
 			genericcli.Must(cmd.RegisterFlagCompletionFunc("project", c.Completion.ProjectListCompletion))
 		},
 	}
+	/*
+		listCmd := &cobra.Command{
+			Use:   "list",
+			Short: "list all audit traces",
+			RunE: func(cmd *cobra.Command, args []string) error {
+				return a.listAudits()
+			},
+		}
 
-	listCmd := &cobra.Command{
-		Use:   "list",
-		Short: "list all audit traces",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return nil
-		},
-	}
+		getCmd := &cobra.Command{
+			Use:   "get",
+			Short: "gets the audit trace",
+			RunE: func(cmd *cobra.Command, args []string) error {
+				return nil
+			},
+		} */
 
-	getCmd := &cobra.Command{
-		Use:   "get",
-		Short: "gets the audit trace",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return nil
-		},
-	}
-
-	return genericcli.NewCmds(cmdsConfig, listCmd, getCmd)
+	return genericcli.NewCmds(cmdsConfig) //, listCmd, getCmd)
 }
 
 func (a *audit) Get(id string) (*apiv1.AuditTrace, error) {
@@ -112,8 +113,14 @@ func (a *audit) List() ([]*apiv1.AuditTrace, error) {
 		return nil, err
 	}
 
+	/* 	tenant, err := a.c.GetTenant()
+	   	if err != nil {
+	   		return nil, fmt.Errorf("tenant is required %w", err)
+	   	} */
+
 	req := &apiv1.AuditServiceListRequest{
-		Uuid:       viper.GetString("request-id"),
+		//Login: tenant,
+		//Uuid:       pointer.Pointer(viper.GetString("request-id")),
 		From:       fromDateTime,
 		To:         toDateTime,
 		User:       viper.GetString("user"),
@@ -121,6 +128,10 @@ func (a *audit) List() ([]*apiv1.AuditTrace, error) {
 		Project:    viper.GetString("project"),
 		Method:     viper.GetString("method"),
 		ResultCode: viper.GetString("result-code"),
+	}
+
+	if viper.IsSet("request-id") {
+		req.Uuid = pointer.Pointer(viper.GetString("request-id"))
 	}
 
 	resp, err := a.c.Client.Apiv1().Audit().List(ctx, connect.NewRequest(req))

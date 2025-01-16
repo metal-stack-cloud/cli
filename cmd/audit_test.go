@@ -115,7 +115,7 @@ TIME                  REQUEST-ID                             USER     TENANT    
 				Apiv1Mocks: &apitests.Apiv1MockFns{
 					Audit: func(m *mock.Mock) {
 						m.On("List", mock.Anything, connect.NewRequest(&apiv1.AuditServiceListRequest{
-							Uuid:       auditTrace1.Uuid,
+							Uuid:       pointer.Pointer(auditTrace1.Uuid),
 							From:       auditTrace1.Timestamp,
 							To:         auditTrace1.Timestamp,
 							User:       auditTrace1.User,
