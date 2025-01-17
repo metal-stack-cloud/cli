@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"connectrpc.com/connect"
+	"github.com/davecgh/go-spew/spew"
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
 	"github.com/metal-stack-cloud/cli/cmd/config"
 	"github.com/metal-stack-cloud/cli/cmd/sorters"
@@ -25,13 +26,14 @@ func newAuditCmd(c *config.Config) *cobra.Command {
 		c: c,
 	}
 
-	cmdsConfig := &genericcli.CmdsConfig[*apiv1.AuditServiceGetRequest, *apiv1.AuditServiceListRequest, *apiv1.AuditTrace]{
+	cmdsConfig := &genericcli.CmdsConfig[*apiv1.AuditServiceGetRequest, *apiv1.AuditServiceGetRequest, *apiv1.AuditTrace]{
 		BinaryName:      config.BinaryName,
-		GenericCLI:      genericcli.NewGenericCLI(a).WithFS(c.Fs),
+		GenericCLI:      genericcli.NewGenericCLI[*apiv1.AuditServiceGetRequest, *apiv1.AuditServiceGetRequest, *apiv1.AuditTrace](a).WithFS(c.Fs),
 		Singular:        "audit trace",
 		Plural:          "audit traces",
 		Description:     "show audit traces of the api-server",
 		Sorter:          sorters.AuditSorter(),
+		OnlyCmds:        genericcli.OnlyCmds(genericcli.ListCmd, genericcli.DescribeCmd),
 		DescribePrinter: func() printers.Printer { return c.DescribePrinter },
 		ListPrinter:     func() printers.Printer { return c.ListPrinter },
 		ListCmdMutateFn: func(cmd *cobra.Command) {
@@ -52,29 +54,13 @@ func newAuditCmd(c *config.Config) *cobra.Command {
 			cmd.Flags().String("result-code", "", "HTTP status code of the audit trace.")
 			cmd.Flags().String("source-ip", "", "source-ip of the audit trace.")
 
-			//cmd.Flags().Int64("limit", 100, "limit the number of audit traces.")
+			cmd.Flags().Int64("limit", 100, "limit the number of audit traces.")
 
 			genericcli.Must(cmd.RegisterFlagCompletionFunc("project", c.Completion.ProjectListCompletion))
 		},
 	}
-	/*
-		listCmd := &cobra.Command{
-			Use:   "list",
-			Short: "list all audit traces",
-			RunE: func(cmd *cobra.Command, args []string) error {
-				return a.listAudits()
-			},
-		}
 
-		getCmd := &cobra.Command{
-			Use:   "get",
-			Short: "gets the audit trace",
-			RunE: func(cmd *cobra.Command, args []string) error {
-				return nil
-			},
-		} */
-
-	return genericcli.NewCmds(cmdsConfig) //, listCmd, getCmd)
+	return genericcli.NewCmds(cmdsConfig)
 }
 
 func (a *audit) Get(id string) (*apiv1.AuditTrace, error) {
@@ -113,25 +99,26 @@ func (a *audit) List() ([]*apiv1.AuditTrace, error) {
 		return nil, err
 	}
 
-	/* 	tenant, err := a.c.GetTenant()
-	   	if err != nil {
-	   		return nil, fmt.Errorf("tenant is required %w", err)
-	   	} */
-
-	req := &apiv1.AuditServiceListRequest{
-		//Login: tenant,
-		//Uuid:       pointer.Pointer(viper.GetString("request-id")),
-		From:       fromDateTime,
-		To:         toDateTime,
-		User:       viper.GetString("user"),
-		Tenant:     viper.GetString("tenant"),
-		Project:    viper.GetString("project"),
-		Method:     viper.GetString("method"),
-		ResultCode: viper.GetString("result-code"),
+	tenant, err := a.c.GetTenant()
+	if err != nil {
+		return nil, fmt.Errorf("tenant is required %w", err)
 	}
 
+	req := &apiv1.AuditServiceListRequest{
+		Login:      tenant,
+		Uuid:       pointer.PointerOrNil(viper.GetString("request-id")),
+		From:       fromDateTime,
+		To:         toDateTime,
+		User:       pointer.PointerOrNil(viper.GetString("user")),
+		Project:    pointer.PointerOrNil(viper.GetString("project")),
+		Method:     pointer.PointerOrNil(viper.GetString("method")),
+		ResultCode: pointer.PointerOrNil(viper.GetString("result-code")),
+		Limit:      pointer.PointerOrNil(viper.GetUint64("limit")),
+	}
+
+	spew.Dump(req)
 	if viper.IsSet("request-id") {
-		req.Uuid = pointer.Pointer(viper.GetString("request-id"))
+		req.Uuid = pointer.PointerOrNil(viper.GetString("request-id"))
 	}
 
 	resp, err := a.c.Client.Apiv1().Audit().List(ctx, connect.NewRequest(req))
@@ -157,7 +144,7 @@ func eventuallyRelativeDateTime(s string) (*timestamppb.Timestamp, error) {
 	return timestamppb.New(t), nil
 }
 
-func (a *audit) Convert(*apiv1.AuditTrace) (string, *apiv1.AuditServiceGetRequest, *apiv1.AuditServiceListRequest, error) {
+func (a *audit) Convert(*apiv1.AuditTrace) (string, *apiv1.AuditServiceGetRequest, *apiv1.AuditServiceGetRequest, error) {
 	return "", nil, nil, fmt.Errorf("not implemented for audit traces")
 }
 
@@ -169,6 +156,6 @@ func (a *audit) Create(*apiv1.AuditServiceGetRequest) (*apiv1.AuditTrace, error)
 	return nil, fmt.Errorf("not implemented for audit traces")
 }
 
-func (a *audit) Update(*apiv1.AuditServiceListRequest) (*apiv1.AuditTrace, error) {
+func (a *audit) Update(*apiv1.AuditServiceGetRequest) (*apiv1.AuditTrace, error) {
 	return nil, fmt.Errorf("not implemented for audit traces")
 }
