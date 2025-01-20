@@ -25,7 +25,7 @@ var (
 		Method:          "/apiv1/ip",
 		ResponsePayload: `{"a": "b"}`,
 		SourceIp:        "192.168.2.1",
-		ResultCode:      strconv.Itoa(http.StatusOK),
+		ResultCode:      trconv.Itoa(http.StatusOK),
 	}
 	auditTrace2 = &apiv1.AuditTrace{
 		Uuid:            "b5817ef7-980a-41ef-9ed3-741a143870b0",

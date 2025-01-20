@@ -1,7 +1,9 @@
 package v1
 
 import (
+	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"connectrpc.com/connect"
@@ -37,7 +39,6 @@ func newAuditCmd(c *config.Config) *cobra.Command {
 		DescribePrinter: func() printers.Printer { return c.DescribePrinter },
 		ListPrinter:     func() printers.Printer { return c.ListPrinter },
 		ListCmdMutateFn: func(cmd *cobra.Command) {
-			//cmd.Flags().StringP("query", "q", "", "filters audit trace body payloads for the given text.")
 
 			cmd.Flags().String("request-id", "", "request id of the audit trace.")
 
@@ -49,14 +50,20 @@ func newAuditCmd(c *config.Config) *cobra.Command {
 
 			cmd.Flags().String("project", "", "project id of the audit trace")
 
-			cmd.Flags().String("method", "", "api Method of the audit trace.")
-
-			cmd.Flags().String("result-code", "", "HTTP status code of the audit trace.")
+			cmd.Flags().String("method", "", "api method of the audit trace.")
+			cmd.Flags().Int32("result-code", 0, "HTTP status code of the audit trace.")
 			cmd.Flags().String("source-ip", "", "source-ip of the audit trace.")
 
-			cmd.Flags().Int64("limit", 100, "limit the number of audit traces.")
+			cmd.Flags().String("body", "", "filters audit trace body payloads for the giben text.")
+			cmd.Flags().String("error", "", "error of the audit trace.")
+
+			//removed since issues arise with current flow of merging req and res to one request
+			//cmd.Flags().Int64("limit", 100, "limit the number of audit traces.")
 
 			genericcli.Must(cmd.RegisterFlagCompletionFunc("project", c.Completion.ProjectListCompletion))
+		},
+		DescribeCmdMutateFn: func(cmd *cobra.Command) {
+			cmd.Flags().Bool("prettify-body", false, "attempts to interpret the body as json and prettifies it.")
 		},
 	}
 
@@ -81,6 +88,26 @@ func (a *audit) Get(id string) (*apiv1.AuditTrace, error) {
 	resp, err := a.c.Client.Apiv1().Audit().Get(ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get audit trace: %w", err)
+	}
+
+	trace := resp.Msg.Audit
+
+	if viper.GetBool("prettify-body") {
+		trimmed := strings.Trim(trace.RequestPayload, `"`)
+		body := map[string]any{}
+		err = json.Unmarshal([]byte(trimmed), &body)
+		if err == nil {
+			if pretty, err := json.MarshalIndent(body, "", "    "); err == nil {
+				trace.RequestPayload = string(pretty)
+			}
+		}
+		trimmed = strings.Trim(trace.ResponsePayload, `"`)
+		err = json.Unmarshal([]byte(trimmed), &body)
+		if err == nil {
+			if pretty, err := json.MarshalIndent(body, "", "    "); err == nil {
+				trace.ResponsePayload = string(pretty)
+			}
+		}
 	}
 
 	return resp.Msg.Audit, nil
@@ -112,8 +139,10 @@ func (a *audit) List() ([]*apiv1.AuditTrace, error) {
 		User:       pointer.PointerOrNil(viper.GetString("user")),
 		Project:    pointer.PointerOrNil(viper.GetString("project")),
 		Method:     pointer.PointerOrNil(viper.GetString("method")),
-		ResultCode: pointer.PointerOrNil(viper.GetString("result-code")),
-		Limit:      pointer.PointerOrNil(viper.GetUint64("limit")),
+		ResultCode: pointer.PointerOrNil(viper.GetInt32("result-code")),
+		Body:       pointer.PointerOrNil(viper.GetString("body")),
+		Error:      pointer.PointerOrNil(viper.GetString("error")),
+		SourceIp:   pointer.PointerOrNil(viper.GetString("source-ip")),
 	}
 
 	spew.Dump(req)
