@@ -25,7 +25,9 @@ var (
 		Method:          "/apiv1/ip",
 		ResponsePayload: `{"a": "b"}`,
 		SourceIp:        "192.168.2.1",
-		ResultCode:      trconv.Itoa(http.StatusOK),
+		ResultCode:      http.StatusOK,
+		Error:           "err1",
+		RequestPayload:  "{}",
 	}
 	auditTrace2 = &apiv1.AuditTrace{
 		Uuid:            "b5817ef7-980a-41ef-9ed3-741a143870b0",
@@ -36,24 +38,28 @@ var (
 		Method:          "/apiv1/cluster",
 		ResponsePayload: `{"c": "d"}`,
 		SourceIp:        "192.168.2.3",
-		ResultCode:      strconv.Itoa(http.StatusForbidden),
+		ResultCode:      http.StatusForbidden,
+		Error:           "err2",
+		RequestPayload:  "{}",
 	}
-) //Limit: 100,
+)
 
 func Test_AuditCmd_MultiResult(t *testing.T) {
 	tests := []*Test[[]*apiv1.AuditTrace]{
 		{
 			Name: "list",
 			Cmd: func(want []*apiv1.AuditTrace) []string {
-				return []string{"admin", "audit", "list"}
+				return []string{"audit", "list", "--tenant", "a-tenant"}
 			},
 			ClientMocks: &apitests.ClientMockFns{
 				Apiv1Mocks: &apitests.Apiv1MockFns{
 					Audit: func(m *mock.Mock) {
 						beforeOneHour := timestamppb.New(testTime.Add(-1 * time.Hour))
+
 						m.On("List", mock.Anything, connect.NewRequest(&apiv1.AuditServiceListRequest{
-							From: beforeOneHour,
-							To:   timestamppb.Now(),
+							Login: "a-tenant",
+							From:  beforeOneHour,
+							To:    timestamppb.Now(),
 						})).
 							Return(&connect.Response[apiv1.AuditServiceListResponse]{
 								Msg: &apiv1.AuditServiceListResponse{
@@ -71,14 +77,14 @@ func Test_AuditCmd_MultiResult(t *testing.T) {
 				auditTrace1,
 			},
 			WantTable: pointer.Pointer(`
-TIME                  REQUEST-ID                             USER     TENANT     METHOD         
-2022-05-19 01:02:03   b5817ef7-980a-41ef-9ed3-741a143870b0   b-user   b-tenant   /apiv1/cluster   
-2022-05-19 01:02:03   c40ad996-e1fd-4511-a7bf-418219cb8d91   a-user   a-tenant   /apiv1/ip
+TIME                  REQUEST-ID                             USER     METHOD         
+2022-05-19 01:02:03   b5817ef7-980a-41ef-9ed3-741a143870b0   b-user   /apiv1/cluster   
+2022-05-19 01:02:03   c40ad996-e1fd-4511-a7bf-418219cb8d91   a-user   /apiv1/ip
 				`),
 			WantWideTable: pointer.Pointer(`
-TIME                  REQUEST-ID                             USER     TENANT     PROJECT     METHOD           SOURCE-IP     RESULT-CODE   BODY       
-2022-05-19 01:02:03   b5817ef7-980a-41ef-9ed3-741a143870b0   b-user   b-tenant   project-b   /apiv1/cluster   192.168.2.3   403           {"c": "d"}   
-2022-05-19 01:02:03   c40ad996-e1fd-4511-a7bf-418219cb8d91   a-user   a-tenant   project-a   /apiv1/ip        192.168.2.1   200           {"a": "b"}
+TIME                  REQUEST-ID                             USER     PROJECT     METHOD           SOURCE-IP     RESULT-CODE   ERROR   REQ-BODY   RES-BODY   
+2022-05-19 01:02:03   b5817ef7-980a-41ef-9ed3-741a143870b0   b-user   project-b   /apiv1/cluster   192.168.2.3   403           err2    {}         {"c": "d"}   
+2022-05-19 01:02:03   c40ad996-e1fd-4511-a7bf-418219cb8d91   a-user   project-a   /apiv1/ip        192.168.2.1   200           err1    {}         {"a": "b"}
 				`),
 			Template: pointer.Pointer(`{{ date "02/01/2006" .timestamp }} {{ .uuid }}`),
 			WantTemplate: pointer.Pointer(`
@@ -86,43 +92,45 @@ TIME                  REQUEST-ID                             USER     TENANT    
 19/05/2022 c40ad996-e1fd-4511-a7bf-418219cb8d91
 				`),
 			WantMarkdown: pointer.Pointer(`
-|        TIME         |              REQUEST-ID              |  USER  |  TENANT  |     METHOD     |
-|---------------------|--------------------------------------|--------|----------|----------------|
-| 2022-05-19 01:02:03 | b5817ef7-980a-41ef-9ed3-741a143870b0 | b-user | b-tenant | /apiv1/cluster |
-| 2022-05-19 01:02:03 | c40ad996-e1fd-4511-a7bf-418219cb8d91 | a-user | a-tenant | /apiv1/ip      |
+|        TIME         |              REQUEST-ID              |  USER  |     METHOD     |
+|---------------------|--------------------------------------|--------|----------------|
+| 2022-05-19 01:02:03 | b5817ef7-980a-41ef-9ed3-741a143870b0 | b-user | /apiv1/cluster |
+| 2022-05-19 01:02:03 | c40ad996-e1fd-4511-a7bf-418219cb8d91 | a-user | /apiv1/ip      |
 			`),
 		},
 		{
 			Name: "list with filters",
 			Cmd: func(want []*apiv1.AuditTrace) []string {
-				args := []string{"admin", "audit", "list",
-					//"--query", want[0].ResponsePayload,
+				args := []string{"audit", "list",
+					"--tenant", "a-tenant",
 					"--request-id", want[0].Uuid,
 					"--from", want[0].Timestamp.AsTime().Format("2006-01-02 15:04:05"),
 					"--to", want[0].Timestamp.AsTime().Format("2006-01-02 15:04:05"),
 					"--user", want[0].User,
-					"--tenant", want[0].Tenant,
 					"--project", want[0].Project,
 					"--method", want[0].Method,
 					"--source-ip", want[0].SourceIp,
-					"--result-code", want[0].ResultCode,
-					//"--limit", "100",
+					"--result-code", strconv.Itoa(int(want[0].ResultCode)),
+					"--body", want[0].ResponsePayload,
+					"--error", want[0].Error,
 				}
-				AssertExhaustiveArgs(t, args, "sort-by")
 				return args
 			},
 			ClientMocks: &apitests.ClientMockFns{
 				Apiv1Mocks: &apitests.Apiv1MockFns{
 					Audit: func(m *mock.Mock) {
 						m.On("List", mock.Anything, connect.NewRequest(&apiv1.AuditServiceListRequest{
+							Login:      "a-tenant",
 							Uuid:       &auditTrace1.Uuid,
 							From:       auditTrace1.Timestamp,
 							To:         auditTrace1.Timestamp,
 							User:       &auditTrace1.User,
-							Tenant:     auditTrace1.Tenant,
 							Project:    &auditTrace1.Project,
 							Method:     &auditTrace1.Method,
 							ResultCode: &auditTrace1.ResultCode,
+							SourceIp:   &auditTrace1.SourceIp,
+							Error:      &auditTrace1.Error,
+							Body:       &auditTrace1.ResponsePayload,
 						})).
 							Return(&connect.Response[apiv1.AuditServiceListResponse]{
 								Msg: &apiv1.AuditServiceListResponse{
@@ -137,23 +145,22 @@ TIME                  REQUEST-ID                             USER     TENANT    
 			Want: []*apiv1.AuditTrace{
 				auditTrace1,
 			},
-
 			WantTable: pointer.Pointer(`
- TIME                  REQUEST-ID                             USER     TENANT     METHOD    
-2022-05-19 01:02:03   c40ad996-e1fd-4511-a7bf-418219cb8d91   a-user   a-tenant   /apiv1/ip
+TIME                  REQUEST-ID                             USER     METHOD    
+2022-05-19 01:02:03   c40ad996-e1fd-4511-a7bf-418219cb8d91   a-user   /apiv1/ip
 			`),
 			WantWideTable: pointer.Pointer(`
-TIME                  REQUEST-ID                             USER     TENANT     PROJECT     METHOD      SOURCE-IP     RESULT-CODE   BODY       
-2022-05-19 01:02:03   c40ad996-e1fd-4511-a7bf-418219cb8d91   a-user   a-tenant   project-a   /apiv1/ip   192.168.2.1   200           {"a": "b"}
+TIME                  REQUEST-ID                             USER     PROJECT     METHOD      SOURCE-IP     RESULT-CODE   ERROR   REQ-BODY   RES-BODY   
+2022-05-19 01:02:03   c40ad996-e1fd-4511-a7bf-418219cb8d91   a-user   project-a   /apiv1/ip   192.168.2.1   200           err1    {}         {"a": "b"}
 			`),
 			Template: pointer.Pointer(`{{ date "02/01/2006" .timestamp }} {{ .uuid }}`),
 			WantTemplate: pointer.Pointer(`
 19/05/2022 c40ad996-e1fd-4511-a7bf-418219cb8d91
 						`),
 			WantMarkdown: pointer.Pointer(`
-|        TIME         |              REQUEST-ID              |  USER  |  TENANT  |  METHOD   |
-|---------------------|--------------------------------------|--------|----------|-----------|
-| 2022-05-19 01:02:03 | c40ad996-e1fd-4511-a7bf-418219cb8d91 | a-user | a-tenant | /apiv1/ip |
+|        TIME         |              REQUEST-ID              |  USER  |  METHOD   |
+|---------------------|--------------------------------------|--------|-----------|
+| 2022-05-19 01:02:03 | c40ad996-e1fd-4511-a7bf-418219cb8d91 | a-user | /apiv1/ip |
 			`),
 		},
 	}

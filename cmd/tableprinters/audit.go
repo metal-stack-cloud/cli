@@ -1,6 +1,7 @@
 package tableprinters
 
 import (
+	"fmt"
 	"time"
 
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
@@ -25,7 +26,6 @@ func (t *TablePrinter) AuditTable(data []*apiv1.AuditTrace, wide bool) ([]string
 
 		method := audit.Method
 		sourceIp := audit.SourceIp
-		resultCode := audit.ResultCode
 
 		resBody := genericcli.TruncateEnd(audit.ResponsePayload, 30)
 		reqBody := genericcli.TruncateEnd(audit.RequestPayload, 30)
@@ -33,6 +33,10 @@ func (t *TablePrinter) AuditTable(data []*apiv1.AuditTrace, wide bool) ([]string
 		error := audit.Error
 
 		if wide {
+			var resultCode string
+			if audit.ResultCode != 0 {
+				resultCode = fmt.Sprintf("%d", audit.ResultCode)
+			}
 			rows = append(rows, []string{time, id, user, project, method, sourceIp, resultCode, error, reqBody, resBody})
 		} else {
 			rows = append(rows, []string{time, id, user, method})

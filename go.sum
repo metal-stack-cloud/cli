@@ -197,14 +197,8 @@ github.com/mdlayher/sdnotify v1.0.0 h1:Ma9XeLVN/l0qpyx1tNeMSeTjCPH6NtuD6/N9XdTlQ
 github.com/mdlayher/sdnotify v1.0.0/go.mod h1:HQUmpM4XgYkhDLtd+Uad8ZFK1T9D5+pNxnXQjCeJlGE=
 github.com/mdlayher/socket v0.5.1 h1:VZaqt6RkGkt2OE9l3GcC6nZkqD3xKeQLyfleW/uBcos=
 github.com/mdlayher/socket v0.5.1/go.mod h1:TjPLHI1UgwEv5J1B5q0zTZq12A/6H7nKmtTanQE37IQ=
-github.com/metal-stack-cloud/api v0.11.1-0.20250120091634-35ceed19c4f5 h1:9/Ja3hYtVY/psoi4hOkRemA525F/I7tktKsmJmxJ2XM=
-github.com/metal-stack-cloud/api v0.11.1-0.20250120091634-35ceed19c4f5/go.mod h1:YozV0MdIuEa3X/WWz41LNxV9TBxHySfNbj8Yt1e/hgs=
-github.com/metal-stack-cloud/api v0.11.1-0.20250120101721-b366bdaa2519 h1:kWZmJvwt7/i9pe4kNXYRCiWlS7DiK1GCUtBK9mdqHN0=
-github.com/metal-stack-cloud/api v0.11.1-0.20250120101721-b366bdaa2519/go.mod h1:YozV0MdIuEa3X/WWz41LNxV9TBxHySfNbj8Yt1e/hgs=
-github.com/metal-stack-cloud/api v0.11.1-0.20250120104711-0b37c9a2b2df h1:NYikwFAfJVo+r4AExovesI4b+AUfqfqFGNCu+QCnf1s=
-github.com/metal-stack-cloud/api v0.11.1-0.20250120104711-0b37c9a2b2df/go.mod h1:YozV0MdIuEa3X/WWz41LNxV9TBxHySfNbj8Yt1e/hgs=
-github.com/metal-stack-cloud/api v0.11.1-0.20250120131007-0e9d14e3b177 h1:Qt8dSg/VxW75EXIFauAyx5KIczSDzr0mzobcZQ3lqX8=
-github.com/metal-stack-cloud/api v0.11.1-0.20250120131007-0e9d14e3b177/go.mod h1:YozV0MdIuEa3X/WWz41LNxV9TBxHySfNbj8Yt1e/hgs=
+github.com/metal-stack-cloud/api v0.11.1-0.20250121081135-d58cc0c5d261 h1:31SeSPscrmhYeAoIMhUnPmjR+CGIhmPhNibPkr6NcT0=
+github.com/metal-stack-cloud/api v0.11.1-0.20250121081135-d58cc0c5d261/go.mod h1:YozV0MdIuEa3X/WWz41LNxV9TBxHySfNbj8Yt1e/hgs=
 github.com/metal-stack/metal-lib v0.19.0 h1:4yBnp/jPGgX9KeCje3A4MFL2oDjgjOjgsIK391LltRI=
 github.com/metal-stack/metal-lib v0.19.0/go.mod h1:fCMaWwVGA/xAoGvBk72/nfzqBkHly0iOzrWpc55Fau4=
 github.com/metal-stack/v v1.0.3 h1:Sh2oBlnxrCUD+mVpzfC8HiqL045YWkxs0gpTvkjppqs=

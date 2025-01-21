@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"connectrpc.com/connect"
-	"github.com/davecgh/go-spew/spew"
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
 	"github.com/metal-stack-cloud/cli/cmd/config"
 	"github.com/metal-stack-cloud/cli/cmd/sorters"
@@ -145,7 +144,6 @@ func (a *audit) List() ([]*apiv1.AuditTrace, error) {
 		SourceIp:   pointer.PointerOrNil(viper.GetString("source-ip")),
 	}
 
-	spew.Dump(req)
 	if viper.IsSet("request-id") {
 		req.Uuid = pointer.PointerOrNil(viper.GetString("request-id"))
 	}
