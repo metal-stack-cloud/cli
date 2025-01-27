@@ -26,7 +26,6 @@ var (
 		ResponsePayload: `{"a": "b"}`,
 		SourceIp:        "192.168.2.1",
 		ResultCode:      http.StatusOK,
-		Error:           "err1",
 		RequestPayload:  "{}",
 	}
 	auditTrace2 = &apiv1.AuditTrace{
@@ -39,7 +38,6 @@ var (
 		ResponsePayload: `{"c": "d"}`,
 		SourceIp:        "192.168.2.3",
 		ResultCode:      http.StatusForbidden,
-		Error:           "err2",
 		RequestPayload:  "{}",
 	}
 )
@@ -77,14 +75,14 @@ func Test_AuditCmd_MultiResult(t *testing.T) {
 				auditTrace1,
 			},
 			WantTable: pointer.Pointer(`
-TIME                  REQUEST-ID                             USER     METHOD         
-2022-05-19 01:02:03   b5817ef7-980a-41ef-9ed3-741a143870b0   b-user   /apiv1/cluster   
-2022-05-19 01:02:03   c40ad996-e1fd-4511-a7bf-418219cb8d91   a-user   /apiv1/ip
+TIME                  REQUEST-ID                             USER     PROJECT     METHOD
+2022-05-19 01:02:03   b5817ef7-980a-41ef-9ed3-741a143870b0   b-user   project-b   /apiv1/cluster
+2022-05-19 01:02:03   c40ad996-e1fd-4511-a7bf-418219cb8d91   a-user   project-a   /apiv1/ip
 				`),
 			WantWideTable: pointer.Pointer(`
-TIME                  REQUEST-ID                             USER     PROJECT     METHOD           SOURCE-IP     RESULT-CODE   ERROR   REQ-BODY   RES-BODY   
-2022-05-19 01:02:03   b5817ef7-980a-41ef-9ed3-741a143870b0   b-user   project-b   /apiv1/cluster   192.168.2.3   403           err2    {}         {"c": "d"}   
-2022-05-19 01:02:03   c40ad996-e1fd-4511-a7bf-418219cb8d91   a-user   project-a   /apiv1/ip        192.168.2.1   200           err1    {}         {"a": "b"}
+TIME                  REQUEST-ID                             USER     PROJECT     METHOD           SOURCE-IP     RESULT-CODE   REQ-BODY   RES-BODY   
+2022-05-19 01:02:03   b5817ef7-980a-41ef-9ed3-741a143870b0   b-user   project-b   /apiv1/cluster   192.168.2.3   403           {}         {"c": "d"}   
+2022-05-19 01:02:03   c40ad996-e1fd-4511-a7bf-418219cb8d91   a-user   project-a   /apiv1/ip        192.168.2.1   200           {}         {"a": "b"}
 				`),
 			Template: pointer.Pointer(`{{ date "02/01/2006" .timestamp }} {{ .uuid }}`),
 			WantTemplate: pointer.Pointer(`
@@ -92,10 +90,10 @@ TIME                  REQUEST-ID                             USER     PROJECT   
 19/05/2022 c40ad996-e1fd-4511-a7bf-418219cb8d91
 				`),
 			WantMarkdown: pointer.Pointer(`
-|        TIME         |              REQUEST-ID              |  USER  |     METHOD     |
-|---------------------|--------------------------------------|--------|----------------|
-| 2022-05-19 01:02:03 | b5817ef7-980a-41ef-9ed3-741a143870b0 | b-user | /apiv1/cluster |
-| 2022-05-19 01:02:03 | c40ad996-e1fd-4511-a7bf-418219cb8d91 | a-user | /apiv1/ip      |
+|        TIME         |              REQUEST-ID              |  USER  |  PROJECT  |     METHOD     |
+|---------------------|--------------------------------------|--------|-----------|----------------|
+| 2022-05-19 01:02:03 | b5817ef7-980a-41ef-9ed3-741a143870b0 | b-user | project-b | /apiv1/cluster |
+| 2022-05-19 01:02:03 | c40ad996-e1fd-4511-a7bf-418219cb8d91 | a-user | project-a | /apiv1/ip      |
 			`),
 		},
 		{
@@ -112,7 +110,6 @@ TIME                  REQUEST-ID                             USER     PROJECT   
 					"--source-ip", want[0].SourceIp,
 					"--result-code", strconv.Itoa(int(want[0].ResultCode)),
 					"--body", want[0].ResponsePayload,
-					"--error", want[0].Error,
 				}
 				return args
 			},
@@ -129,7 +126,6 @@ TIME                  REQUEST-ID                             USER     PROJECT   
 							Method:     &auditTrace1.Method,
 							ResultCode: &auditTrace1.ResultCode,
 							SourceIp:   &auditTrace1.SourceIp,
-							Error:      &auditTrace1.Error,
 							Body:       &auditTrace1.ResponsePayload,
 						})).
 							Return(&connect.Response[apiv1.AuditServiceListResponse]{
@@ -146,21 +142,21 @@ TIME                  REQUEST-ID                             USER     PROJECT   
 				auditTrace1,
 			},
 			WantTable: pointer.Pointer(`
-TIME                  REQUEST-ID                             USER     METHOD    
-2022-05-19 01:02:03   c40ad996-e1fd-4511-a7bf-418219cb8d91   a-user   /apiv1/ip
+TIME                  REQUEST-ID                             USER     PROJECT     METHOD
+2022-05-19 01:02:03   c40ad996-e1fd-4511-a7bf-418219cb8d91   a-user   project-a   /apiv1/ip
 			`),
 			WantWideTable: pointer.Pointer(`
-TIME                  REQUEST-ID                             USER     PROJECT     METHOD      SOURCE-IP     RESULT-CODE   ERROR   REQ-BODY   RES-BODY   
-2022-05-19 01:02:03   c40ad996-e1fd-4511-a7bf-418219cb8d91   a-user   project-a   /apiv1/ip   192.168.2.1   200           err1    {}         {"a": "b"}
+TIME                  REQUEST-ID                             USER     PROJECT     METHOD      SOURCE-IP     RESULT-CODE   REQ-BODY   RES-BODY   
+2022-05-19 01:02:03   c40ad996-e1fd-4511-a7bf-418219cb8d91   a-user   project-a   /apiv1/ip   192.168.2.1   200           {}         {"a": "b"}
 			`),
 			Template: pointer.Pointer(`{{ date "02/01/2006" .timestamp }} {{ .uuid }}`),
 			WantTemplate: pointer.Pointer(`
 19/05/2022 c40ad996-e1fd-4511-a7bf-418219cb8d91
 						`),
 			WantMarkdown: pointer.Pointer(`
-|        TIME         |              REQUEST-ID              |  USER  |  METHOD   |
-|---------------------|--------------------------------------|--------|-----------|
-| 2022-05-19 01:02:03 | c40ad996-e1fd-4511-a7bf-418219cb8d91 | a-user | /apiv1/ip |
+|        TIME         |              REQUEST-ID              |  USER  |  PROJECT  |  METHOD   |
+|---------------------|--------------------------------------|--------|-----------|-----------|
+| 2022-05-19 01:02:03 | c40ad996-e1fd-4511-a7bf-418219cb8d91 | a-user | project-a | /apiv1/ip |
 			`),
 		},
 	}

@@ -140,7 +140,6 @@ func (a *audit) List() ([]*apiv1.AuditTrace, error) {
 		Method:     pointer.PointerOrNil(viper.GetString("method")),
 		ResultCode: pointer.PointerOrNil(viper.GetInt32("result-code")),
 		Body:       pointer.PointerOrNil(viper.GetString("body")),
-		Error:      pointer.PointerOrNil(viper.GetString("error")),
 		SourceIp:   pointer.PointerOrNil(viper.GetString("source-ip")),
 	}
 
