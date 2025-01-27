@@ -13,7 +13,7 @@ func (t *TablePrinter) AuditTable(data []*apiv1.AuditTrace, wide bool) ([]string
 		rows [][]string
 	)
 
-	header := []string{"TIME", "REQUEST-ID", "USER", "METHOD"}
+	header := []string{"TIME", "REQUEST-ID", "USER", "PROJECT", "METHOD"}
 	if wide {
 		header = []string{"TIME", "REQUEST-ID", "USER", "PROJECT", "METHOD", "SOURCE-IP", "RESULT-CODE", "ERROR", "REQ-BODY", "RES-BODY"}
 	}
@@ -39,7 +39,7 @@ func (t *TablePrinter) AuditTable(data []*apiv1.AuditTrace, wide bool) ([]string
 			}
 			rows = append(rows, []string{time, id, user, project, method, sourceIp, resultCode, error, reqBody, resBody})
 		} else {
-			rows = append(rows, []string{time, id, user, method})
+			rows = append(rows, []string{time, id, user, project, method})
 		}
 	}
 
