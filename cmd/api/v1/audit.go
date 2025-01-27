@@ -144,10 +144,6 @@ func (a *audit) List() ([]*apiv1.AuditTrace, error) {
 		SourceIp:   pointer.PointerOrNil(viper.GetString("source-ip")),
 	}
 
-	if viper.IsSet("request-id") {
-		req.Uuid = pointer.PointerOrNil(viper.GetString("request-id"))
-	}
-
 	resp, err := a.c.Client.Apiv1().Audit().List(ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to list audit traces: %w", err)
