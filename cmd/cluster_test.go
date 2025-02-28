@@ -297,7 +297,7 @@ ID                                     TENANT        PROJECT   NAME       PARTIT
 		{
 			Name: "delete",
 			Cmd: func(want *apiv1.Cluster) []string {
-				return []string{"cluster", "rm", "--project", want.Project, want.Uuid}
+				return []string{"cluster", "rm", "--project", want.Project, want.Uuid, "--skip-security-prompts"}
 			},
 			ClientMocks: &apitests.ClientMockFns{
 				Apiv1Mocks: &apitests.Apiv1MockFns{
