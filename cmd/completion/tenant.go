@@ -35,6 +35,16 @@ func (c *Completion) TenantRoleCompletion(cmd *cobra.Command, args []string, toC
 	return names, cobra.ShellCompDirectiveNoFileComp
 }
 
+func (c *Completion) TenantOauthProviderCompletion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	var providers []string
+
+	for _, name := range apiv1.OAuthProvider_name {
+		providers = append(providers, name)
+	}
+
+	return providers, cobra.ShellCompDirectiveNoFileComp
+}
+
 func (c *Completion) TenantInviteListCompletion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	projectResp, err := c.Client.Apiv1().Project().Get(c.Ctx, connect.NewRequest(&apiv1.ProjectServiceGetRequest{
 		Project: c.Project,
