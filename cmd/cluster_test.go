@@ -297,7 +297,7 @@ ID                                     TENANT        PROJECT   NAME       PARTIT
 		{
 			Name: "delete",
 			Cmd: func(want *apiv1.Cluster) []string {
-				return []string{"cluster", "rm", "--project", want.Project, want.Uuid}
+				return []string{"cluster", "rm", "--project", want.Project, want.Uuid, "--skip-security-prompts"}
 			},
 			ClientMocks: &apitests.ClientMockFns{
 				Apiv1Mocks: &apitests.Apiv1MockFns{
@@ -322,14 +322,14 @@ ID                                     TENANT        PROJECT   NAME       PARTIT
 					"--name", want.Name,
 					"--kubernetes-version", want.Kubernetes.Version,
 					"--maintenance-duration", want.Maintenance.TimeWindow.Duration.AsDuration().String(),
-					"--maintenance-hour", strconv.Itoa(int(want.Maintenance.TimeWindow.Begin.Hour)),
-					"--maintenance-minute", strconv.Itoa(int(want.Maintenance.TimeWindow.Begin.Minute)),
+					"--maintenance-hour", strconv.Itoa(int(want.Maintenance.TimeWindow.Begin.Hour)), // nolint:gosec
+					"--maintenance-minute", strconv.Itoa(int(want.Maintenance.TimeWindow.Begin.Minute)), // nolint:gosec
 					"--maintenance-timezone", want.Maintenance.TimeWindow.Begin.Timezone,
 					"--worker-group", want.Workers[0].Name,
-					"--worker-min", strconv.Itoa(int(want.Workers[0].Minsize)),
-					"--worker-max", strconv.Itoa(int(want.Workers[0].Maxsize)),
-					"--worker-max-surge", strconv.Itoa(int(want.Workers[0].Maxsurge)),
-					"--worker-max-unavailable", strconv.Itoa(int(want.Workers[0].Maxunavailable)),
+					"--worker-min", strconv.Itoa(int(want.Workers[0].Minsize)), // nolint:gosec
+					"--worker-max", strconv.Itoa(int(want.Workers[0].Maxsize)), // nolint:gosec
+					"--worker-max-surge", strconv.Itoa(int(want.Workers[0].Maxsurge)), // nolint:gosec
+					"--worker-max-unavailable", strconv.Itoa(int(want.Workers[0].Maxunavailable)), // nolint:gosec
 					"--worker-type", want.Workers[0].MachineType,
 				}
 				AssertExhaustiveArgs(t, args, commonExcludedFileArgs()...)
@@ -356,14 +356,14 @@ ID                                     TENANT        PROJECT   NAME       PARTIT
 					"--project", want.Project,
 					"--kubernetes-version", want.Kubernetes.Version,
 					"--maintenance-duration", want.Maintenance.TimeWindow.Duration.AsDuration().String(),
-					"--maintenance-hour", strconv.Itoa(int(want.Maintenance.TimeWindow.Begin.Hour)),
-					"--maintenance-minute", strconv.Itoa(int(want.Maintenance.TimeWindow.Begin.Minute)),
+					"--maintenance-hour", strconv.Itoa(int(want.Maintenance.TimeWindow.Begin.Hour)), // nolint:gosec
+					"--maintenance-minute", strconv.Itoa(int(want.Maintenance.TimeWindow.Begin.Minute)), // nolint:gosec
 					"--maintenance-timezone", want.Maintenance.TimeWindow.Begin.Timezone,
 					"--worker-group", want.Workers[0].Name,
-					"--worker-min", strconv.Itoa(int(want.Workers[0].Minsize)),
-					"--worker-max", strconv.Itoa(int(want.Workers[0].Maxsize)),
-					"--worker-max-surge", strconv.Itoa(int(want.Workers[0].Maxsurge)),
-					"--worker-max-unavailable", strconv.Itoa(int(want.Workers[0].Maxunavailable)),
+					"--worker-min", strconv.Itoa(int(want.Workers[0].Minsize)), // nolint:gosec
+					"--worker-max", strconv.Itoa(int(want.Workers[0].Maxsize)), // nolint:gosec
+					"--worker-max-surge", strconv.Itoa(int(want.Workers[0].Maxsurge)), // nolint:gosec
+					"--worker-max-unavailable", strconv.Itoa(int(want.Workers[0].Maxunavailable)), // nolint:gosec
 					"--worker-type", want.Workers[0].MachineType,
 				}
 				exclude := append(commonExcludedFileArgs(), "remove-worker-group")
