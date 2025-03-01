@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"encoding/json"
 	"fmt"
 	"slices"
 	"time"
@@ -118,6 +119,20 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 
 	genericcli.Must(kubeconfigCmd.RegisterFlagCompletionFunc("project", c.Completion.ProjectListCompletion))
 
+	execConfigCmd := &cobra.Command{
+		Use:   "exec-config",
+		Short: "fetch exec-config of a cluster",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return w.execConfig(args)
+		},
+		ValidArgsFunction: c.Completion.ClusterListCompletion,
+	}
+
+	execConfigCmd.Flags().StringP("project", "p", "", "the project in which the cluster resides for which to get the kubeconfig for")
+	execConfigCmd.Flags().DurationP("expiration", "", 8*time.Hour, "kubeconfig will expire after given time")
+
+	genericcli.Must(execConfigCmd.RegisterFlagCompletionFunc("project", c.Completion.ProjectListCompletion))
+
 	// cluster monitoring
 
 	monitoringCmd := &cobra.Command{
@@ -175,7 +190,7 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 
 	genericcli.Must(statusCmd.RegisterFlagCompletionFunc("project", c.Completion.ProjectListCompletion))
 
-	return genericcli.NewCmds(cmdsConfig, kubeconfigCmd, monitoringCmd, reconcileCmd, statusCmd)
+	return genericcli.NewCmds(cmdsConfig, kubeconfigCmd, execConfigCmd, monitoringCmd, reconcileCmd, statusCmd)
 }
 
 func (c *cluster) Create(req *apiv1.ClusterServiceCreateRequest) (*apiv1.Cluster, error) {
@@ -558,7 +573,7 @@ func (c *cluster) kubeconfig(args []string) error {
 		projectName    = helpers.TrimProvider(projectResp.Msg.Project.Name)
 	)
 
-	merged, err := kubernetes.MergeKubeconfig(c.c.Fs, []byte(resp.Msg.Kubeconfig), pointer.PointerOrNil(kubeconfigPath), &projectName)
+	merged, err := kubernetes.MergeKubeconfig(c.c.Fs, []byte(resp.Msg.Kubeconfig), pointer.PointerOrNil(kubeconfigPath), &projectName, projectResp.Msg.Project.Uuid, id)
 	if err != nil {
 		return err
 	}
@@ -570,6 +585,43 @@ func (c *cluster) kubeconfig(args []string) error {
 
 	_, _ = fmt.Fprintf(c.c.Out, "%s merged context %q into %s\n", color.GreenString("✔"), merged.ContextName, merged.Path)
 
+	return nil
+}
+
+func (c *cluster) execConfig(args []string) error {
+	ctx, cancel := c.c.NewRequestContext()
+	defer cancel()
+
+	id, err := genericcli.GetExactlyOneArg(args)
+	if err != nil {
+		return err
+	}
+
+	creds, err := kubernetes.LoadCachedCredentials(id)
+	if err != nil {
+		return fmt.Errorf("unable to load cached credentials: %w", err)
+	}
+	if creds == nil {
+		req := &apiv1.ClusterServiceGetCredentialsRequest{
+			Uuid:       id,
+			Project:    c.c.GetProject(),
+			Expiration: durationpb.New(viper.GetDuration("expiration")),
+		}
+
+		resp, err := c.c.Client.Apiv1().Cluster().GetCredentials(ctx, connect.NewRequest(req))
+		if err != nil {
+			return fmt.Errorf("failed to get cluster credentials: %w", err)
+		}
+		creds, err = kubernetes.ExecConfig(id, resp.Msg.GetKubeconfig(), viper.GetDuration("expiration"))
+		if err != nil {
+			return fmt.Errorf("unable to decode kubeconfig: %w", err)
+		}
+	}
+	data, err := json.MarshalIndent(creds, "", "  ")
+	if err != nil {
+		return fmt.Errorf("unable to marshal exec cred: %w", err)
+	}
+	fmt.Fprintf(c.c.Out, "%s\n", data)
 	return nil
 }
 
