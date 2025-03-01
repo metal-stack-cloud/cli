@@ -33,6 +33,7 @@ manage kubernetes clusters
 * [metal cluster delete](metal_cluster_delete.md)	 - deletes the cluster
 * [metal cluster describe](metal_cluster_describe.md)	 - describes the cluster
 * [metal cluster edit](metal_cluster_edit.md)	 - edit the cluster through an editor and update
+* [metal cluster exec-config](metal_cluster_exec-config.md)	 - fetch exec-config of a cluster
 * [metal cluster kubeconfig](metal_cluster_kubeconfig.md)	 - fetch kubeconfig of a cluster
 * [metal cluster list](metal_cluster_list.md)	 - list all clusters
 * [metal cluster monitoring](metal_cluster_monitoring.md)	 - fetch endpoints and access credentials to cluster monitoring
