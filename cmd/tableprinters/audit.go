@@ -13,9 +13,9 @@ func (t *TablePrinter) AuditTable(data []*apiv1.AuditTrace, wide bool) ([]string
 		rows [][]string
 	)
 
-	header := []string{"TIME", "REQUEST-ID", "USER", "PROJECT", "METHOD"}
+	header := []string{"TIME", "REQUEST-ID", "USER", "PROJECT", "METHOD", "PHASE"}
 	if wide {
-		header = []string{"TIME", "REQUEST-ID", "USER", "PROJECT", "METHOD", "SOURCE-IP", "RESULT-CODE", "REQ-BODY", "RES-BODY"}
+		header = []string{"TIME", "REQUEST-ID", "USER", "PROJECT", "METHOD", "PHASE", "SOURCE-IP", "RESULT-CODE", "BODY"}
 	}
 
 	for _, audit := range data {
@@ -23,21 +23,21 @@ func (t *TablePrinter) AuditTable(data []*apiv1.AuditTrace, wide bool) ([]string
 		time := truncateToSeconds(audit.Timestamp.AsTime()).Format("2006-01-02 15:04:05")
 		user := audit.User
 		project := audit.Project
+		phase := audit.Phase
 
 		method := audit.Method
 		sourceIp := audit.SourceIp
 
-		resBody := genericcli.TruncateEnd(audit.ResponsePayload, 30)
-		reqBody := genericcli.TruncateEnd(audit.RequestPayload, 30)
+		body := genericcli.TruncateEnd(audit.Body, 30)
 
 		if wide {
 			var resultCode string
 			if audit.ResultCode != 0 {
 				resultCode = fmt.Sprintf("%d", audit.ResultCode)
 			}
-			rows = append(rows, []string{time, id, user, project, method, sourceIp, resultCode, reqBody, resBody})
+			rows = append(rows, []string{time, id, user, project, method, phase, sourceIp, resultCode, body})
 		} else {
-			rows = append(rows, []string{time, id, user, project, method})
+			rows = append(rows, []string{time, id, user, project, method, phase})
 		}
 	}
 

@@ -56,8 +56,7 @@ func newAuditCmd(c *config.Config) *cobra.Command {
 			cmd.Flags().String("body", "", "filters audit trace body payloads for the giben text.")
 			cmd.Flags().String("error", "", "error of the audit trace.")
 
-			//removed since issues arise with current flow of merging req and res to one request
-			//cmd.Flags().Int64("limit", 100, "limit the number of audit traces.")
+			cmd.Flags().Int64("limit", 6, "limit the number of audit traces.")
 
 			genericcli.Must(cmd.RegisterFlagCompletionFunc("project", c.Completion.ProjectListCompletion))
 		},
@@ -73,7 +72,8 @@ func (a *audit) Get(id string) (*apiv1.AuditTrace, error) {
 	ctx, cancel := a.c.NewRequestContext()
 	defer cancel()
 
-	// not sure about how to get tenant of current user
+	project := a.c.GetProject()
+	fmt.Printf("project: %s", project)
 	tenant, err := a.c.GetTenant()
 	if err != nil {
 		return nil, fmt.Errorf("tenant is required")
@@ -92,19 +92,12 @@ func (a *audit) Get(id string) (*apiv1.AuditTrace, error) {
 	trace := resp.Msg.Audit
 
 	if viper.GetBool("prettify-body") {
-		trimmed := strings.Trim(trace.RequestPayload, `"`)
+		trimmed := strings.Trim(trace.Body, `"`)
 		body := map[string]any{}
 		err = json.Unmarshal([]byte(trimmed), &body)
 		if err == nil {
 			if pretty, err := json.MarshalIndent(body, "", "    "); err == nil {
-				trace.RequestPayload = string(pretty)
-			}
-		}
-		trimmed = strings.Trim(trace.ResponsePayload, `"`)
-		err = json.Unmarshal([]byte(trimmed), &body)
-		if err == nil {
-			if pretty, err := json.MarshalIndent(body, "", "    "); err == nil {
-				trace.ResponsePayload = string(pretty)
+				trace.Body = string(pretty)
 			}
 		}
 	}
@@ -141,6 +134,7 @@ func (a *audit) List() ([]*apiv1.AuditTrace, error) {
 		ResultCode: pointer.PointerOrNil(viper.GetInt32("result-code")),
 		Body:       pointer.PointerOrNil(viper.GetString("body")),
 		SourceIp:   pointer.PointerOrNil(viper.GetString("source-ip")),
+		Limit:      pointer.PointerOrNil(viper.GetInt32("limit")),
 	}
 
 	resp, err := a.c.Client.Apiv1().Audit().List(ctx, connect.NewRequest(req))
