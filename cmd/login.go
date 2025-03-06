@@ -37,6 +37,8 @@ func newLoginCmd(c *config.Config) *cobra.Command {
 	}
 
 	loginCmd.Flags().String("provider", "", "the provider used to login with")
+	loginCmd.Flags().String("context-name", "", "the context into which the token gets injected, if not specified it uses the current context or creates a context named default in case there is no current context set")
+
 	genericcli.Must(loginCmd.RegisterFlagCompletionFunc("provider", cobra.FixedCompletions([]string{"github", "azure", "google"}, cobra.ShellCompDirectiveNoFileComp)))
 
 	return loginCmd
@@ -53,13 +55,19 @@ func (l *login) login() error {
 		return err
 	}
 
-	ctx, ok := ctxs.Get(ctxs.CurrentContext)
+	ctxName := ctxs.CurrentContext
+	if viper.IsSet("context-name") {
+		ctxName = viper.GetString("context-name")
+	}
+
+	ctx, ok := ctxs.Get(ctxName)
 	if !ok {
 		defaultCtx := l.c.MustDefaultContext()
 		defaultCtx.Name = "default"
 
 		ctxs.PreviousContext = ctxs.CurrentContext
 		ctxs.CurrentContext = ctx.Name
+
 		ctxs.Contexts = append(ctxs.Contexts, &defaultCtx)
 
 		ctx = &defaultCtx
@@ -68,12 +76,9 @@ func (l *login) login() error {
 	tokenChan := make(chan string)
 
 	http.HandleFunc("/callback", func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Query().Get("error") != "" {
-			http.Error(w, "Error: "+r.URL.Query().Get("error"), http.StatusBadRequest)
-			return
-		}
-
 		tokenChan <- r.URL.Query().Get("token")
+
+		http.Redirect(w, r, "https://metalstack.cloud", http.StatusSeeOther)
 	})
 
 	listener, err := net.Listen("tcp", "localhost:0")
