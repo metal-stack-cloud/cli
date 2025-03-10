@@ -204,7 +204,7 @@ func (c *cluster) kubeconfig(args []string) error {
 		kubeconfigPath = viper.GetString("kubeconfig")
 	)
 
-	merged, err := kubernetes.MergeKubeconfig(c.c.Fs, []byte(resp.Msg.Kubeconfig), pointer.PointerOrNil(kubeconfigPath), nil) // FIXME: reverse lookup project name
+	merged, err := kubernetes.MergeKubeconfig(c.c.Fs, []byte(resp.Msg.Kubeconfig), pointer.PointerOrNil(kubeconfigPath), nil, c.c.GetProject(), id) // FIXME: reverse lookup project name
 	if err != nil {
 		return err
 	}

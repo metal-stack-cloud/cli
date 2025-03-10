@@ -20,7 +20,7 @@ type MergedKubeconfig struct {
 	ContextName string
 }
 
-func MergeKubeconfig(fs afero.Fs, raw []byte, kubeconfigPath, projectName *string) (*MergedKubeconfig, error) {
+func MergeKubeconfig(fs afero.Fs, raw []byte, kubeconfigPath, projectName *string, projectid, clusterid string) (*MergedKubeconfig, error) {
 	path := os.Getenv(clientcmd.RecommendedConfigPathEnvVar)
 	if kubeconfigPath != nil {
 		path = *kubeconfigPath
@@ -99,9 +99,18 @@ func MergeKubeconfig(fs afero.Fs, raw []byte, kubeconfigPath, projectName *strin
 		Server:                   cluster.Cluster.Server,
 		CertificateAuthorityData: cluster.Cluster.CertificateAuthorityData,
 	}
+
+	metalcli, err := os.Executable()
+	if err != nil {
+		return nil, fmt.Errorf("unable to get executable path: %w", err)
+	}
 	currentConfig.AuthInfos[contextName] = &api.AuthInfo{
-		ClientCertificateData: authInfo.ClientCertificateData,
-		ClientKeyData:         authInfo.ClientKeyData,
+		Exec: &api.ExecConfig{
+			Command:         metalcli,
+			Args:            []string{"cluster", "exec-config", "-p", projectid, clusterid},
+			APIVersion:      "client.authentication.k8s.io/v1", // since k8s 1.22, if earlier versions are used, the API version is client.authentication.k8s.io/v1beta1
+			InteractiveMode: api.IfAvailableExecInteractiveMode,
+		},
 	}
 
 	if currentConfig.CurrentContext == "" {
