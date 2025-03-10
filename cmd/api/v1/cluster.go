@@ -597,7 +597,7 @@ func (c *cluster) execConfig(args []string) error {
 		return err
 	}
 
-	creds, err := kubernetes.LoadCachedCredentials(id)
+	creds, err := kubernetes.LoadCachedCredentials(c.c.Fs, id)
 	if err != nil {
 		return fmt.Errorf("unable to load cached credentials: %w", err)
 	}
@@ -612,7 +612,12 @@ func (c *cluster) execConfig(args []string) error {
 		if err != nil {
 			return fmt.Errorf("failed to get cluster credentials: %w", err)
 		}
-		creds, err = kubernetes.ExecConfig(id, resp.Msg.GetKubeconfig(), viper.GetDuration("expiration"))
+
+		// TODO: do we really need an expiration from the user?
+		// if so, should we limit it to a reasonable duration like max 3 days or something?
+		// the kubectl client will re-request credentials when the old credentials expire, so
+		// the user won't realize if the expiration is short.
+		creds, err = kubernetes.ExecConfig(c.c.Fs, id, resp.Msg.GetKubeconfig(), viper.GetDuration("expiration"))
 		if err != nil {
 			return fmt.Errorf("unable to decode kubeconfig: %w", err)
 		}

@@ -3,10 +3,12 @@ package kubernetes
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"path"
 	"time"
 
+	"github.com/spf13/afero"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	c "k8s.io/client-go/pkg/apis/clientauthentication/v1"
@@ -17,12 +19,18 @@ import (
 func cacheFilePath(cachedir, clusterid string) string {
 	return path.Join(cachedir, fmt.Sprintf("metal_%s.json", clusterid))
 }
-func LoadCachedCredentials(clusterid string) (*c.ExecCredential, error) {
+func LoadCachedCredentials(fs afero.Fs, clusterid string) (*c.ExecCredential, error) {
 	cachedir, err := os.UserCacheDir()
 	if err != nil {
 		return nil, err
 	}
-	cachedCredentials, err := os.ReadFile(cacheFilePath(cachedir, clusterid))
+	credFile, err := fs.Open(cacheFilePath(cachedir, clusterid))
+	if err != nil {
+		// if the file cannot be opened, we assume no error and return nil
+		// so the caller will (re)create it
+		return nil, nil //nolint:nilerr
+	}
+	cachedCredentials, err := io.ReadAll(credFile)
 	if err != nil {
 		return nil, nil //nolint:nilerr
 	}
@@ -37,7 +45,7 @@ func LoadCachedCredentials(clusterid string) (*c.ExecCredential, error) {
 	return &execCredential, nil
 }
 
-func saveCachedCredentials(clusterid string, execCredential *c.ExecCredential) error {
+func saveCachedCredentials(fs afero.Fs, clusterid string, execCredential *c.ExecCredential) error {
 	cachedir, err := os.UserCacheDir()
 	if err != nil {
 		return err
@@ -46,14 +54,15 @@ func saveCachedCredentials(clusterid string, execCredential *c.ExecCredential) e
 	if err != nil {
 		return fmt.Errorf("unable to marshal cached credentials: %w", err)
 	}
-	err = os.WriteFile(cacheFilePath(cachedir, clusterid), cachedCredentials, 0600)
+	f, err := fs.OpenFile(cacheFilePath(cachedir, clusterid), os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0600)
 	if err != nil {
 		return fmt.Errorf("unable to write cached credentials: %w", err)
 	}
-	return nil
+	_, err = f.Write(cachedCredentials)
+	return err
 }
 
-func ExecConfig(clusterid string, kubeRaw string, exp time.Duration) (*c.ExecCredential, error) {
+func ExecConfig(fs afero.Fs, clusterid string, kubeRaw string, exp time.Duration) (*c.ExecCredential, error) {
 	kubeconfig := &configv1.Config{}
 	err := runtime.DecodeInto(configlatest.Codec, []byte(kubeRaw), kubeconfig)
 	if err != nil {
@@ -76,6 +85,6 @@ func ExecConfig(clusterid string, kubeRaw string, exp time.Duration) (*c.ExecCre
 		},
 	}
 	// ignoring error, so a failed save doesn't break the flow
-	_ = saveCachedCredentials(clusterid, &ed)
+	_ = saveCachedCredentials(fs, clusterid, &ed)
 	return &ed, nil
 }
