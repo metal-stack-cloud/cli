@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/http"
 	"os/exec"
+	"runtime"
 	"slices"
 	"time"
 
@@ -89,7 +90,10 @@ func (l *login) login() error {
 	server := http.Server{Addr: listener.Addr().String(), ReadTimeout: 2 * time.Second}
 
 	go func() {
-		fmt.Printf("Starting server at http://%s...\n", listener.Addr().String())
+		if viper.GetBool("debug") {
+			fmt.Fprintf(l.c.Out, "Starting server at http://%s...\n", listener.Addr().String())
+		}
+
 		err = server.Serve(listener) //nolint
 		if err != nil && !errors.Is(err, http.ErrServerClosed) {
 			panic(fmt.Errorf("http server closed unexpectedly: %w", err))
@@ -98,7 +102,7 @@ func (l *login) login() error {
 
 	url := fmt.Sprintf("%s/auth/%s?redirect-url=http://%s/callback", l.c.GetApiURL(), provider, listener.Addr().String()) // TODO(vknabel): nicify please
 
-	err = exec.Command("xdg-open", url).Run() //nolint
+	err = openBrowser(url)
 	if err != nil {
 		return fmt.Errorf("error opening browser: %w", err)
 	}
@@ -140,4 +144,17 @@ func (l *login) login() error {
 	fmt.Fprintf(l.c.Out, "%s login successful! Updated and activated context \"%s\"\n", color.GreenString("✔"), color.GreenString(ctx.Name))
 
 	return nil
+}
+
+func openBrowser(url string) error {
+	switch runtime.GOOS {
+	case "linux":
+		return exec.Command("xdg-open", url).Run()
+	case "windows":
+		return exec.Command("rundll32", "url.dll,FileProtocolHandler", url).Run()
+	case "darwin":
+		return exec.Command("open", url).Run()
+	default:
+		return fmt.Errorf("unsupported platform")
+	}
 }

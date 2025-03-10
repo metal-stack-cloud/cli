@@ -1,13 +1,19 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
+	"time"
+
+	"github.com/golang-jwt/jwt/v5"
 
 	client "github.com/metal-stack-cloud/api/go/client"
 	"github.com/metal-stack/metal-lib/pkg/genericcli"
 
-	adminv1 "github.com/metal-stack-cloud/cli/cmd/admin/v1"
-	apiv1 "github.com/metal-stack-cloud/cli/cmd/api/v1"
+	adminv1cmds "github.com/metal-stack-cloud/cli/cmd/admin/v1"
+	apiv1cmds "github.com/metal-stack-cloud/cli/cmd/api/v1"
+
+	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
 
 	"github.com/metal-stack-cloud/cli/cmd/completion"
 	"github.com/metal-stack-cloud/cli/cmd/config"
@@ -83,8 +89,8 @@ func newRootCmd(c *config.Config) *cobra.Command {
 	}
 
 	rootCmd.AddCommand(newContextCmd(c), markdownCmd, newLoginCmd(c))
-	adminv1.AddCmds(rootCmd, c)
-	apiv1.AddCmds(rootCmd, c)
+	adminv1cmds.AddCmds(rootCmd, c)
+	apiv1cmds.AddCmds(rootCmd, c)
 
 	return rootCmd
 }
@@ -108,9 +114,32 @@ func initConfigWithViperCtx(c *config.Config) error {
 		return nil
 	}
 
+	token := c.GetToken()
+	if token != "" {
+		type claims struct {
+			jwt.RegisteredClaims
+			Type string `json:"type"`
+		}
+
+		cs := &claims{}
+		_, _, err := new(jwt.Parser).ParseUnverified(string(token), cs)
+		if err == nil && cs.ExpiresAt != nil {
+			if cs.ExpiresAt.Time.Before(time.Now()) {
+				switch cs.Type {
+				case apiv1.TokenType_TOKEN_TYPE_API.String():
+					return fmt.Errorf("the token has expired at %s. please issue a new api token through the metalstack.cloud console.", cs.ExpiresAt.Time.String())
+				case apiv1.TokenType_TOKEN_TYPE_CONSOLE.String(), apiv1.TokenType_TOKEN_TYPE_UNSPECIFIED.String():
+					fallthrough
+				default:
+					return fmt.Errorf("the token has expired at %s. please re-login through the login command.", cs.ExpiresAt.Time.String())
+				}
+			}
+		}
+	}
+
 	dialConfig := client.DialConfig{
 		BaseURL:   c.GetApiURL(),
-		Token:     c.GetToken(),
+		Token:     token,
 		UserAgent: "metal-stack-cloud-cli",
 		Debug:     viper.GetBool("debug"),
 	}
