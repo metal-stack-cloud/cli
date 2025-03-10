@@ -75,7 +75,7 @@ func ExecConfig(fs afero.Fs, clusterid string, kubeRaw string, exp time.Duration
 	expiration := metav1.NewTime(time.Now().Add(exp))
 	ed := c.ExecCredential{
 		TypeMeta: metav1.TypeMeta{
-			APIVersion: "client.authentication.k8s.io/v1", // since k8s 1.22, if earlier versions are used, the API version is client.authentication.k8s.io/v1beta1
+			APIVersion: "client.authentication.k8s.io/v1", // since k8s 1.24, if earlier versions are used, the API version is client.authentication.k8s.io/v1beta1
 			Kind:       "ExecCredential",
 		},
 		Status: &c.ExecCredentialStatus{
