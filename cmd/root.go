@@ -137,14 +137,7 @@ func initConfigWithViperCtx(c *config.Config) error {
 		}
 	}
 
-	dialConfig := client.DialConfig{
-		BaseURL:   c.GetApiURL(),
-		Token:     token,
-		UserAgent: "metal-stack-cloud-cli",
-		Debug:     viper.GetBool("debug"),
-	}
-
-	mc := client.New(dialConfig)
+	mc := newApiClient(c.GetApiURL(), token)
 
 	c.Client = mc
 	c.Completion.Client = mc
@@ -152,6 +145,17 @@ func initConfigWithViperCtx(c *config.Config) error {
 	c.Completion.Project = c.GetProject()
 
 	return nil
+}
+
+func newApiClient(apiURL, token string) client.Client {
+	dialConfig := client.DialConfig{
+		BaseURL:   apiURL,
+		Token:     token,
+		UserAgent: "metal-stack-cloud-cli",
+		Debug:     viper.GetBool("debug"),
+	}
+
+	return client.New(dialConfig)
 }
 
 func recursiveAutoGenDisable(cmd *cobra.Command) {
