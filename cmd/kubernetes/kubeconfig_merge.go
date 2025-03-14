@@ -122,12 +122,12 @@ func MergeKubeconfig(fs afero.Fs, raw []byte, kubeconfigPath, projectName *strin
 		return nil, fmt.Errorf("unable to encode kubeconfig: %w", err)
 	}
 
-	// remove cached credentials so a new one will be created
-	cachedir, err := os.UserCacheDir()
+	ec, err := NewUserExecCache(fs)
 	if err != nil {
 		return nil, err
 	}
-	_ = fs.Remove(cacheFilePath(cachedir, clusterid))
+	// remove cached credentials so a new one will be created
+	_ = ec.Clean(clusterid)
 
 	return &MergedKubeconfig{
 		Raw:         merged,
