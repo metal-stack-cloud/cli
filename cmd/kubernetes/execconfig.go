@@ -16,28 +16,49 @@ import (
 	configv1 "k8s.io/client-go/tools/clientcmd/api/v1"
 )
 
-func cacheFilePath(cachedir, clusterid string) string {
-	return path.Join(cachedir, fmt.Sprintf("metal_%s.json", clusterid))
+type ExecCache struct {
+	cachedir string
+	fs       afero.Fs
 }
-func LoadCachedCredentials(fs afero.Fs, clusterid string) (*c.ExecCredential, error) {
+
+func NewExecCache(fs afero.Fs, cachedir string) *ExecCache {
+	return &ExecCache{
+		cachedir: cachedir,
+		fs:       fs,
+	}
+}
+
+func NewUserExecCache(fs afero.Fs) (*ExecCache, error) {
 	cachedir, err := os.UserCacheDir()
 	if err != nil {
 		return nil, err
 	}
-	credFile, err := fs.Open(cacheFilePath(cachedir, clusterid))
+	return NewExecCache(fs, cachedir), nil
+}
+
+func (ec *ExecCache) Clean(clusterid string) error {
+	return ec.fs.Remove(ec.cacheFilePath(clusterid))
+}
+
+func (ec *ExecCache) cacheFilePath(clusterid string) string {
+	return path.Join(ec.cachedir, fmt.Sprintf("metal_%s.json", clusterid))
+}
+func (ec *ExecCache) LoadCachedCredentials(clusterid string) (*c.ExecCredential, error) {
+	credFile, err := ec.fs.Open(ec.cacheFilePath(clusterid))
 	if err != nil {
-		// if the file cannot be opened, we assume no error and return nil
-		// so the caller will (re)create it
-		return nil, nil //nolint:nilerr
+		return nil, err
 	}
 	cachedCredentials, err := io.ReadAll(credFile)
 	if err != nil {
-		return nil, nil //nolint:nilerr
+		return nil, err
 	}
 	var execCredential c.ExecCredential
 	err = json.Unmarshal(cachedCredentials, &execCredential)
 	if err != nil {
-		return nil, nil //nolint:nilerr
+		return nil, err
+	}
+	if execCredential.Status == nil || execCredential.Status.ExpirationTimestamp == nil {
+		return nil, fmt.Errorf("cached credentials are invalid")
 	}
 	if execCredential.Status.ExpirationTimestamp.Time.Before(time.Now()) {
 		return nil, nil
@@ -45,16 +66,12 @@ func LoadCachedCredentials(fs afero.Fs, clusterid string) (*c.ExecCredential, er
 	return &execCredential, nil
 }
 
-func saveCachedCredentials(fs afero.Fs, clusterid string, execCredential *c.ExecCredential) error {
-	cachedir, err := os.UserCacheDir()
-	if err != nil {
-		return err
-	}
+func (ec *ExecCache) saveCachedCredentials(clusterid string, execCredential *c.ExecCredential) error {
 	cachedCredentials, err := json.Marshal(execCredential)
 	if err != nil {
 		return fmt.Errorf("unable to marshal cached credentials: %w", err)
 	}
-	f, err := fs.OpenFile(cacheFilePath(cachedir, clusterid), os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0600)
+	f, err := ec.fs.OpenFile(ec.cacheFilePath(clusterid), os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0600)
 	if err != nil {
 		return fmt.Errorf("unable to write cached credentials: %w", err)
 	}
@@ -62,7 +79,7 @@ func saveCachedCredentials(fs afero.Fs, clusterid string, execCredential *c.Exec
 	return err
 }
 
-func ExecConfig(fs afero.Fs, clusterid string, kubeRaw string, exp time.Duration) (*c.ExecCredential, error) {
+func (ec *ExecCache) ExecConfig(clusterid string, kubeRaw string, exp time.Duration) (*c.ExecCredential, error) {
 	kubeconfig := &configv1.Config{}
 	err := runtime.DecodeInto(configlatest.Codec, []byte(kubeRaw), kubeconfig)
 	if err != nil {
@@ -85,6 +102,6 @@ func ExecConfig(fs afero.Fs, clusterid string, kubeRaw string, exp time.Duration
 		},
 	}
 	// ignoring error, so a failed save doesn't break the flow
-	_ = saveCachedCredentials(fs, clusterid, &ed)
+	_ = ec.saveCachedCredentials(clusterid, &ed)
 	return &ed, nil
 }

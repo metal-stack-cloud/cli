@@ -597,9 +597,15 @@ func (c *cluster) execConfig(args []string) error {
 		return err
 	}
 
-	creds, err := kubernetes.LoadCachedCredentials(c.c.Fs, id)
+	ec, err := kubernetes.NewUserExecCache(c.c.Fs)
 	if err != nil {
-		return fmt.Errorf("unable to load cached credentials: %w", err)
+		return err
+	}
+
+	creds, err := ec.LoadCachedCredentials(id)
+	if err != nil {
+		// we cannot load cache, so cleanup the cache
+		_ = ec.Clean(id)
 	}
 	if creds == nil {
 		req := &apiv1.ClusterServiceGetCredentialsRequest{
@@ -617,7 +623,7 @@ func (c *cluster) execConfig(args []string) error {
 		// if so, should we limit it to a reasonable duration like max 3 days or something?
 		// the kubectl client will re-request credentials when the old credentials expire, so
 		// the user won't realize if the expiration is short.
-		creds, err = kubernetes.ExecConfig(c.c.Fs, id, resp.Msg.GetKubeconfig(), viper.GetDuration("expiration"))
+		creds, err = ec.ExecConfig(id, resp.Msg.GetKubeconfig(), viper.GetDuration("expiration"))
 		if err != nil {
 			return fmt.Errorf("unable to decode kubeconfig: %w", err)
 		}
