@@ -56,7 +56,7 @@ func newAuditCmd(c *config.Config) *cobra.Command {
 			cmd.Flags().String("body", "", "filters audit trace body payloads for the giben text.")
 			cmd.Flags().String("error", "", "error of the audit trace.")
 
-			cmd.Flags().Int64("limit", 6, "limit the number of audit traces.")
+			cmd.Flags().Int64("limit", 100, "limit the number of audit traces.")
 
 			genericcli.Must(cmd.RegisterFlagCompletionFunc("project", c.Completion.ProjectListCompletion))
 		},
