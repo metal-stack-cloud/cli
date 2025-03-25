@@ -250,6 +250,25 @@ func (c *cluster) Delete(id string) (*apiv1.Cluster, error) {
 		}
 	}
 
+	if !viper.GetBool("skip-security-prompts") {
+		cluster, err := c.Get(id)
+		if err != nil {
+			return nil, err
+		}
+
+		if err := genericcli.PromptCustom(&genericcli.PromptConfig{
+			Message:         fmt.Sprintf(`Do you really want to delete "%s"? This operation cannot be undone.`, color.RedString(cluster.Name)),
+			ShowAnswers:     true,
+			AcceptedAnswers: []string{"y", "yes"},
+			DefaultAnswer:   "n",
+			No:              "n",
+			In:              c.c.In,
+			Out:             c.c.Out,
+		}); err != nil {
+			return nil, err
+		}
+	}
+
 	resp, err := c.c.Client.Apiv1().Cluster().Delete(ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to delete cluster: %w", err)

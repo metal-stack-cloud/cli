@@ -37,8 +37,12 @@ func newTenantCmd(c *config.Config) *cobra.Command {
 		ListCmdMutateFn: func(cmd *cobra.Command) {
 			cmd.Flags().BoolP("admitted", "a", false, "filter by admitted tenant")
 			cmd.Flags().Uint64("limit", 100, "limit results returned")
-			cmd.Flags().StringP("provider", "", "", "filter by provider")
 			cmd.Flags().StringP("email", "", "", "filter by email")
+			cmd.Flags().StringP("tenant", "", "", "filter by tenant")
+			cmd.Flags().StringP("provider", "", "", "filter by provider")
+
+			genericcli.Must(cmd.RegisterFlagCompletionFunc("tenant", c.Completion.AdminTenantListCompletion))
+			genericcli.Must(cmd.RegisterFlagCompletionFunc("provider", c.Completion.TenantOauthProviderCompletion))
 		},
 	}
 
@@ -153,7 +157,7 @@ func (c *tenant) List() ([]*apiv1.Tenant, error) {
 	ctx, cancel := c.c.NewRequestContext()
 	defer cancel()
 
-	// TODO: implement filters and paging
+	// TODO: implement paging
 
 	req := &adminv1.TenantServiceListRequest{}
 
@@ -167,10 +171,14 @@ func (c *tenant) List() ([]*apiv1.Tenant, error) {
 		}
 	}
 	if viper.IsSet("provider") {
-		return nil, fmt.Errorf("unimplemented filter by provider")
+		provider := apiv1.OAuthProvider(apiv1.OAuthProvider_value[viper.GetString("provider")])
+		req.OauthProvider = &provider
 	}
 	if viper.IsSet("email") {
-		return nil, fmt.Errorf("unimplemented filter by provider")
+		req.Email = pointer.Pointer(viper.GetString("email"))
+	}
+	if viper.IsSet("tenant") {
+		req.Tenant = pointer.Pointer(viper.GetString("tenant"))
 	}
 
 	resp, err := c.c.Client.Adminv1().Tenant().List(ctx, connect.NewRequest(req))

@@ -40,7 +40,6 @@ func Execute() {
 }
 
 func newRootCmd(c *config.Config) *cobra.Command {
-
 	rootCmd := &cobra.Command{
 		Use:          config.BinaryName,
 		Aliases:      []string{"m"},

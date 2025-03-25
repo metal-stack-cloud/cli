@@ -88,8 +88,8 @@ TIME                  REQUEST-ID                             USER     PROJECT   
 				`),
 			WantWideTable: pointer.Pointer(`
 TIME                  REQUEST-ID                             USER     PROJECT     METHOD           PHASE      SOURCE-IP     RESULT-CODE   BODY       
-2022-05-19 01:02:03   b5817ef7-980a-41ef-9ed3-741a143870b0   b-user   project-b   /apiv1/cluster   response   192.168.2.3   60712428      {"c": "d"}   
-2022-05-19 01:02:03   c40ad996-e1fd-4511-a7bf-418219cb8d91   a-user   project-a   /apiv1/ip        request    192.168.2.1   60712424      {"a": "b"}
+2022-05-19 01:02:03   b5817ef7-980a-41ef-9ed3-741a143870b0   b-user   project-b   /apiv1/cluster   response   192.168.2.3   403           {"c": "d"}   
+2022-05-19 01:02:03   c40ad996-e1fd-4511-a7bf-418219cb8d91   a-user   project-a   /apiv1/ip        request    192.168.2.1   200           {"a": "b"}
 				`),
 			Template: pointer.Pointer(`{{ date "02/01/2006" .timestamp }} {{ .uuid }}`),
 			WantTemplate: pointer.Pointer(`
@@ -160,7 +160,7 @@ TIME                  REQUEST-ID                             USER     PROJECT   
 			`),
 			WantWideTable: pointer.Pointer(`
 TIME                  REQUEST-ID                             USER     PROJECT     METHOD      PHASE     SOURCE-IP     RESULT-CODE   BODY       
-2022-05-19 01:02:03   c40ad996-e1fd-4511-a7bf-418219cb8d91   a-user   project-a   /apiv1/ip   request   192.168.2.1   60712424      {"a": "b"}
+2022-05-19 01:02:03   c40ad996-e1fd-4511-a7bf-418219cb8d91   a-user   project-a   /apiv1/ip   request   192.168.2.1   200           {"a": "b"}
 			`),
 			Template: pointer.Pointer(`{{ date "02/01/2006" .timestamp }} {{ .uuid }}`),
 			WantTemplate: pointer.Pointer(`

@@ -38,7 +38,7 @@ func (t *TablePrinter) AuditTable(data []*apiv1.AuditTrace, wide bool) ([]string
 		if wide {
 			var resultCode = ""
 			if audit.ResultCode != nil {
-				resultCode = fmt.Sprintf("%d", audit.ResultCode)
+				resultCode = fmt.Sprintf("%d", *audit.ResultCode)
 			}
 			rows = append(rows, []string{time, id, user, project, method, phase, sourceIp, resultCode, body})
 		} else {
