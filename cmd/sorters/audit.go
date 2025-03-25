@@ -19,7 +19,7 @@ func AuditSorter() *multisort.Sorter[*apiv1.AuditTrace] {
 			return multisort.Compare(a.Method, b.Method, descending)
 		},
 		"project": func(a, b *apiv1.AuditTrace, descending bool) multisort.CompareResult {
-			return multisort.Compare(a.Project, b.Project, descending)
+			return multisort.Compare(*a.Project, *b.Project, descending)
 		},
 	}, multisort.Keys{{ID: "timestamp", Descending: true}})
 }

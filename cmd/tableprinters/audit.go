@@ -22,17 +22,22 @@ func (t *TablePrinter) AuditTable(data []*apiv1.AuditTrace, wide bool) ([]string
 		id := audit.Uuid
 		time := truncateToSeconds(audit.Timestamp.AsTime()).Format("2006-01-02 15:04:05")
 		user := audit.User
-		project := audit.Project
 		phase := audit.Phase
-
 		method := audit.Method
 		sourceIp := audit.SourceIp
 
-		body := genericcli.TruncateEnd(audit.Body, 30)
+		project := ""
+		if audit.Project != nil {
+			project = *audit.Project
+		}
+		body := ""
+		if audit.Body != nil {
+			body = genericcli.TruncateEnd(*audit.Body, 30)
+		}
 
 		if wide {
-			var resultCode string
-			if audit.ResultCode != 0 {
+			var resultCode = ""
+			if audit.ResultCode != nil {
 				resultCode = fmt.Sprintf("%d", audit.ResultCode)
 			}
 			rows = append(rows, []string{time, id, user, project, method, phase, sourceIp, resultCode, body})

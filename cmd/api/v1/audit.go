@@ -92,12 +92,15 @@ func (a *audit) Get(id string) (*apiv1.AuditTrace, error) {
 	trace := resp.Msg.Audit
 
 	if viper.GetBool("prettify-body") {
-		trimmed := strings.Trim(trace.Body, `"`)
-		body := map[string]any{}
-		err = json.Unmarshal([]byte(trimmed), &body)
-		if err == nil {
-			if pretty, err := json.MarshalIndent(body, "", "    "); err == nil {
-				trace.Body = string(pretty)
+		if trace.Body != nil {
+			trimmed := strings.Trim(*trace.Body, `"`)
+			body := map[string]any{}
+			err = json.Unmarshal([]byte(trimmed), &body)
+			if err == nil {
+				if pretty, err := json.MarshalIndent(body, "", "    "); err == nil {
+					var prettifiedBody = string(pretty)
+					trace.Body = &prettifiedBody
+				}
 			}
 		}
 	}
