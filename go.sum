@@ -205,6 +205,8 @@ github.com/metal-stack-cloud/api v0.13.1-0.20250324122259-c692aa84fe5d h1:xkhAh+
 github.com/metal-stack-cloud/api v0.13.1-0.20250324122259-c692aa84fe5d/go.mod h1:Wsm+LQw/ee1uv68Dlsp1VJk9PcreFJH0WxDtZmJ7maU=
 github.com/metal-stack-cloud/api v0.13.1-0.20250325094406-eed1b2fc58f5 h1:EZyhVs1DAtPqukRb6FzAB5D0mkvOlYq+FnoAXB4pHFo=
 github.com/metal-stack-cloud/api v0.13.1-0.20250325094406-eed1b2fc58f5/go.mod h1:Wsm+LQw/ee1uv68Dlsp1VJk9PcreFJH0WxDtZmJ7maU=
+github.com/metal-stack-cloud/api v0.13.1-0.20250325121620-df8dd0323b54 h1:dseh6qNRIh7uS/IIdrDMahjtH9fPjAdLGUICRuvxrqU=
+github.com/metal-stack-cloud/api v0.13.1-0.20250325121620-df8dd0323b54/go.mod h1:Wsm+LQw/ee1uv68Dlsp1VJk9PcreFJH0WxDtZmJ7maU=
 github.com/metal-stack/metal-lib v0.19.0 h1:4yBnp/jPGgX9KeCje3A4MFL2oDjgjOjgsIK391LltRI=
 github.com/metal-stack/metal-lib v0.19.0/go.mod h1:fCMaWwVGA/xAoGvBk72/nfzqBkHly0iOzrWpc55Fau4=
 github.com/metal-stack/v v1.0.3 h1:Sh2oBlnxrCUD+mVpzfC8HiqL045YWkxs0gpTvkjppqs=
