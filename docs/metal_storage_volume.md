@@ -28,9 +28,13 @@ volume related actions of metalstack.cloud
 ### SEE ALSO
 
 * [metal storage](metal_storage.md)	 - storage commands
+* [metal storage volume apply](metal_storage_volume_apply.md)	 - applies one or more volumes from a given file
+* [metal storage volume create](metal_storage_volume_create.md)	 - creates the volume
 * [metal storage volume delete](metal_storage_volume_delete.md)	 - deletes the volume
 * [metal storage volume describe](metal_storage_volume_describe.md)	 - describes the volume
+* [metal storage volume edit](metal_storage_volume_edit.md)	 - edit the volume through an editor and update
 * [metal storage volume encryptionsecret](metal_storage_volume_encryptionsecret.md)	 - volume encryptionsecret template
 * [metal storage volume list](metal_storage_volume_list.md)	 - list all volumes
 * [metal storage volume manifest](metal_storage_volume_manifest.md)	 - volume manifest
+* [metal storage volume update](metal_storage_volume_update.md)	 - updates the volume
 
