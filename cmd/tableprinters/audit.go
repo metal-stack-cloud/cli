@@ -1,11 +1,11 @@
 package tableprinters
 
 import (
-	"fmt"
-
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
 	"github.com/metal-stack/metal-lib/pkg/genericcli"
+	"github.com/metal-stack/metal-lib/pkg/pointer"
 	"github.com/olekukonko/tablewriter"
+	"google.golang.org/grpc/codes"
 )
 
 func (t *TablePrinter) AuditTable(data []*apiv1.AuditTrace, wide bool) ([]string, [][]string, error) {
@@ -25,18 +25,12 @@ func (t *TablePrinter) AuditTable(data []*apiv1.AuditTrace, wide bool) ([]string
 		phase := audit.Phase
 		method := audit.Method
 		sourceIp := audit.SourceIp
+		project := pointer.SafeDeref(audit.Project)
+		body := genericcli.TruncateEnd(pointer.SafeDeref(audit.Body), 30)
 
-		project := ""
-		if audit.Project != nil {
-			project = *audit.Project
-		}
-		body := ""
-		if audit.Body != nil {
-			body = genericcli.TruncateEnd(*audit.Body, 30)
-		}
 		code := ""
 		if audit.ResultCode != nil {
-			code = fmt.Sprintf("%d", *audit.ResultCode)
+			code = codes.Code(uint32(*audit.ResultCode)).String()
 		}
 
 		if wide {

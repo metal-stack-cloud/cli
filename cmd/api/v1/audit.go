@@ -54,7 +54,6 @@ func newAuditCmd(c *config.Config) *cobra.Command {
 			cmd.Flags().String("source-ip", "", "source-ip of the audit trace.")
 
 			cmd.Flags().String("body", "", "filters audit trace body payloads for the given text (full-text search).")
-			cmd.Flags().String("error", "", "error of the audit trace.")
 
 			cmd.Flags().Int64("limit", 0, "limit the number of audit traces.")
 
@@ -124,6 +123,11 @@ func (a *audit) List() ([]*apiv1.AuditTrace, error) {
 		return nil, fmt.Errorf("tenant is required %w", err)
 	}
 
+	var code *int32
+	if viper.IsSet("result-code") {
+		code = pointer.Pointer(viper.GetInt32("result-code"))
+	}
+
 	req := &apiv1.AuditServiceListRequest{
 		Login:      tenant,
 		Uuid:       pointer.PointerOrNil(viper.GetString("request-id")),
@@ -132,7 +136,7 @@ func (a *audit) List() ([]*apiv1.AuditTrace, error) {
 		User:       pointer.PointerOrNil(viper.GetString("user")),
 		Project:    pointer.PointerOrNil(viper.GetString("project")),
 		Method:     pointer.PointerOrNil(viper.GetString("method")),
-		ResultCode: pointer.PointerOrNil(viper.GetInt32("result-code")),
+		ResultCode: code,
 		Body:       pointer.PointerOrNil(viper.GetString("body")),
 		SourceIp:   pointer.PointerOrNil(viper.GetString("source-ip")),
 		Limit:      pointer.PointerOrNil(viper.GetInt32("limit")),
