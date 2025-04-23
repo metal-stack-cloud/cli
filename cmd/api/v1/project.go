@@ -247,15 +247,9 @@ func (c *project) Update(rq *apiv1.ProjectServiceUpdateRequest) (*apiv1.Project,
 }
 
 func (c *project) createRequestFromCLI() (*apiv1.ProjectServiceCreateRequest, error) {
-	tenant := viper.GetString("tenant")
-
-	if tenant == "" && c.c.GetProject() != "" {
-		project, err := c.Get(c.c.GetProject())
-		if err != nil {
-			return nil, fmt.Errorf("unable to derive tenant from project: %w", err)
-		}
-
-		tenant = project.Tenant
+	tenant, err := c.c.GetTenant()
+	if err != nil {
+		return nil, err
 	}
 
 	if viper.GetString("name") == "" {

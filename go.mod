@@ -10,7 +10,7 @@ require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/fatih/color v1.18.0
 	github.com/google/go-cmp v0.7.0
-	github.com/metal-stack-cloud/api v0.13.1-0.20250325121620-df8dd0323b54
+	github.com/metal-stack-cloud/api v0.13.1-0.20250423091441-7817111ceca7
 	github.com/metal-stack/metal-lib v0.20.2
 	github.com/metal-stack/v v1.0.3
 	github.com/olekukonko/tablewriter v0.0.5

@@ -27,9 +27,9 @@ func newAuditCmd(c *config.Config) *cobra.Command {
 		c: c,
 	}
 
-	cmdsConfig := &genericcli.CmdsConfig[*apiv1.AuditServiceGetRequest, *apiv1.AuditServiceGetRequest, *apiv1.AuditTrace]{
+	cmdsConfig := &genericcli.CmdsConfig[any, any, *apiv1.AuditTrace]{
 		BinaryName:      config.BinaryName,
-		GenericCLI:      genericcli.NewGenericCLI[*apiv1.AuditServiceGetRequest, *apiv1.AuditServiceGetRequest, *apiv1.AuditTrace](a).WithFS(c.Fs),
+		GenericCLI:      genericcli.NewGenericCLI(a).WithFS(c.Fs),
 		Singular:        "audit trace",
 		Plural:          "audit traces",
 		Description:     "show audit traces of the api-server",
@@ -38,10 +38,9 @@ func newAuditCmd(c *config.Config) *cobra.Command {
 		DescribePrinter: func() printers.Printer { return c.DescribePrinter },
 		ListPrinter:     func() printers.Printer { return c.ListPrinter },
 		ListCmdMutateFn: func(cmd *cobra.Command) {
-
 			cmd.Flags().String("request-id", "", "request id of the audit trace.")
 
-			cmd.Flags().String("from", "1h", "start of range of the audit traces. e.g. 1h, 10m, 2006-01-02 15:04:05")
+			cmd.Flags().String("from", "", "start of range of the audit traces. e.g. 1h, 10m, 2006-01-02 15:04:05")
 			cmd.Flags().String("to", "", "end of range of the audit traces. e.g. 1h, 10m, 2006-01-02 15:04:05")
 
 			cmd.Flags().String("user", "", "user of the audit trace.")
@@ -49,19 +48,31 @@ func newAuditCmd(c *config.Config) *cobra.Command {
 
 			cmd.Flags().String("project", "", "project id of the audit trace")
 
+			cmd.Flags().String("phase", "", "the audit trace phase.")
 			cmd.Flags().String("method", "", "api method of the audit trace.")
-			cmd.Flags().Int32("result-code", 0, "HTTP status code of the audit trace.")
+			cmd.Flags().Int32("result-code", 0, "gRPC result status code of the audit trace.")
 			cmd.Flags().String("source-ip", "", "source-ip of the audit trace.")
 
-			cmd.Flags().String("body", "", "filters audit trace body payloads for the giben text.")
+			cmd.Flags().String("body", "", "filters audit trace body payloads for the given text (full-text search).")
 			cmd.Flags().String("error", "", "error of the audit trace.")
 
-			cmd.Flags().Int64("limit", 100, "limit the number of audit traces.")
+			cmd.Flags().Int64("limit", 0, "limit the number of audit traces.")
 
+			cmd.Flags().Bool("prettify-body", false, "attempts to interpret the body as json and prettifies it.")
+
+			genericcli.Must(cmd.RegisterFlagCompletionFunc("phase", c.Completion.AuditPhaseListCompletion))
 			genericcli.Must(cmd.RegisterFlagCompletionFunc("project", c.Completion.ProjectListCompletion))
+			genericcli.Must(cmd.RegisterFlagCompletionFunc("tenant", c.Completion.TenantListCompletion))
 		},
 		DescribeCmdMutateFn: func(cmd *cobra.Command) {
+			cmd.Flags().String("tenant", "", "tenant of the audit trace.")
+
+			cmd.Flags().String("phase", "", "the audit trace phase.")
+
 			cmd.Flags().Bool("prettify-body", false, "attempts to interpret the body as json and prettifies it.")
+
+			genericcli.Must(cmd.RegisterFlagCompletionFunc("phase", c.Completion.AuditPhaseListCompletion))
+			genericcli.Must(cmd.RegisterFlagCompletionFunc("tenant", c.Completion.TenantListCompletion))
 		},
 	}
 
@@ -72,16 +83,15 @@ func (a *audit) Get(id string) (*apiv1.AuditTrace, error) {
 	ctx, cancel := a.c.NewRequestContext()
 	defer cancel()
 
-	project := a.c.GetProject()
-	fmt.Printf("project: %s", project)
 	tenant, err := a.c.GetTenant()
 	if err != nil {
-		return nil, fmt.Errorf("tenant is required")
+		return nil, err
 	}
 
 	req := &apiv1.AuditServiceGetRequest{
 		Login: tenant,
 		Uuid:  id,
+		Phase: a.toPhase(viper.GetString("phase")),
 	}
 
 	resp, err := a.c.Client.Apiv1().Audit().Get(ctx, connect.NewRequest(req))
@@ -89,23 +99,11 @@ func (a *audit) Get(id string) (*apiv1.AuditTrace, error) {
 		return nil, fmt.Errorf("failed to get audit trace: %w", err)
 	}
 
-	trace := resp.Msg.Audit
-
 	if viper.GetBool("prettify-body") {
-		if trace.Body != nil {
-			trimmed := strings.Trim(*trace.Body, `"`)
-			body := map[string]any{}
-			err = json.Unmarshal([]byte(trimmed), &body)
-			if err == nil {
-				if pretty, err := json.MarshalIndent(body, "", "    "); err == nil {
-					var prettifiedBody = string(pretty)
-					trace.Body = &prettifiedBody
-				}
-			}
-		}
+		a.tryPrettifyBody(resp.Msg.Trace)
 	}
 
-	return resp.Msg.Audit, nil
+	return resp.Msg.Trace, nil
 }
 
 func (a *audit) List() ([]*apiv1.AuditTrace, error) {
@@ -138,6 +136,7 @@ func (a *audit) List() ([]*apiv1.AuditTrace, error) {
 		Body:       pointer.PointerOrNil(viper.GetString("body")),
 		SourceIp:   pointer.PointerOrNil(viper.GetString("source-ip")),
 		Limit:      pointer.PointerOrNil(viper.GetInt32("limit")),
+		Phase:      a.toPhase(viper.GetString("phase")),
 	}
 
 	resp, err := a.c.Client.Apiv1().Audit().List(ctx, connect.NewRequest(req))
@@ -145,12 +144,18 @@ func (a *audit) List() ([]*apiv1.AuditTrace, error) {
 		return nil, fmt.Errorf("failed to list audit traces: %w", err)
 	}
 
-	return resp.Msg.Audits, nil
+	if viper.GetBool("prettify-body") {
+		for _, trace := range resp.Msg.Traces {
+			a.tryPrettifyBody(trace)
+		}
+	}
+
+	return resp.Msg.Traces, nil
 }
 
 func eventuallyRelativeDateTime(s string) (*timestamppb.Timestamp, error) {
 	if s == "" {
-		return timestamppb.Now(), nil
+		return nil, nil
 	}
 	duration, err := time.ParseDuration(s)
 	if err == nil {
@@ -163,7 +168,7 @@ func eventuallyRelativeDateTime(s string) (*timestamppb.Timestamp, error) {
 	return timestamppb.New(t), nil
 }
 
-func (a *audit) Convert(*apiv1.AuditTrace) (string, *apiv1.AuditServiceGetRequest, *apiv1.AuditServiceGetRequest, error) {
+func (a *audit) Convert(*apiv1.AuditTrace) (string, any, any, error) {
 	return "", nil, nil, fmt.Errorf("not implemented for audit traces")
 }
 
@@ -171,10 +176,31 @@ func (a *audit) Delete(id string) (*apiv1.AuditTrace, error) {
 	return nil, fmt.Errorf("not implemented for audit traces")
 }
 
-func (a *audit) Create(*apiv1.AuditServiceGetRequest) (*apiv1.AuditTrace, error) {
+func (a *audit) Create(any) (*apiv1.AuditTrace, error) {
 	return nil, fmt.Errorf("not implemented for audit traces")
 }
 
-func (a *audit) Update(*apiv1.AuditServiceGetRequest) (*apiv1.AuditTrace, error) {
+func (a *audit) Update(any) (*apiv1.AuditTrace, error) {
 	return nil, fmt.Errorf("not implemented for audit traces")
+}
+
+func (a *audit) tryPrettifyBody(trace *apiv1.AuditTrace) {
+	if trace.Body != nil {
+		trimmed := strings.Trim(*trace.Body, `"`)
+		body := map[string]any{}
+		if err := json.Unmarshal([]byte(trimmed), &body); err == nil {
+			if pretty, err := json.MarshalIndent(body, "", "    "); err == nil {
+				trace.Body = pointer.Pointer(string(pretty))
+			}
+		}
+	}
+}
+
+func (a *audit) toPhase(phase string) *apiv1.AuditPhase {
+	p, ok := apiv1.AuditPhase_value[phase]
+	if !ok {
+		return nil
+	}
+
+	return pointer.Pointer(apiv1.AuditPhase(p))
 }
