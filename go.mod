@@ -2,15 +2,13 @@ module github.com/metal-stack-cloud/cli
 
 go 1.24
 
-toolchain go1.24.0
-
 require (
 	bou.ke/monkey v1.0.2
 	connectrpc.com/connect v1.18.1
 	github.com/dustin/go-humanize v1.0.1
 	github.com/fatih/color v1.18.0
 	github.com/google/go-cmp v0.7.0
-	github.com/metal-stack-cloud/api v0.13.1-0.20250423073709-9bb411f94dec
+	github.com/metal-stack-cloud/api v0.13.1-0.20250424100600-8000bc24d386
 	github.com/metal-stack/metal-lib v0.20.2
 	github.com/metal-stack/v v1.0.3
 	github.com/olekukonko/tablewriter v0.0.5

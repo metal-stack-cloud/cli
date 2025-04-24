@@ -100,7 +100,7 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 
 	machineSSHCmd.Flags().String("machine-id", "", "the firewall's machine id to connect to")
 
-	genericcli.Must(machineSSHCmd.RegisterFlagCompletionFunc("machine-id", c.Completion.AdminClusteFirewallListCompletion))
+	genericcli.Must(machineSSHCmd.RegisterFlagCompletionFunc("machine-id", c.Completion.AdminClusterFirewallListCompletion))
 
 	// metal admin cluster machine
 
