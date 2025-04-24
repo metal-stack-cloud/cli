@@ -9,15 +9,16 @@ metal audit list [flags]
 ### Options
 
 ```
-      --body string         filters audit trace body payloads for the giben text.
-      --error string        error of the audit trace.
-      --from string         start of range of the audit traces. e.g. 1h, 10m, 2006-01-02 15:04:05 (default "1h")
+      --body string         filters audit trace body payloads for the given text (full-text search).
+      --from string         start of range of the audit traces. e.g. 1h, 10m, 2006-01-02 15:04:05
   -h, --help                help for list
-      --limit int           limit the number of audit traces. (default 100)
+      --limit int           limit the number of audit traces.
       --method string       api method of the audit trace.
+      --phase string        the audit trace phase.
+      --prettify-body       attempts to interpret the body as json and prettifies it.
       --project string      project id of the audit trace
       --request-id string   request id of the audit trace.
-      --result-code int32   HTTP status code of the audit trace.
+      --result-code int32   gRPC result status code of the audit trace.
       --sort-by strings     sort by (comma separated) column(s), sort direction can be changed by appending :asc or :desc behind the column identifier. possible values: method|project|timestamp|user
       --source-ip string    source-ip of the audit trace.
       --tenant string       tenant of the audit trace.

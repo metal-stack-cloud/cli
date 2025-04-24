@@ -10,7 +10,9 @@ metal audit describe <id> [flags]
 
 ```
   -h, --help            help for describe
+      --phase string    the audit trace phase.
       --prettify-body   attempts to interpret the body as json and prettifies it.
+      --tenant string   tenant of the audit trace.
 ```
 
 ### Options inherited from parent commands
