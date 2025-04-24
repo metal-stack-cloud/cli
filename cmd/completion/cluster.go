@@ -89,7 +89,7 @@ func (c *Completion) AdminClusterNameListCompletion(cmd *cobra.Command, args []s
 	return names, cobra.ShellCompDirectiveNoFileComp
 }
 
-func (c *Completion) AdminClusteFirewallListCompletion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+func (c *Completion) AdminClusterFirewallListCompletion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	clusterID, err := genericcli.GetExactlyOneArg(args)
 	if err != nil {
 		return nil, cobra.ShellCompDirectiveError

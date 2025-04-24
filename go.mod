@@ -2,8 +2,6 @@ module github.com/metal-stack-cloud/cli
 
 go 1.24
 
-toolchain go1.24.0
-
 require (
 	bou.ke/monkey v1.0.2
 	connectrpc.com/connect v1.18.1
