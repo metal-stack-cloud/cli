@@ -38,7 +38,7 @@ func newLoginCmd(c *config.Config) *cobra.Command {
 	}
 
 	loginCmd.Flags().String("provider", "", "the provider used to login with")
-	loginCmd.Flags().String("context-name", "", "the context into which the token gets injected, if not specified it uses the current context or creates a context named default in case there is no current context set")
+	loginCmd.Flags().String("context", "", "the context into which the token gets injected, if not specified it uses the current context or creates a context named default in case there is no current context set")
 
 	genericcli.Must(loginCmd.RegisterFlagCompletionFunc("provider", c.Completion.LoginProviderCompletion))
 	genericcli.Must(loginCmd.RegisterFlagCompletionFunc("context-name", c.ContextListCompletion))
