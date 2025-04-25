@@ -107,7 +107,7 @@ func (l *login) login() error {
 		}
 	}()
 
-	url := fmt.Sprintf("%s/auth/%s?redirect-url=http://%s/callback", l.c.GetApiURL(), provider, listener.Addr().String()) // TODO(vknabel): nicify please
+	url := fmt.Sprintf("%s/auth/%s?redirect-url=http://%s/callback", l.c.GetApiURL(), provider, listener.Addr().String())
 
 	err = openBrowser(url)
 	if err != nil {
