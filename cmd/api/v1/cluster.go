@@ -632,7 +632,7 @@ func (c *cluster) execConfig(args []string) error {
 	if err != nil {
 		return fmt.Errorf("unable to marshal exec cred: %w", err)
 	}
-	fmt.Fprintf(c.c.Out, "%s\n", data)
+	_, _ = fmt.Fprintf(c.c.Out, "%s\n", data)
 	return nil
 }
 
