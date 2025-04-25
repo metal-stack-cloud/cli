@@ -41,7 +41,7 @@ func newLoginCmd(c *config.Config) *cobra.Command {
 	loginCmd.Flags().String("context", "", "the context into which the token gets injected, if not specified it uses the current context or creates a context named default in case there is no current context set")
 
 	genericcli.Must(loginCmd.RegisterFlagCompletionFunc("provider", c.Completion.LoginProviderCompletion))
-	genericcli.Must(loginCmd.RegisterFlagCompletionFunc("context-name", c.ContextListCompletion))
+	genericcli.Must(loginCmd.RegisterFlagCompletionFunc("context", c.ContextListCompletion))
 
 	return loginCmd
 }
@@ -60,16 +60,16 @@ func (l *login) login() error {
 	}
 
 	ctxName := ctxs.CurrentContext
-	if viper.IsSet("context-name") {
-		ctxName = viper.GetString("context-name")
+	if viper.IsSet("context") {
+		ctxName = viper.GetString("context")
 	}
 
 	ctx, ok := ctxs.Get(ctxName)
 	if !ok {
 		newCtx := l.c.MustDefaultContext()
 		newCtx.Name = "default"
-		if viper.IsSet("context-name") {
-			newCtx.Name = viper.GetString("context-name")
+		if viper.IsSet("context") {
+			newCtx.Name = viper.GetString("context")
 		}
 
 		ctxs.Contexts = append(ctxs.Contexts, &newCtx)
