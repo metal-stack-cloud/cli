@@ -1,7 +1,6 @@
 package completion
 
 import (
-	"fmt"
 	"strings"
 
 	"connectrpc.com/connect"
@@ -19,7 +18,6 @@ func (c *Completion) TokenListCompletion(cmd *cobra.Command, args []string, toCo
 
 	var names []string
 	for _, s := range resp.Msg.Tokens {
-		fmt.Println(s.Uuid)
 		names = append(names, s.Uuid+"\t"+s.Description)
 	}
 
