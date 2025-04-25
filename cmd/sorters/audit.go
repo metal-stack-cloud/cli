@@ -9,6 +9,9 @@ import (
 
 func AuditSorter() *multisort.Sorter[*apiv1.AuditTrace] {
 	return multisort.New(multisort.FieldMap[*apiv1.AuditTrace]{
+		"id": func(a, b *apiv1.AuditTrace, descending bool) multisort.CompareResult {
+			return multisort.Compare(a.Uuid, b.Uuid, descending)
+		},
 		"timestamp": func(a, b *apiv1.AuditTrace, descending bool) multisort.CompareResult {
 			return multisort.Compare(time.Time(a.Timestamp.AsTime()).Unix(), time.Time(b.Timestamp.AsTime()).Unix(), descending)
 		},

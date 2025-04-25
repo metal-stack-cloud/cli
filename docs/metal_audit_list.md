@@ -19,7 +19,7 @@ metal audit list [flags]
       --project string      project id of the audit trace
       --request-id string   request id of the audit trace.
       --result-code int32   gRPC result status code of the audit trace.
-      --sort-by strings     sort by (comma separated) column(s), sort direction can be changed by appending :asc or :desc behind the column identifier. possible values: method|project|timestamp|user
+      --sort-by strings     sort by (comma separated) column(s), sort direction can be changed by appending :asc or :desc behind the column identifier. possible values: id|method|project|timestamp|user
       --source-ip string    source-ip of the audit trace.
       --tenant string       tenant of the audit trace.
       --to string           end of range of the audit traces. e.g. 1h, 10m, 2006-01-02 15:04:05
