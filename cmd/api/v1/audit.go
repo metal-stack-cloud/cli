@@ -62,6 +62,7 @@ func newAuditCmd(c *config.Config) *cobra.Command {
 			genericcli.Must(cmd.RegisterFlagCompletionFunc("phase", c.Completion.AuditPhaseListCompletion))
 			genericcli.Must(cmd.RegisterFlagCompletionFunc("project", c.Completion.ProjectListCompletion))
 			genericcli.Must(cmd.RegisterFlagCompletionFunc("tenant", c.Completion.TenantListCompletion))
+			genericcli.Must(cmd.RegisterFlagCompletionFunc("result-code", c.Completion.AuditStatusCodesCompletion))
 		},
 		DescribeCmdMutateFn: func(cmd *cobra.Command) {
 			cmd.Flags().String("tenant", "", "tenant of the audit trace.")
