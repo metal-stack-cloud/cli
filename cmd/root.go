@@ -124,14 +124,14 @@ func initConfigWithViperCtx(c *config.Config) error {
 		cs := &claims{}
 		_, _, err := new(jwt.Parser).ParseUnverified(string(token), cs)
 		if err == nil && cs.ExpiresAt != nil {
-			if cs.ExpiresAt.Time.Before(time.Now()) {
+			if cs.ExpiresAt.Before(time.Now()) {
 				switch cs.Type {
 				case apiv1.TokenType_TOKEN_TYPE_API.String():
-					return fmt.Errorf("the token has expired at %s. please issue a new api token through the metalstack.cloud console.", cs.ExpiresAt.Time.String())
+					return fmt.Errorf("the token has expired at %s. please issue a new api token through the metalstack.cloud console", cs.ExpiresAt.String())
 				case apiv1.TokenType_TOKEN_TYPE_CONSOLE.String(), apiv1.TokenType_TOKEN_TYPE_UNSPECIFIED.String():
 					fallthrough
 				default:
-					return fmt.Errorf("the token has expired at %s. please re-login through the login command.", cs.ExpiresAt.Time.String())
+					return fmt.Errorf("the token has expired at %s. please re-login through the login command", cs.ExpiresAt.String())
 				}
 			}
 		}
