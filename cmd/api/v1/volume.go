@@ -2,6 +2,7 @@ package v1
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	"connectrpc.com/connect"
@@ -162,37 +163,15 @@ func (c *volume) List() ([]*apiv1.Volume, error) {
 }
 
 func (c *volume) Convert(r *apiv1.Volume) (string, any, *apiv1.VolumeServiceUpdateRequest, error) {
-	return helpers.EncodeProject(r.Uuid, r.Project), nil, volumeResponseToUpdate(r), nil
+	req, err := c.volumeResponseToUpdate(r)
+	return helpers.EncodeProject(r.Uuid, r.Project), nil, req, err
 }
 
 func (c *volume) Update(rq *apiv1.VolumeServiceUpdateRequest) (*apiv1.Volume, error) {
 	ctx, cancel := c.c.NewRequestContext()
 	defer cancel()
 
-	var (
-		updateLabels = &apiv1.UpdateVolumeLabels{}
-		addLabels    = viper.GetStringSlice("add-label")
-		removeLabels = viper.GetStringSlice("remove-label")
-	)
-
-	updateLabels.Remove = removeLabels
-
-	for _, l := range addLabels {
-		labelKey, labelValue, ok := strings.Cut(l, "=")
-		if !ok {
-			return nil, fmt.Errorf("label %q is not in the form of <key>=<value>", l)
-		}
-		updateLabels.Update = append(updateLabels.Update, &apiv1.VolumeLabel{
-			Key:   labelKey,
-			Value: labelValue,
-		})
-	}
-
-	resp, err := c.c.Client.Apiv1().Volume().Update(ctx, connect.NewRequest(&apiv1.VolumeServiceUpdateRequest{
-		Uuid:    rq.Uuid,
-		Project: c.c.GetProject(),
-		Labels:  updateLabels,
-	}))
+	resp, err := c.c.Client.Apiv1().Volume().Update(ctx, connect.NewRequest(rq))
 	if err != nil {
 		return nil, err
 	}
@@ -297,28 +276,69 @@ func (v *volume) updateFromCLI(args []string) (*apiv1.VolumeServiceUpdateRequest
 		return nil, err
 	}
 
+	var (
+		updateLabels = &apiv1.UpdateVolumeLabels{}
+		addLabels    = viper.GetStringSlice("add-label")
+		removeLabels = viper.GetStringSlice("remove-label")
+	)
+
+	updateLabels.Remove = removeLabels
+
+	for _, l := range addLabels {
+		labelKey, labelValue, ok := strings.Cut(l, "=")
+		if !ok {
+			return nil, fmt.Errorf("label %q is not in the form of <key>=<value>", l)
+		}
+		updateLabels.Update = append(updateLabels.Update, &apiv1.VolumeLabel{
+			Key:   labelKey,
+			Value: labelValue,
+		})
+	}
+
+	return &apiv1.VolumeServiceUpdateRequest{
+		Uuid:    uuid,
+		Project: v.c.GetProject(),
+		Labels:  updateLabels,
+	}, nil
+}
+
+func (v *volume) volumeResponseToUpdate(desired *apiv1.Volume) (*apiv1.VolumeServiceUpdateRequest, error) {
 	ctx, cancel := v.c.NewRequestContext()
 	defer cancel()
 
-	vol, err := v.c.Client.Apiv1().Volume().Get(ctx, connect.NewRequest(&apiv1.VolumeServiceGetRequest{
-		Uuid:    uuid,
-		Project: v.c.GetProject(),
+	current, err := v.c.Client.Apiv1().Volume().Get(ctx, connect.NewRequest(&apiv1.VolumeServiceGetRequest{
+		Uuid:    desired.Uuid,
+		Project: desired.Project,
 	}))
 	if err != nil {
 		return nil, err
 	}
 
-	return &apiv1.VolumeServiceUpdateRequest{
-		Uuid:    vol.Msg.Volume.Uuid,
-		Project: vol.Msg.Volume.Project,
-		Labels:  nil,
-	}, nil
-}
-
-func volumeResponseToUpdate(r *apiv1.Volume) *apiv1.VolumeServiceUpdateRequest {
-	return &apiv1.VolumeServiceUpdateRequest{
-		Uuid:    r.Uuid,
-		Project: r.Project,
-		Labels:  nil,
+	updateLabels := &apiv1.UpdateVolumeLabels{
+		Remove: []string{},
+		Update: []*apiv1.VolumeLabel{},
 	}
+
+	for _, label := range current.Msg.Volume.Labels {
+		idx := slices.IndexFunc(desired.Labels, func(l *apiv1.VolumeLabel) bool {
+			return l.Key == label.Key
+		})
+		if idx == -1 {
+			updateLabels.Remove = append(updateLabels.Remove, label.Key)
+			continue
+		}
+
+		if label.Value != desired.Labels[idx].Value {
+			updateLabels.Update = append(updateLabels.Update, &apiv1.VolumeLabel{
+				Key:   label.Key,
+				Value: desired.Labels[idx].Value,
+			})
+		}
+	}
+
+	return &apiv1.VolumeServiceUpdateRequest{
+		Uuid:    desired.Uuid,
+		Project: desired.Project,
+		Labels:  updateLabels,
+	}, nil
 }
