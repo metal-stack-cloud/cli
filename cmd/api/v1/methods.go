@@ -47,7 +47,7 @@ func newMethodsCmd(c *config.Config) *cobra.Command {
 			sort.Strings(methods)
 
 			for _, method := range methods {
-				fmt.Fprintln(c.Out, method)
+				_, _ = fmt.Fprintln(c.Out, method)
 			}
 
 			return nil

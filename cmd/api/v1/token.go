@@ -159,10 +159,10 @@ func (c *token) Create(rq *apiv1.TokenServiceCreateRequest) (*apiv1.Token, error
 		return nil, err
 	}
 
-	fmt.Fprintf(c.c.Out, "Make sure to copy your personal access token now as you will not be able to see this again.\n")
-	fmt.Fprintln(c.c.Out)
-	fmt.Fprintln(c.c.Out, resp.Msg.GetSecret())
-	fmt.Fprintln(c.c.Out)
+	_, _ = fmt.Fprintf(c.c.Out, "Make sure to copy your personal access token now as you will not be able to see this again.\n")
+	_, _ = fmt.Fprintln(c.c.Out)
+	_, _ = fmt.Fprintln(c.c.Out, resp.Msg.GetSecret())
+	_, _ = fmt.Fprintln(c.c.Out)
 
 	// TODO: allow printer in metal-lib to be silenced
 

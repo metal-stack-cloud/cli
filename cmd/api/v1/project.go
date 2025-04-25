@@ -247,15 +247,9 @@ func (c *project) Update(rq *apiv1.ProjectServiceUpdateRequest) (*apiv1.Project,
 }
 
 func (c *project) createRequestFromCLI() (*apiv1.ProjectServiceCreateRequest, error) {
-	tenant := viper.GetString("tenant")
-
-	if tenant == "" && c.c.GetProject() != "" {
-		project, err := c.Get(c.c.GetProject())
-		if err != nil {
-			return nil, fmt.Errorf("unable to derive tenant from project: %w", err)
-		}
-
-		tenant = project.Tenant
+	tenant, err := c.c.GetTenant()
+	if err != nil {
+		return nil, err
 	}
 
 	if viper.GetString("name") == "" {
@@ -325,7 +319,7 @@ func (c *project) join(args []string) error {
 		return fmt.Errorf("failed to join project: %w", err)
 	}
 
-	fmt.Fprintf(c.c.Out, "%s successfully joined project \"%s\"\n", color.GreenString("✔"), color.GreenString(acceptResp.Msg.ProjectName))
+	_, _ = fmt.Fprintf(c.c.Out, "%s successfully joined project \"%s\"\n", color.GreenString("✔"), color.GreenString(acceptResp.Msg.ProjectName))
 
 	return nil
 }
@@ -347,8 +341,8 @@ func (c *project) generateInvite() error {
 		return fmt.Errorf("failed to generate an invite: %w", err)
 	}
 
-	fmt.Fprintf(c.c.Out, "You can share this secret with the member to join, it expires in %s:\n\n", humanize.Time(resp.Msg.Invite.ExpiresAt.AsTime()))
-	fmt.Fprintf(c.c.Out, "%s (https://console.metalstack.cloud/project-invite/%s)\n", resp.Msg.Invite.Secret, resp.Msg.Invite.Secret)
+	_, _ = fmt.Fprintf(c.c.Out, "You can share this secret with the member to join, it expires in %s:\n\n", humanize.Time(resp.Msg.Invite.ExpiresAt.AsTime()))
+	_, _ = fmt.Fprintf(c.c.Out, "%s (https://console.metalstack.cloud/project-invite/%s)\n", resp.Msg.Invite.Secret, resp.Msg.Invite.Secret)
 
 	return nil
 }
@@ -409,7 +403,7 @@ func (c *project) removeMember(args []string) error {
 		return fmt.Errorf("failed to remove member from project: %w", err)
 	}
 
-	fmt.Fprintf(c.c.Out, "%s successfully removed member %q\n", color.GreenString("✔"), member)
+	_, _ = fmt.Fprintf(c.c.Out, "%s successfully removed member %q\n", color.GreenString("✔"), member)
 
 	return nil
 }

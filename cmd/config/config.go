@@ -101,21 +101,29 @@ func (c *Config) GetTenant() (string, error) {
 		return viper.GetString("tenant"), nil
 	}
 
-	if c.GetProject() == "" {
-		return "", fmt.Errorf("tenant is not set")
+	if c.GetProject() != "" {
+		ctx, cancel := c.NewRequestContext()
+		defer cancel()
+
+		projectResp, err := c.Client.Apiv1().Project().Get(ctx, connect.NewRequest(&apiv1.ProjectServiceGetRequest{
+			Project: c.GetProject(),
+		}))
+		if err != nil {
+			return "", fmt.Errorf("unable to derive tenant from project: %w", err)
+		}
+
+		return projectResp.Msg.Project.Tenant, nil
 	}
 
 	ctx, cancel := c.NewRequestContext()
 	defer cancel()
 
-	projectResp, err := c.Client.Apiv1().Project().Get(ctx, connect.NewRequest(&apiv1.ProjectServiceGetRequest{
-		Project: c.GetProject(),
-	}))
+	user, err := c.Client.Apiv1().User().Get(ctx, connect.NewRequest(&apiv1.UserServiceGetRequest{}))
 	if err != nil {
-		return "", fmt.Errorf("unable to derive tenant from project: %w", err)
+		return "", fmt.Errorf("unable to derive tenant from token: %w", err)
 	}
 
-	return projectResp.Msg.Project.Tenant, nil
+	return user.Msg.User.Login, nil
 }
 
 func (c *Config) GetToken() string {

@@ -196,7 +196,7 @@ func (c *cluster) kubeconfig(args []string) error {
 	}
 
 	if !viper.GetBool("merge") {
-		fmt.Fprintln(c.c.Out, resp.Msg.Kubeconfig)
+		_, _ = fmt.Fprintln(c.c.Out, resp.Msg.Kubeconfig)
 		return nil
 	}
 
@@ -214,7 +214,7 @@ func (c *cluster) kubeconfig(args []string) error {
 		return fmt.Errorf("unable to write merged kubeconfig: %w", err)
 	}
 
-	fmt.Fprintf(c.c.Out, "%s merged context %q into %s\n", color.GreenString("✔"), merged.ContextName, merged.Path)
+	_, _ = fmt.Fprintf(c.c.Out, "%s merged context %q into %s\n", color.GreenString("✔"), merged.ContextName, merged.Path)
 
 	return nil
 }
