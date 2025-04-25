@@ -194,7 +194,7 @@ func (c *volume) volumeManifest(args []string) error {
 
 	if len(volume.AttachedTo) > 0 {
 		nodes := connectedHosts(volume)
-		fmt.Fprintf(c.c.Out, "# be cautios! at the time being your volume:%s is still attached to worker node:%s, you can not mount it twice\n", volume.Uuid, strings.Join(nodes, ","))
+		_, _ = fmt.Fprintf(c.c.Out, "# be cautios! at the time being your volume:%s is still attached to worker node:%s, you can not mount it twice\n", volume.Uuid, strings.Join(nodes, ","))
 	}
 
 	y, err := yaml.Marshal(pv)
@@ -202,7 +202,7 @@ func (c *volume) volumeManifest(args []string) error {
 		panic(fmt.Errorf("unable to marshal to yaml: %w", err))
 	}
 
-	fmt.Fprintf(c.c.Out, "---\n%s", string(y))
+	_, _ = fmt.Fprintf(c.c.Out, "---\n%s", string(y))
 
 	return nil
 }
@@ -225,12 +225,12 @@ func (v *volume) volumeEncryptionSecretManifest() error {
 	if err != nil {
 		return err
 	}
-	fmt.Fprintf(v.c.Out, `# Sample secret to be used in conjunction with the partition-gold-encrypted StorageClass.
+	_, _ = fmt.Fprintf(v.c.Out, `# Sample secret to be used in conjunction with the partition-gold-encrypted StorageClass.
 # Place this secret, after modifying namespace and the actual secret value, in the same namespace as the pvc.
 #
 # IMPORTANT
 # Remember to make a safe copy of this secret at a secure location, once lost all your data will be lost as well.`)
-	fmt.Fprintln(v.c.Out, string(y))
+	_, _ = fmt.Fprintln(v.c.Out, string(y))
 	return nil
 }
 

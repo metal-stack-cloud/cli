@@ -1,7 +1,6 @@
 package tableprinters
 
 import (
-	"fmt"
 	"strings"
 
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
@@ -40,7 +39,7 @@ func (t *TablePrinter) IPTable(data []*apiv1.IP, wide bool) ([]string, [][]strin
 		tm := tag.NewTagMap(ip.Tags)
 		if value, ok := tm.Value(tag.ClusterServiceFQN); ok {
 			if parts := strings.Split(value, "/"); len(parts) == 3 {
-				attachedService = fmt.Sprintf("%s", parts[2])
+				attachedService = parts[2]
 			}
 		}
 
