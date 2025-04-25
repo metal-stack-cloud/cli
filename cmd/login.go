@@ -111,7 +111,8 @@ func (l *login) login() error {
 
 	err = openBrowser(url)
 	if err != nil {
-		return fmt.Errorf("error opening browser: %w", err)
+		_, _ = fmt.Fprintf(l.c.Out, "the browser could not be opened, you can open it yourself on: %s", url)
+		_, _ = fmt.Fprintf(l.c.Out, "the error was: %s", err.Error())
 	}
 
 	token := <-tokenChan
