@@ -13,6 +13,7 @@ metal storage volume list [flags]
       --name string        filter by name
       --partition string   filter by partition
   -p, --project string     filter by project
+      --sort-by strings    sort by (comma separated) column(s), sort direction can be changed by appending :asc or :desc behind the column identifier. possible values: name|partition|project|size|state|storage-class|usage|uuid
       --uuid string        filter by uuid
 ```
 
