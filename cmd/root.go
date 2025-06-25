@@ -15,6 +15,7 @@ import (
 
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
 
+	"github.com/charmbracelet/fang"
 	"github.com/metal-stack-cloud/cli/cmd/completion"
 	"github.com/metal-stack-cloud/cli/cmd/config"
 	"github.com/spf13/afero"
@@ -35,7 +36,7 @@ func Execute() {
 
 	cmd := newRootCmd(cfg)
 
-	err := cmd.Execute()
+	err := fang.Execute(context.Background(), cmd)
 	if err != nil {
 		if viper.GetBool("debug") {
 			panic(err)
