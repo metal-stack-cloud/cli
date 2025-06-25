@@ -36,7 +36,7 @@ func Execute() {
 
 	cmd := newRootCmd(cfg)
 
-	err := fang.Execute(context.Background(), cmd)
+	err := fang.Execute(cmd.Context(), cmd)
 	if err != nil {
 		if viper.GetBool("debug") {
 			panic(err)
