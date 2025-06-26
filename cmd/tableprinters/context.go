@@ -4,6 +4,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/metal-stack-cloud/cli/cmd/config"
 	"github.com/metal-stack/metal-lib/pkg/pointer"
+	"github.com/spf13/viper"
 )
 
 func (t *TablePrinter) ContextTable(data *config.Contexts, wide bool) ([]string, [][]string, error) {
@@ -24,7 +25,12 @@ func (t *TablePrinter) ContextTable(data *config.Contexts, wide bool) ([]string,
 
 		row := []string{active, c.Name, c.DefaultProject}
 		if wide {
-			row = append(row, pointer.SafeDeref(c.ApiURL))
+			url := pointer.SafeDeref(c.ApiURL)
+			if url == "" {
+				url = viper.GetString("api-url")
+			}
+
+			row = append(row, url)
 		}
 
 		rows = append(rows, row)
