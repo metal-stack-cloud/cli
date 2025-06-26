@@ -5,6 +5,7 @@ go 1.24
 require (
 	bou.ke/monkey v1.0.2
 	connectrpc.com/connect v1.18.1
+	github.com/charmbracelet/fang v0.2.0
 	github.com/dustin/go-humanize v1.0.1
 	github.com/fatih/color v1.18.0
 	github.com/golang-jwt/jwt/v5 v5.2.1
@@ -49,6 +50,12 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sts v1.30.1 // indirect
 	github.com/aws/smithy-go v1.20.3 // indirect
 	github.com/bits-and-blooms/bitset v1.13.0 // indirect
+	github.com/charmbracelet/colorprofile v0.3.0 // indirect
+	github.com/charmbracelet/lipgloss/v2 v2.0.0-beta.1 // indirect
+	github.com/charmbracelet/x/ansi v0.8.0 // indirect
+	github.com/charmbracelet/x/cellbuf v0.0.13 // indirect
+	github.com/charmbracelet/x/exp/charmtone v0.0.0-20250603201427-c31516f43444 // indirect
+	github.com/charmbracelet/x/term v0.2.1 // indirect
 	github.com/coder/websocket v1.8.12 // indirect
 	github.com/coreos/go-iptables v0.7.1-0.20240112124308-65c67c9f46e6 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.6 // indirect
@@ -86,10 +93,11 @@ require (
 	github.com/klauspost/compress v1.18.0 // indirect
 	github.com/klauspost/connect-compress/v2 v2.0.0 // indirect
 	github.com/kortschak/wol v0.0.0-20200729010619-da482cc4850a // indirect
+	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
-	github.com/mattn/go-runewidth v0.0.15 // indirect
+	github.com/mattn/go-runewidth v0.0.16 // indirect
 	github.com/mdlayher/genetlink v1.3.2 // indirect
 	github.com/mdlayher/netlink v1.7.2 // indirect
 	github.com/mdlayher/sdnotify v1.0.0 // indirect
@@ -99,6 +107,11 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
+	github.com/muesli/cancelreader v0.2.2 // indirect
+	github.com/muesli/mango v0.1.0 // indirect
+	github.com/muesli/mango-cobra v1.2.0 // indirect
+	github.com/muesli/mango-pflag v0.1.0 // indirect
+	github.com/muesli/roff v0.1.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.2 // indirect
@@ -128,6 +141,7 @@ require (
 	github.com/vishvananda/netlink v1.2.1-beta.2 // indirect
 	github.com/vishvananda/netns v0.0.4 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
+	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
 	go.mongodb.org/mongo-driver v1.17.1 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go4.org/mem v0.0.0-20240501181205-ae6ca9944745 // indirect
@@ -136,10 +150,10 @@ require (
 	golang.org/x/exp v0.0.0-20250218142911-aa4b98e5adaa // indirect
 	golang.org/x/mod v0.23.0 // indirect
 	golang.org/x/oauth2 v0.27.0 // indirect
-	golang.org/x/sync v0.11.0 // indirect
-	golang.org/x/sys v0.30.0 // indirect
+	golang.org/x/sync v0.13.0 // indirect
+	golang.org/x/sys v0.33.0 // indirect
 	golang.org/x/term v0.29.0 // indirect
-	golang.org/x/text v0.22.0 // indirect
+	golang.org/x/text v0.24.0 // indirect
 	golang.org/x/time v0.10.0 // indirect
 	golang.org/x/tools v0.30.0 // indirect
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect
