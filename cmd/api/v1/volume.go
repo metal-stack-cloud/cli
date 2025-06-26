@@ -2,11 +2,14 @@ package v1
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	"connectrpc.com/connect"
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
 	"github.com/metal-stack-cloud/cli/cmd/config"
+	"github.com/metal-stack-cloud/cli/cmd/sorters"
+	"github.com/metal-stack-cloud/cli/pkg/helpers"
 	"github.com/metal-stack/metal-lib/pkg/genericcli"
 	"github.com/metal-stack/metal-lib/pkg/genericcli/printers"
 	"github.com/metal-stack/metal-lib/pkg/pointer"
@@ -27,13 +30,14 @@ func newVolumeCmd(c *config.Config) *cobra.Command {
 		c: c,
 	}
 
-	cmdsConfig := &genericcli.CmdsConfig[any, any, *apiv1.Volume]{
-		BinaryName:  config.BinaryName,
-		GenericCLI:  genericcli.NewGenericCLI[any, any, *apiv1.Volume](w).WithFS(c.Fs),
-		Singular:    "volume",
-		Plural:      "volumes",
-		Description: "volume related actions of metalstack.cloud",
-		// Sorter:          sorters.TenantSorter(),
+	cmdsConfig := &genericcli.CmdsConfig[any, *apiv1.VolumeServiceUpdateRequest, *apiv1.Volume]{
+		BinaryName:      config.BinaryName,
+		GenericCLI:      genericcli.NewGenericCLI[any, *apiv1.VolumeServiceUpdateRequest, *apiv1.Volume](w).WithFS(c.Fs),
+		Singular:        "volume",
+		Plural:          "volumes",
+		Description:     "volume related actions of metalstack.cloud",
+		Sorter:          sorters.VolumeSorter(),
+		ValidArgsFn:     c.Completion.VolumeListCompletion,
 		DescribePrinter: func() printers.Printer { return c.DescribePrinter },
 		ListPrinter:     func() printers.Printer { return c.ListPrinter },
 		ListCmdMutateFn: func(cmd *cobra.Command) {
@@ -55,7 +59,15 @@ func newVolumeCmd(c *config.Config) *cobra.Command {
 
 			genericcli.Must(cmd.RegisterFlagCompletionFunc("project", c.Completion.ProjectListCompletion))
 		},
-		OnlyCmds: genericcli.OnlyCmds(genericcli.ListCmd, genericcli.DeleteCmd, genericcli.DescribeCmd),
+		UpdateCmdMutateFn: func(cmd *cobra.Command) {
+			cmd.Flags().StringP("project", "p", "", "filter by project")
+			cmd.Flags().StringArray("add-label", nil, "adds the volume labels in the form of <key>=<value>")
+			cmd.Flags().StringArray("remove-label", nil, "removes the volume labels with the given key")
+
+			genericcli.Must(cmd.RegisterFlagCompletionFunc("project", c.Completion.ProjectListCompletion))
+		},
+		UpdateRequestFromCLI: w.updateFromCLI,
+		OnlyCmds:             genericcli.OnlyCmds(genericcli.ListCmd, genericcli.DescribeCmd, genericcli.DeleteCmd, genericcli.UpdateCmd),
 	}
 
 	manifestCmd := &cobra.Command{
@@ -150,12 +162,21 @@ func (c *volume) List() ([]*apiv1.Volume, error) {
 	return resp.Msg.Volumes, nil
 }
 
-func (c *volume) Convert(r *apiv1.Volume) (string, any, any, error) {
-	panic("unimplemented")
+func (c *volume) Convert(r *apiv1.Volume) (string, any, *apiv1.VolumeServiceUpdateRequest, error) {
+	req, err := c.volumeResponseToUpdate(r)
+	return helpers.EncodeProject(r.Uuid, r.Project), nil, req, err
 }
 
-func (c *volume) Update(rq any) (*apiv1.Volume, error) {
-	panic("unimplemented")
+func (c *volume) Update(rq *apiv1.VolumeServiceUpdateRequest) (*apiv1.Volume, error) {
+	ctx, cancel := c.c.NewRequestContext()
+	defer cancel()
+
+	resp, err := c.c.Client.Apiv1().Volume().Update(ctx, connect.NewRequest(rq))
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.Msg.Volume, nil
 }
 
 func (c *volume) volumeManifest(args []string) error {
@@ -247,4 +268,77 @@ func connectedHosts(vol *apiv1.Volume) []string {
 	}
 
 	return nodes
+}
+
+func (v *volume) updateFromCLI(args []string) (*apiv1.VolumeServiceUpdateRequest, error) {
+	uuid, err := genericcli.GetExactlyOneArg(args)
+	if err != nil {
+		return nil, err
+	}
+
+	var (
+		updateLabels = &apiv1.UpdateVolumeLabels{}
+		addLabels    = viper.GetStringSlice("add-label")
+		removeLabels = viper.GetStringSlice("remove-label")
+	)
+
+	updateLabels.Remove = removeLabels
+
+	for _, l := range addLabels {
+		labelKey, labelValue, ok := strings.Cut(l, "=")
+		if !ok {
+			return nil, fmt.Errorf("label %q is not in the form of <key>=<value>", l)
+		}
+		updateLabels.Update = append(updateLabels.Update, &apiv1.VolumeLabel{
+			Key:   labelKey,
+			Value: labelValue,
+		})
+	}
+
+	return &apiv1.VolumeServiceUpdateRequest{
+		Uuid:    uuid,
+		Project: v.c.GetProject(),
+		Labels:  updateLabels,
+	}, nil
+}
+
+func (v *volume) volumeResponseToUpdate(desired *apiv1.Volume) (*apiv1.VolumeServiceUpdateRequest, error) {
+	ctx, cancel := v.c.NewRequestContext()
+	defer cancel()
+
+	current, err := v.c.Client.Apiv1().Volume().Get(ctx, connect.NewRequest(&apiv1.VolumeServiceGetRequest{
+		Uuid:    desired.Uuid,
+		Project: desired.Project,
+	}))
+	if err != nil {
+		return nil, err
+	}
+
+	updateLabels := &apiv1.UpdateVolumeLabels{
+		Remove: []string{},
+		Update: []*apiv1.VolumeLabel{},
+	}
+
+	for _, label := range current.Msg.Volume.Labels {
+		idx := slices.IndexFunc(desired.Labels, func(l *apiv1.VolumeLabel) bool {
+			return l.Key == label.Key
+		})
+		if idx == -1 {
+			updateLabels.Remove = append(updateLabels.Remove, label.Key)
+			continue
+		}
+
+		if label.Value != desired.Labels[idx].Value {
+			updateLabels.Update = append(updateLabels.Update, &apiv1.VolumeLabel{
+				Key:   label.Key,
+				Value: desired.Labels[idx].Value,
+			})
+		}
+	}
+
+	return &apiv1.VolumeServiceUpdateRequest{
+		Uuid:    desired.Uuid,
+		Project: desired.Project,
+		Labels:  updateLabels,
+	}, nil
 }

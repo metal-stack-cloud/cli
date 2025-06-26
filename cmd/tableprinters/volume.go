@@ -2,6 +2,7 @@ package tableprinters
 
 import (
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 
@@ -15,7 +16,7 @@ func (t *TablePrinter) VolumeTable(data []*apiv1.Volume, wide bool) ([]string, [
 	)
 	header := []string{"ID", "Name", "Size", "Usage", "Replicas", "ClusterName", "StorageClass", "Project", "Partition"}
 	if wide {
-		header = []string{"ID", "Name", "Size", "Usage", "Replicas", "ClusterName", "StorageClass", "Project", "Partition", "Nodes"}
+		header = []string{"ID", "Name", "Size", "Usage", "Replicas", "ClusterName", "StorageClass", "Project", "Partition", "Nodes", "Labels"}
 	}
 
 	sort.SliceStable(data, func(i, j int) bool { return data[i].Uuid < data[j].Uuid })
@@ -29,6 +30,7 @@ func (t *TablePrinter) VolumeTable(data []*apiv1.Volume, wide bool) ([]string, [
 		partition := vol.Partition
 		project := vol.Project
 		nodes := connectedHosts(vol)
+		labels := volumeLabels(vol)
 		clusterName := "-"
 		if vol.ClusterName != "" {
 			clusterName = vol.ClusterName
@@ -36,7 +38,7 @@ func (t *TablePrinter) VolumeTable(data []*apiv1.Volume, wide bool) ([]string, [
 
 		short := []string{volumeID, name, size, usage, replica, clusterName, sc, project, partition}
 		if wide {
-			short := append(short, strings.Join(nodes, "\n"))
+			short := append(short, strings.Join(nodes, "\n"), strings.Join(labels, "\n"))
 
 			rows = append(rows, short)
 		} else {
@@ -59,4 +61,15 @@ func connectedHosts(vol *apiv1.Volume) []string {
 		}
 	}
 	return nodes
+}
+
+func volumeLabels(vol *apiv1.Volume) []string {
+	labels := make([]string, 0, len(vol.Labels))
+
+	for _, l := range vol.Labels {
+		labels = append(labels, fmt.Sprintf("%s=%s", l.Key, l.Value))
+	}
+
+	slices.Sort(labels)
+	return labels
 }
