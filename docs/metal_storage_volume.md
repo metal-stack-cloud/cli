@@ -33,4 +33,5 @@ volume related actions of metalstack.cloud
 * [metal storage volume encryptionsecret](metal_storage_volume_encryptionsecret.md)	 - volume encryptionsecret template
 * [metal storage volume list](metal_storage_volume_list.md)	 - list all volumes
 * [metal storage volume manifest](metal_storage_volume_manifest.md)	 - volume manifest
+* [metal storage volume update](metal_storage_volume_update.md)	 - updates the volume
 

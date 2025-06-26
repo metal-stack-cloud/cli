@@ -100,7 +100,7 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 
 	machineSSHCmd.Flags().String("machine-id", "", "the firewall's machine id to connect to")
 
-	genericcli.Must(machineSSHCmd.RegisterFlagCompletionFunc("machine-id", c.Completion.AdminClusteFirewallListCompletion))
+	genericcli.Must(machineSSHCmd.RegisterFlagCompletionFunc("machine-id", c.Completion.AdminClusterFirewallListCompletion))
 
 	// metal admin cluster machine
 
@@ -204,7 +204,7 @@ func (c *cluster) kubeconfig(args []string) error {
 		kubeconfigPath = viper.GetString("kubeconfig")
 	)
 
-	merged, err := kubernetes.MergeKubeconfig(c.c.Fs, []byte(resp.Msg.Kubeconfig), pointer.PointerOrNil(kubeconfigPath), nil) // FIXME: reverse lookup project name
+	merged, err := kubernetes.MergeKubeconfig(c.c.Fs, []byte(resp.Msg.Kubeconfig), pointer.PointerOrNil(kubeconfigPath), nil, c.c.GetProject(), id) // FIXME: reverse lookup project name
 	if err != nil {
 		return err
 	}

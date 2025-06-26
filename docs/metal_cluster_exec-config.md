@@ -1,20 +1,17 @@
-## metal storage volume list
+## metal cluster exec-config
 
-list all volumes
+fetch exec-config of a cluster
 
 ```
-metal storage volume list [flags]
+metal cluster exec-config [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help               help for list
-      --name string        filter by name
-      --partition string   filter by partition
-  -p, --project string     filter by project
-      --sort-by strings    sort by (comma separated) column(s), sort direction can be changed by appending :asc or :desc behind the column identifier. possible values: name|partition|project|size|state|storage-class|usage|uuid
-      --uuid string        filter by uuid
+      --expiration duration   kubeconfig will expire after given time (default 8h0m0s)
+  -h, --help                  help for exec-config
+  -p, --project string        the project in which the cluster resides for which to get the kubeconfig for
 ```
 
 ### Options inherited from parent commands
@@ -32,5 +29,5 @@ metal storage volume list [flags]
 
 ### SEE ALSO
 
-* [metal storage volume](metal_storage_volume.md)	 - manage volume entities
+* [metal cluster](metal_cluster.md)	 - manage cluster entities
 
