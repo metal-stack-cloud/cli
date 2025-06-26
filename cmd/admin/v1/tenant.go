@@ -270,5 +270,9 @@ func newAddMemberCmd(c *config.Config) *cobra.Command {
 	genericcli.Must(cmd.MarkFlagRequired("member-id"))
 	genericcli.Must(cmd.MarkFlagRequired("role"))
 
+	genericcli.Must(cmd.RegisterFlagCompletionFunc("tenant-id", c.Completion.AdminTenantListCompletion))
+	genericcli.Must(cmd.RegisterFlagCompletionFunc("member-id", c.Completion.TenantMemberListCompletion))
+	genericcli.Must(cmd.RegisterFlagCompletionFunc("role", c.Completion.TenantRoleCompletion))
+
 	return cmd
 }
