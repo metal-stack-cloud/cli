@@ -33,8 +33,6 @@ type Context struct {
 
 func (cs *Contexts) Get(name string) (*Context, bool) {
 	for _, context := range cs.Contexts {
-		context := context
-
 		if context.Name == name {
 			return context, true
 		}
