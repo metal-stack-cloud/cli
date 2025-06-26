@@ -1,10 +1,11 @@
 package cmd
 
 import (
-	"fmt"
+	"errors"
 	"os"
 	"time"
 
+	"connectrpc.com/connect"
 	"github.com/golang-jwt/jwt/v5"
 
 	client "github.com/metal-stack-cloud/api/go/client"
@@ -34,9 +35,12 @@ func Execute() {
 	}
 
 	cmd := newRootCmd(cfg)
+	cmd.SilenceErrors = true
 
 	err := cmd.Execute()
 	if err != nil {
+		printErrorWithHints(cfg, cmd, err)
+
 		if viper.GetBool("debug") {
 			panic(err)
 		}
@@ -114,30 +118,7 @@ func initConfigWithViperCtx(c *config.Config) error {
 		return nil
 	}
 
-	token := c.GetToken()
-	if token != "" {
-		type claims struct {
-			jwt.RegisteredClaims
-			Type string `json:"type"`
-		}
-
-		cs := &claims{}
-		_, _, err := new(jwt.Parser).ParseUnverified(string(token), cs)
-		if err == nil && cs.ExpiresAt != nil {
-			if cs.ExpiresAt.Before(time.Now()) {
-				switch cs.Type {
-				case apiv1.TokenType_TOKEN_TYPE_API.String():
-					return fmt.Errorf("the token has expired at %s. please issue a new api token through the metalstack.cloud console", cs.ExpiresAt.String())
-				case apiv1.TokenType_TOKEN_TYPE_CONSOLE.String(), apiv1.TokenType_TOKEN_TYPE_UNSPECIFIED.String():
-					fallthrough
-				default:
-					return fmt.Errorf("the token has expired at %s. please re-login through the login command", cs.ExpiresAt.String())
-				}
-			}
-		}
-	}
-
-	mc := newApiClient(c.GetApiURL(), token)
+	mc := newApiClient(c.GetApiURL(), c.GetToken())
 
 	c.Client = mc
 	c.Completion.Client = mc
@@ -163,4 +144,38 @@ func recursiveAutoGenDisable(cmd *cobra.Command) {
 	for _, child := range cmd.Commands() {
 		recursiveAutoGenDisable(child)
 	}
+}
+
+func printErrorWithHints(c *config.Config, cmd *cobra.Command, err error) {
+	var connectErr *connect.Error
+	if !errors.As(err, &connectErr) || connectErr.Code() != connect.CodeUnauthenticated {
+		cmd.PrintErrln(err)
+		return
+	}
+
+	token := c.GetToken()
+	if token != "" {
+		type claims struct {
+			jwt.RegisteredClaims
+			Type string `json:"type"`
+		}
+
+		cs := &claims{}
+		_, _, err := new(jwt.Parser).ParseUnverified(string(token), cs)
+		if err == nil && cs.ExpiresAt != nil {
+			if cs.ExpiresAt.Before(time.Now()) {
+				switch cs.Type {
+				case apiv1.TokenType_TOKEN_TYPE_API.String():
+					cmd.PrintErrf("The API token has expired at %s.\nCreate a new API token or use the login command.\n", cs.ExpiresAt.String())
+				case apiv1.TokenType_TOKEN_TYPE_CONSOLE.String(), apiv1.TokenType_TOKEN_TYPE_UNSPECIFIED.String():
+					fallthrough
+				default:
+					cmd.PrintErrf("The token has expired at %s.\nPlease use the login command.\n", cs.ExpiresAt.String())
+				}
+				return
+			}
+		}
+	}
+
+	cmd.PrintErr(err)
 }
