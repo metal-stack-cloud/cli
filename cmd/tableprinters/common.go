@@ -30,6 +30,11 @@ func (t *TablePrinter) ToHeaderAndRows(data any, wide bool) ([]string, [][]strin
 	case []*apiv1.Asset:
 		return t.AssetTable(d, wide)
 
+	case *apiv1.AuditTrace:
+		return t.AuditTable(pointer.WrapInSlice(d), wide)
+	case []*apiv1.AuditTrace:
+		return t.AuditTable(d, wide)
+
 	case *config.Contexts:
 		return t.ContextTable(d, wide)
 
@@ -71,6 +76,10 @@ func (t *TablePrinter) ToHeaderAndRows(data any, wide bool) ([]string, [][]strin
 		return t.ProjectInviteTable(pointer.WrapInSlice(d), wide)
 	case []*apiv1.ProjectInvite:
 		return t.ProjectInviteTable(d, wide)
+	case *apiv1.ProjectMember:
+		return t.ProjectMemberTable(pointer.WrapInSlice(d), wide)
+	case []*apiv1.ProjectMember:
+		return t.ProjectMemberTable(d, wide)
 
 	case *apiv1.Volume:
 		return t.VolumeTable(pointer.WrapInSlice(d), wide)
@@ -96,6 +105,14 @@ func (t *TablePrinter) ToHeaderAndRows(data any, wide bool) ([]string, [][]strin
 		return t.TenantTable(pointer.WrapInSlice(d), wide)
 	case []*apiv1.Tenant:
 		return t.TenantTable(d, wide)
+	case *apiv1.TenantInvite:
+		return t.TenantInviteTable(pointer.WrapInSlice(d), wide)
+	case []*apiv1.TenantInvite:
+		return t.TenantInviteTable(d, wide)
+	case *apiv1.TenantMember:
+		return t.TenantMemberTable(pointer.WrapInSlice(d), wide)
+	case []*apiv1.TenantMember:
+		return t.TenantMemberTable(d, wide)
 
 	case *apiv1.Health:
 		return t.HealthTable(pointer.WrapInSlice(d), wide)

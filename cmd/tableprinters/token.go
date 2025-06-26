@@ -3,7 +3,6 @@ package tableprinters
 import (
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
@@ -20,15 +19,18 @@ func (t *TablePrinter) TokenTable(data []*apiv1.Token, _ bool) ([]string, [][]st
 	for _, token := range data {
 		expires := token.Expires.AsTime().Format(time.DateTime + " MST")
 		expiresIn := helpers.HumanizeDuration(time.Until(token.Expires.AsTime()))
-		admin := isAdminToken(token)
+		admin := ""
+		if token.AdminRole != nil {
+			admin = token.AdminRole.String()
+		}
 
 		row := []string{
 			token.TokenType.String(),
 			token.Uuid,
-			strconv.FormatBool(admin),
+			admin,
 			token.UserId,
 			token.Description,
-			strconv.Itoa(len(token.Roles)),
+			strconv.Itoa(len(token.TenantRoles) + len(token.ProjectRoles)),
 			strconv.Itoa(len(token.Permissions)),
 			fmt.Sprintf("%s (in %s)", expires, expiresIn),
 		}
@@ -41,25 +43,4 @@ func (t *TablePrinter) TokenTable(data []*apiv1.Token, _ bool) ([]string, [][]st
 	})
 
 	return header, rows, nil
-}
-
-func isAdminToken(token *apiv1.Token) bool {
-	// TODO: maybe it would make more sense to put this information into the token itself?
-
-	for _, role := range token.Roles {
-		if role.Subject == "*" {
-			return true
-		}
-	}
-
-	// if there is any admin method contained in the permissions, we assume the token comes from an admin
-	for _, perms := range token.Permissions {
-		for _, perm := range perms.Methods {
-			if strings.HasPrefix(perm, "/admin.v1") {
-				return true
-			}
-		}
-	}
-
-	return false
 }

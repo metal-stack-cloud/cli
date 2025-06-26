@@ -19,16 +19,20 @@ func SSHViaVPN(out io.Writer, machineID string, creds *adminv1.ClusterServiceCre
 		return fmt.Errorf("no vpn connection possible")
 	}
 
-	fmt.Fprintf(out, "accessing firewall through vpn at %s ", creds.Vpn.Address)
+	_, _ = fmt.Fprintf(out, "accessing firewall through vpn at %s ", creds.Vpn.Address)
 
 	ctx := context.Background()
 	v, err := metalvpn.Connect(ctx, machineID, creds.Vpn.Address, creds.Vpn.Authkey)
 	if err != nil {
 		return err
 	}
-	defer v.Close()
+	defer func() {
+		_ = v.Close()
+	}()
 
-	s, err := metalssh.NewClientWithConnection("metal", v.TargetIP, creds.SshKeypair.Privatekey, v.Conn)
+	opts := []metalssh.ConnectOpt{metalssh.ConnectOptOutputPrivateKey(creds.SshKeypair.Privatekey)}
+
+	s, err := metalssh.NewClientWithConnection("metal", v.TargetIP, v.Conn, opts...)
 	if err != nil {
 		return err
 	}

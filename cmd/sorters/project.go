@@ -35,3 +35,26 @@ func ProjectInviteSorter() *multisort.Sorter[*apiv1.ProjectInvite] {
 		},
 	}, multisort.Keys{{ID: "project"}, {ID: "role"}, {ID: "expiration"}})
 }
+
+func ProjectMemberSorter() *multisort.Sorter[*apiv1.ProjectMember] {
+	return multisort.New(multisort.FieldMap[*apiv1.ProjectMember]{
+		"id": func(a, b *apiv1.ProjectMember, descending bool) multisort.CompareResult {
+			return multisort.Compare(a.Id, b.Id, descending)
+		},
+		"role": func(a, b *apiv1.ProjectMember, descending bool) multisort.CompareResult {
+			return multisort.Compare(a.Role, b.Role, descending)
+		},
+		"created": func(a, b *apiv1.ProjectMember, descending bool) multisort.CompareResult {
+			return multisort.Compare(a.CreatedAt.AsTime().UnixMilli(), b.CreatedAt.AsTime().UnixMilli(), descending)
+		},
+		"inherited": func(a, b *apiv1.ProjectMember, descending bool) multisort.CompareResult {
+			boolToInt := func(in bool) int {
+				if in {
+					return 1
+				}
+				return 0
+			}
+			return multisort.Compare(boolToInt(a.InheritedMembership), boolToInt(b.InheritedMembership), descending)
+		},
+	}, multisort.Keys{{ID: "inherited", Descending: false}, {ID: "role"}, {ID: "id"}})
+}

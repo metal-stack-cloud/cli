@@ -255,6 +255,25 @@ func (c *cluster) Delete(id string) (*apiv1.Cluster, error) {
 		}
 	}
 
+	if !viper.GetBool("skip-security-prompts") {
+		cluster, err := c.Get(id)
+		if err != nil {
+			return nil, err
+		}
+
+		if err := genericcli.PromptCustom(&genericcli.PromptConfig{
+			Message:         fmt.Sprintf(`Do you really want to delete "%s"? This operation cannot be undone.`, color.RedString(cluster.Name)),
+			ShowAnswers:     true,
+			AcceptedAnswers: []string{"y", "yes"},
+			DefaultAnswer:   "n",
+			No:              "n",
+			In:              c.c.In,
+			Out:             c.c.Out,
+		}); err != nil {
+			return nil, err
+		}
+	}
+
 	resp, err := c.c.Client.Apiv1().Cluster().Delete(ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to delete cluster: %w", err)
@@ -530,7 +549,7 @@ func (c *cluster) kubeconfig(args []string) error {
 	}
 
 	if !viper.GetBool("merge") {
-		fmt.Fprintln(c.c.Out, resp.Msg.Kubeconfig)
+		_, _ = fmt.Fprintln(c.c.Out, resp.Msg.Kubeconfig)
 		return nil
 	}
 
@@ -554,7 +573,7 @@ func (c *cluster) kubeconfig(args []string) error {
 		return fmt.Errorf("unable to write merged kubeconfig: %w", err)
 	}
 
-	fmt.Fprintf(c.c.Out, "%s merged context %q into %s\n", color.GreenString("✔"), merged.ContextName, merged.Path)
+	_, _ = fmt.Fprintf(c.c.Out, "%s merged context %q into %s\n", color.GreenString("✔"), merged.ContextName, merged.Path)
 
 	return nil
 }
@@ -623,8 +642,8 @@ func (c *cluster) status(args []string) error {
 		return nil
 	}
 
-	fmt.Fprintln(c.c.Out)
-	fmt.Fprintln(c.c.Out, "Last Errors:")
+	_, _ = fmt.Fprintln(c.c.Out)
+	_, _ = fmt.Fprintln(c.c.Out, "Last Errors:")
 
 	return c.c.ListPrinter.Print(resp.Msg.Cluster.Status.LastErrors)
 }

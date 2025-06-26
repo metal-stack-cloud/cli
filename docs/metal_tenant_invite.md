@@ -1,17 +1,11 @@
-## metal project update-member
+## metal tenant invite
 
-update member from a project
-
-```
-metal project update-member <member> [flags]
-```
+manage tenant invites
 
 ### Options
 
 ```
-  -h, --help             help for update-member
-  -p, --project string   the project in which to remove the member
-      --role string      the role of the member
+  -h, --help   help for invite
 ```
 
 ### Options inherited from parent commands
@@ -29,5 +23,9 @@ metal project update-member <member> [flags]
 
 ### SEE ALSO
 
-* [metal project](metal_project.md)	 - manage project entities
+* [metal tenant](metal_tenant.md)	 - manage tenant entities
+* [metal tenant invite delete](metal_tenant_invite_delete.md)	 - deletes a pending invite
+* [metal tenant invite generate-join-secret](metal_tenant_invite_generate-join-secret.md)	 - generate an invite secret to share with the new member
+* [metal tenant invite join](metal_tenant_invite_join.md)	 - join a tenant of someone who shared an invite secret with you
+* [metal tenant invite list](metal_tenant_invite_list.md)	 - lists the currently pending invites
 

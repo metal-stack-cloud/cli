@@ -31,7 +31,7 @@ type Context struct {
 	Timeout        *time.Duration `json:"timeout,omitempty"`
 }
 
-func (cs Contexts) Get(name string) (*Context, bool) {
+func (cs *Contexts) Get(name string) (*Context, bool) {
 	for _, context := range cs.Contexts {
 		context := context
 
@@ -43,7 +43,7 @@ func (cs Contexts) Get(name string) (*Context, bool) {
 	return nil, false
 }
 
-func (cs Contexts) List() []*Context {
+func (cs *Contexts) List() []*Context {
 	var res []*Context
 
 	for _, context := range cs.Contexts {
@@ -55,7 +55,7 @@ func (cs Contexts) List() []*Context {
 	return res
 }
 
-func (cs Contexts) Validate() error {
+func (cs *Contexts) Validate() error {
 	names := map[string]bool{}
 	for _, context := range cs.Contexts {
 		context := context

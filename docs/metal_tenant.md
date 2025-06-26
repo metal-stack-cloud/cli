@@ -1,16 +1,15 @@
-## metal project remove-member
+## metal tenant
 
-remove member from a project
+manage tenant entities
 
-```
-metal project remove-member <member> [flags]
-```
+### Synopsis
+
+manage api tenants
 
 ### Options
 
 ```
-  -h, --help             help for remove-member
-  -p, --project string   the project in which to remove the member
+  -h, --help   help for tenant
 ```
 
 ### Options inherited from parent commands
@@ -28,5 +27,15 @@ metal project remove-member <member> [flags]
 
 ### SEE ALSO
 
-* [metal project](metal_project.md)	 - manage project entities
+* [metal](metal.md)	 - cli for managing entities in metal-stack-cloud
+* [metal tenant apply](metal_tenant_apply.md)	 - applies one or more tenants from a given file
+* [metal tenant create](metal_tenant_create.md)	 - creates the tenant
+* [metal tenant delete](metal_tenant_delete.md)	 - deletes the tenant
+* [metal tenant describe](metal_tenant_describe.md)	 - describes the tenant
+* [metal tenant edit](metal_tenant_edit.md)	 - edit the tenant through an editor and update
+* [metal tenant invite](metal_tenant_invite.md)	 - manage tenant invites
+* [metal tenant join](metal_tenant_join.md)	 - join a tenant of someone who shared an invite secret with you
+* [metal tenant list](metal_tenant_list.md)	 - list all tenants
+* [metal tenant member](metal_tenant_member.md)	 - manage tenant members
+* [metal tenant update](metal_tenant_update.md)	 - updates the tenant
 

@@ -37,8 +37,12 @@ func newTenantCmd(c *config.Config) *cobra.Command {
 		ListCmdMutateFn: func(cmd *cobra.Command) {
 			cmd.Flags().BoolP("admitted", "a", false, "filter by admitted tenant")
 			cmd.Flags().Uint64("limit", 100, "limit results returned")
-			cmd.Flags().StringP("provider", "", "", "filter by provider")
 			cmd.Flags().StringP("email", "", "", "filter by email")
+			cmd.Flags().StringP("tenant", "", "", "filter by tenant")
+			cmd.Flags().StringP("provider", "", "", "filter by provider")
+
+			genericcli.Must(cmd.RegisterFlagCompletionFunc("tenant", c.Completion.AdminTenantListCompletion))
+			genericcli.Must(cmd.RegisterFlagCompletionFunc("provider", c.Completion.TenantOauthProviderCompletion))
 		},
 	}
 
@@ -54,13 +58,10 @@ func newTenantCmd(c *config.Config) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			req := &adminv1.TenantServiceAdmitRequest{
+
+			resp, err := c.Client.Adminv1().Tenant().Admit(ctx, connect.NewRequest(&adminv1.TenantServiceAdmitRequest{
 				TenantId: id,
-			}
-			if viper.IsSet("coupon-id") {
-				req.CouponId = pointer.Pointer(viper.GetString("coupon-id"))
-			}
-			resp, err := c.Client.Adminv1().Tenant().Admit(ctx, connect.NewRequest(req))
+			}))
 			if err != nil {
 				return fmt.Errorf("failed to admit tenant: %w", err)
 			}
@@ -70,9 +71,45 @@ func newTenantCmd(c *config.Config) *cobra.Command {
 		ValidArgsFunction: c.Completion.AdminTenantListCompletion,
 	}
 
-	admitCmd.Flags().StringP("coupon-id", "", "", "optional add a coupon with given id, see coupon list for available coupons")
+	addBalanceCmd := &cobra.Command{
+		Use:   "add-balance",
+		Short: "add balance for a tenant",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			ctx, cancel := c.NewRequestContext()
+			defer cancel()
 
-	genericcli.Must(admitCmd.RegisterFlagCompletionFunc("coupon-id", c.Completion.AdminPaymentCouponListCompletion))
+			id, err := genericcli.GetExactlyOneArg(args)
+			if err != nil {
+				return err
+			}
+
+			amount := viper.GetUint64("euro")
+
+			err = genericcli.PromptCustom(&genericcli.PromptConfig{
+				Message:     fmt.Sprintf("Adding %d.00€ to the balance of %s. Continue?", amount, id),
+				ShowAnswers: true,
+				In:          w.c.In,
+				Out:         w.c.Out,
+			})
+			if err != nil {
+				return err
+			}
+
+			resp, err := c.Client.Adminv1().Payment().AddBalanceToCustomer(ctx, connect.NewRequest(&adminv1.PaymentServiceAddBalanceToCustomerRequest{
+				TenantId:     id,
+				BalanceToAdd: amount * 100, // this is in cent, so we convert
+			}))
+			if err != nil {
+				return err
+			}
+
+			return c.DescribePrinter.Print(resp.Msg.Customer)
+		},
+		ValidArgsFunction: c.Completion.AdminTenantListCompletion,
+	}
+
+	addBalanceCmd.Flags().Uint64P("euro", "", 0, "optional add a balance in euro to the customer balance")
+	genericcli.Must(addBalanceCmd.MarkFlagRequired("euro"))
 
 	revokeCmd := &cobra.Command{
 		Use:   "revoke",
@@ -99,7 +136,7 @@ func newTenantCmd(c *config.Config) *cobra.Command {
 		ValidArgsFunction: c.Completion.AdminTenantListCompletion,
 	}
 
-	return genericcli.NewCmds(cmdsConfig, admitCmd, revokeCmd)
+	return genericcli.NewCmds(cmdsConfig, admitCmd, revokeCmd, addBalanceCmd)
 }
 
 func (c *tenant) Create(rq any) (*apiv1.Tenant, error) {
@@ -120,7 +157,7 @@ func (c *tenant) List() ([]*apiv1.Tenant, error) {
 	ctx, cancel := c.c.NewRequestContext()
 	defer cancel()
 
-	// TODO: implement filters and paging
+	// TODO: implement paging
 
 	req := &adminv1.TenantServiceListRequest{}
 
@@ -134,10 +171,14 @@ func (c *tenant) List() ([]*apiv1.Tenant, error) {
 		}
 	}
 	if viper.IsSet("provider") {
-		return nil, fmt.Errorf("unimplemented filter by provider")
+		provider := apiv1.OAuthProvider(apiv1.OAuthProvider_value[viper.GetString("provider")])
+		req.OauthProvider = &provider
 	}
 	if viper.IsSet("email") {
-		return nil, fmt.Errorf("unimplemented filter by provider")
+		req.Email = pointer.Pointer(viper.GetString("email"))
+	}
+	if viper.IsSet("tenant") {
+		req.Tenant = pointer.Pointer(viper.GetString("tenant"))
 	}
 
 	resp, err := c.c.Client.Adminv1().Tenant().List(ctx, connect.NewRequest(req))

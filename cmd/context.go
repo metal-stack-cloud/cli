@@ -144,7 +144,7 @@ func (c *ctx) short() error {
 		return err
 	}
 
-	fmt.Fprintf(c.c.Out, ctxs.CurrentContext)
+	_, _ = fmt.Fprint(c.c.Out, ctxs.CurrentContext)
 
 	return nil
 }
@@ -185,7 +185,7 @@ func (c *ctx) add(args []string) error {
 		return err
 	}
 
-	fmt.Fprintf(c.c.Out, "%s added context \"%s\"\n", color.GreenString("✔"), color.GreenString(ctx.Name))
+	_, _ = fmt.Fprintf(c.c.Out, "%s added context \"%s\"\n", color.GreenString("✔"), color.GreenString(ctx.Name))
 
 	return nil
 }
@@ -228,7 +228,7 @@ func (c *ctx) update(args []string) error {
 		return err
 	}
 
-	fmt.Fprintf(c.c.Out, "%s updated context \"%s\"\n", color.GreenString("✔"), color.GreenString(ctx.Name))
+	_, _ = fmt.Fprintf(c.c.Out, "%s updated context \"%s\"\n", color.GreenString("✔"), color.GreenString(ctx.Name))
 
 	return nil
 }
@@ -256,7 +256,7 @@ func (c *ctx) remove(args []string) error {
 		return err
 	}
 
-	fmt.Fprintf(c.c.Out, "%s removed context \"%s\"\n", color.GreenString("✔"), color.GreenString(ctx.Name))
+	_, _ = fmt.Fprintf(c.c.Out, "%s removed context \"%s\"\n", color.GreenString("✔"), color.GreenString(ctx.Name))
 
 	return nil
 }
@@ -288,7 +288,7 @@ func (c *ctx) set(args []string) error {
 			return fmt.Errorf("context %s not found", nextCtx)
 		}
 		if nextCtx == ctxs.CurrentContext {
-			fmt.Fprintf(c.c.Out, "%s context \"%s\" already active\n", color.GreenString("✔"), color.GreenString(ctxs.CurrentContext))
+			_, _ = fmt.Fprintf(c.c.Out, "%s context \"%s\" already active\n", color.GreenString("✔"), color.GreenString(ctxs.CurrentContext))
 			return nil
 		}
 		ctxs.PreviousContext = ctxs.CurrentContext
@@ -300,7 +300,7 @@ func (c *ctx) set(args []string) error {
 		return err
 	}
 
-	fmt.Fprintf(c.c.Out, "%s switched context to \"%s\"\n", color.GreenString("✔"), color.GreenString(ctxs.CurrentContext))
+	_, _ = fmt.Fprintf(c.c.Out, "%s switched context to \"%s\"\n", color.GreenString("✔"), color.GreenString(ctxs.CurrentContext))
 
 	return nil
 }
@@ -328,7 +328,7 @@ func (c *ctx) setProject(args []string) error {
 		return err
 	}
 
-	fmt.Fprintf(c.c.Out, "%s switched context default project to \"%s\"\n", color.GreenString("✔"), color.GreenString(ctx.DefaultProject))
+	_, _ = fmt.Fprintf(c.c.Out, "%s switched context default project to \"%s\"\n", color.GreenString("✔"), color.GreenString(ctx.DefaultProject))
 
 	return nil
 }

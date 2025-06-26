@@ -55,5 +55,5 @@ func defaultToYAMLPrinter(out io.Writer) (printers.Printer, error) {
 	if viper.IsSet("output-format") {
 		return newPrinterFromCLI(out)
 	}
-	return printers.NewProtoYAMLPrinter().WithOut(out), nil
+	return printers.NewProtoYAMLPrinter().WithFallback(true).WithOut(out), nil
 }
