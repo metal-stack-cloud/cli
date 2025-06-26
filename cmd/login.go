@@ -16,6 +16,7 @@ import (
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
 	"github.com/metal-stack-cloud/cli/cmd/config"
 	"github.com/metal-stack/metal-lib/pkg/genericcli"
+	"github.com/metal-stack/metal-lib/pkg/pointer"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -71,6 +72,7 @@ func (l *login) login() error {
 		if viper.IsSet("context") {
 			newCtx.Name = viper.GetString("context")
 		}
+		newCtx.ApiURL = pointer.Pointer(l.c.GetApiURL())
 
 		ctxs.Contexts = append(ctxs.Contexts, &newCtx)
 
