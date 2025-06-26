@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"errors"
+	"fmt"
+	"io"
 	"os"
 	"time"
 
@@ -38,10 +40,8 @@ func Execute() {
 	cmd := newRootCmd(cfg)
 	cmd.SilenceErrors = true
 
-	err := fang.Execute(cmd.Context(), cmd)
+	err := fang.Execute(cmd.Context(), cmd, fang.WithErrorHandler(customErrHandler(cfg)))
 	if err != nil {
-		printErrorWithHints(cfg, cmd, err)
-
 		if viper.GetBool("debug") {
 			panic(err)
 		}
@@ -147,11 +147,16 @@ func recursiveAutoGenDisable(cmd *cobra.Command) {
 	}
 }
 
-func printErrorWithHints(c *config.Config, cmd *cobra.Command, err error) {
+func customErrHandler(c *config.Config) fang.ErrorHandler {
+	return func(w io.Writer, styles fang.Styles, err error) {
+		fang.DefaultErrorHandler(w, styles, catchTokenExpiration(c, err))
+	}
+}
+
+func catchTokenExpiration(c *config.Config, originalErr error) error {
 	var connectErr *connect.Error
-	if !errors.As(err, &connectErr) || connectErr.Code() != connect.CodeUnauthenticated {
-		cmd.PrintErrln(err)
-		return
+	if !errors.As(originalErr, &connectErr) || connectErr.Code() != connect.CodeUnauthenticated {
+		return originalErr
 	}
 
 	token := c.GetToken()
@@ -162,21 +167,21 @@ func printErrorWithHints(c *config.Config, cmd *cobra.Command, err error) {
 		}
 
 		cs := &claims{}
-		_, _, err := new(jwt.Parser).ParseUnverified(string(token), cs)
-		if err == nil && cs.ExpiresAt != nil {
+		_, _, tokenErr := new(jwt.Parser).ParseUnverified(string(token), cs)
+		if tokenErr == nil && cs.ExpiresAt != nil {
 			if cs.ExpiresAt.Before(time.Now()) {
 				switch cs.Type {
 				case apiv1.TokenType_TOKEN_TYPE_API.String():
-					cmd.PrintErrf("The API token has expired at %s.\nCreate a new API token or use the login command.\n", cs.ExpiresAt.String())
+
+					return fmt.Errorf("%w. The API token has expired at %s.\nCreate a new API token or use the login command", originalErr, cs.ExpiresAt.String())
 				case apiv1.TokenType_TOKEN_TYPE_CONSOLE.String(), apiv1.TokenType_TOKEN_TYPE_UNSPECIFIED.String():
 					fallthrough
 				default:
-					cmd.PrintErrf("The token has expired at %s.\nPlease use the login command.\n", cs.ExpiresAt.String())
+					return fmt.Errorf("%w. The token has expired at %s. Please use the login command", originalErr, cs.ExpiresAt.String())
 				}
-				return
 			}
 		}
 	}
 
-	cmd.PrintErr(err)
+	return originalErr
 }
