@@ -14,7 +14,7 @@ func (t *TablePrinter) ContextTable(data *config.Contexts, wide bool) ([]string,
 	)
 
 	if wide {
-		header = []string{"", "Name", "Default Project", "API URL"}
+		header = append(header, "API URL")
 	}
 
 	for _, c := range data.Contexts {
