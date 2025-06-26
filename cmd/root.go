@@ -175,7 +175,7 @@ func printErrorWithHints(c *config.Config, cmd *cobra.Command, err error) {
 				return
 			}
 		}
-
-		cmd.PrintErr(err)
 	}
+
+	cmd.PrintErr(err)
 }
