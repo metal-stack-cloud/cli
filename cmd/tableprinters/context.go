@@ -3,6 +3,7 @@ package tableprinters
 import (
 	"github.com/fatih/color"
 	"github.com/metal-stack-cloud/cli/cmd/config"
+	"github.com/metal-stack/metal-lib/pkg/pointer"
 )
 
 func (t *TablePrinter) ContextTable(data *config.Contexts, wide bool) ([]string, [][]string, error) {
@@ -11,12 +12,22 @@ func (t *TablePrinter) ContextTable(data *config.Contexts, wide bool) ([]string,
 		rows   [][]string
 	)
 
+	if wide {
+		header = []string{"", "Name", "Default Project", "API URL"}
+	}
+
 	for _, c := range data.Contexts {
 		active := ""
 		if c.Name == data.CurrentContext {
 			active = color.GreenString("✔")
 		}
-		rows = append(rows, []string{active, c.Name, c.DefaultProject})
+
+		row := []string{active, c.Name, c.DefaultProject}
+		if wide {
+			row = append(row, pointer.SafeDeref(c.ApiURL))
+		}
+
+		rows = append(rows, row)
 	}
 
 	return header, rows, nil
