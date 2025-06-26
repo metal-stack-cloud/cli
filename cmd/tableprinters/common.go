@@ -30,6 +30,11 @@ func (t *TablePrinter) ToHeaderAndRows(data any, wide bool) ([]string, [][]strin
 	case []*apiv1.Asset:
 		return t.AssetTable(d, wide)
 
+	case *apiv1.AuditTrace:
+		return t.AuditTable(pointer.WrapInSlice(d), wide)
+	case []*apiv1.AuditTrace:
+		return t.AuditTable(d, wide)
+
 	case *config.Contexts:
 		return t.ContextTable(d, wide)
 
