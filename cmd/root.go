@@ -166,14 +166,16 @@ func printErrorWithHints(c *config.Config, cmd *cobra.Command, err error) {
 			if cs.ExpiresAt.Before(time.Now()) {
 				switch cs.Type {
 				case apiv1.TokenType_TOKEN_TYPE_API.String():
-
 					cmd.PrintErrf("The API token has expired at %s.\nCreate a new API token or use the login command.\n", cs.ExpiresAt.String())
 				case apiv1.TokenType_TOKEN_TYPE_CONSOLE.String(), apiv1.TokenType_TOKEN_TYPE_UNSPECIFIED.String():
 					fallthrough
 				default:
 					cmd.PrintErrf("The token has expired at %s.\nPlease use the login command.\n", cs.ExpiresAt.String())
 				}
+				return
 			}
 		}
+
+		cmd.PrintErr(err)
 	}
 }
