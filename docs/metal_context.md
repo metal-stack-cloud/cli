@@ -10,24 +10,6 @@ you can switch back and forth contexts with "-"
 metal context [flags]
 ```
 
-### Examples
-
-```
-Here is how an template configuration looks like:
-~/.metal-stack-cloud/config.yaml
----
-current: dev
-previous: prod
-contexts:
-    - name: dev
-    api-token: <dev-token>
-    default-project: dev-project
-    - name: prod
-    api-token: <prod-token>
-        default-project: prod-project
-
-```
-
 ### Options
 
 ```
