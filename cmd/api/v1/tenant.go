@@ -27,7 +27,7 @@ func newTenantCmd(c *config.Config) *cobra.Command {
 
 	cmdsConfig := &genericcli.CmdsConfig[*apiv1.TenantServiceCreateRequest, *apiv1.TenantServiceUpdateRequest, *apiv1.Tenant]{
 		BinaryName:      config.BinaryName,
-		GenericCLI:      genericcli.NewGenericCLI[*apiv1.TenantServiceCreateRequest, *apiv1.TenantServiceUpdateRequest, *apiv1.Tenant](w).WithFS(c.Fs),
+		GenericCLI:      genericcli.NewGenericCLI(w).WithFS(c.Fs),
 		Singular:        "tenant",
 		Plural:          "tenants",
 		Description:     "manage api tenants",
@@ -224,16 +224,6 @@ func (c *tenant) Delete(id string) (*apiv1.Tenant, error) {
 }
 
 func (c *tenant) Convert(r *apiv1.Tenant) (string, *apiv1.TenantServiceCreateRequest, *apiv1.TenantServiceUpdateRequest, error) {
-	var paymentDetails *apiv1.PaymentDetailsUpdate
-	if r.PaymentDetails != nil {
-		paymentDetails = &apiv1.PaymentDetailsUpdate{
-			CustomerId:      pointer.PointerOrNil(r.PaymentDetails.CustomerId),
-			PaymentMethodId: r.PaymentDetails.PaymentMethodId,
-			SubscriptionId:  pointer.PointerOrNil(r.PaymentDetails.SubscriptionId),
-			Vat:             pointer.PointerOrNil(r.PaymentDetails.Vat),
-		}
-	}
-
 	return r.Login, &apiv1.TenantServiceCreateRequest{
 			Name:        r.Name,
 			Description: &r.Description,
@@ -242,11 +232,13 @@ func (c *tenant) Convert(r *apiv1.Tenant) (string, *apiv1.TenantServiceCreateReq
 			PhoneNumber: &r.PhoneNumber,
 		},
 		&apiv1.TenantServiceUpdateRequest{
-			Login:          r.Login,
-			Name:           pointer.PointerOrNil(r.Name),
-			Email:          pointer.PointerOrNil(r.Email),
-			AvatarUrl:      pointer.PointerOrNil(r.AvatarUrl),
-			PaymentDetails: paymentDetails,
+			Login:                    r.Login,
+			Name:                     pointer.PointerOrNil(r.Name),
+			Email:                    pointer.PointerOrNil(r.Email),
+			AvatarUrl:                pointer.PointerOrNil(r.AvatarUrl),
+			Description:              pointer.PointerOrNil(r.Description),
+			Onboarded:                pointer.PointerOrNil(r.Onboarded),
+			AcceptTermsAndConditions: pointer.PointerOrNil(pointer.SafeDeref(r.TermsAndConditions).Accepted),
 		},
 		nil
 }
@@ -274,7 +266,21 @@ func (c *tenant) createRequestFromCLI() (*apiv1.TenantServiceCreateRequest, erro
 }
 
 func (c *tenant) updateRequestFromCLI(args []string) (*apiv1.TenantServiceUpdateRequest, error) {
-	return nil, fmt.Errorf("not implemented")
+	login, err := genericcli.GetExactlyOneArg(args)
+	if err != nil {
+		return nil, err
+	}
+
+	return &apiv1.TenantServiceUpdateRequest{
+		Login: login,
+		// TODO: implement
+		// Name:                     pointer.PointerOrNil(r.Name),
+		// Email:                    pointer.PointerOrNil(r.Email),
+		// AvatarUrl:                pointer.PointerOrNil(r.AvatarUrl),
+		// Description:              pointer.PointerOrNil(r.Description),
+		// Onboarded:                pointer.PointerOrNil(r.Onboarded),
+		// AcceptTermsAndConditions: pointer.PointerOrNil(pointer.SafeDeref(r.TermsAndConditions).Accepted),
+	}, nil
 }
 
 func (c *tenant) join(args []string) error {

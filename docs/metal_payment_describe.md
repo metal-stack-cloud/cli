@@ -1,16 +1,15 @@
-## metal payment show-default-prices
+## metal payment describe
 
-show default prices
+describes the payment
 
 ```
-metal payment show-default-prices [flags]
+metal payment describe <id> [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help              help for show-default-prices
-      --sort-by strings   sort by (comma separated) column(s), sort direction can be changed by appending :asc or :desc behind the column identifier. possible values: name|price|type
+  -h, --help   help for describe
 ```
 
 ### Options inherited from parent commands

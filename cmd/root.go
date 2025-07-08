@@ -76,7 +76,7 @@ func newRootCmd(c *config.Config) *cobra.Command {
 	rootCmd.PersistentFlags().Bool("debug", false, "debug output")
 	rootCmd.PersistentFlags().Duration("timeout", 0, "request timeout used for api requests")
 
-	rootCmd.PersistentFlags().String("api-url", "https://api.metalstack.cloud", "the url to the metalstack.cloud api")
+	rootCmd.PersistentFlags().String("api-url", config.DefaultApiURL, "the url to the metalstack.cloud api")
 	rootCmd.PersistentFlags().String("api-token", "", "the token used for api requests")
 
 	genericcli.Must(viper.BindPFlags(rootCmd.PersistentFlags()))

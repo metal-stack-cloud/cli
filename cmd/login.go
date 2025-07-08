@@ -88,7 +88,7 @@ func (l *login) login() error {
 	http.HandleFunc("/callback", func(w http.ResponseWriter, r *http.Request) {
 		tokenChan <- r.URL.Query().Get("token")
 
-		http.Redirect(w, r, "https://metalstack.cloud", http.StatusSeeOther)
+		http.Redirect(w, r, config.DefaultAfterLoginPage, http.StatusSeeOther)
 	})
 
 	listener, err := net.Listen("tcp", "localhost:0")

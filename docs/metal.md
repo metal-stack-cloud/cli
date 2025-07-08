@@ -28,7 +28,7 @@ cli for managing entities in metal-stack-cloud
 * [metal ip](metal_ip.md)	 - manage ip entities
 * [metal login](metal_login.md)	 - login
 * [metal markdown](metal_markdown.md)	 - create markdown documentation
-* [metal payment](metal_payment.md)	 - manage payment of the metalstack.cloud
+* [metal payment](metal_payment.md)	 - manage payment entities
 * [metal project](metal_project.md)	 - manage project entities
 * [metal storage](metal_storage.md)	 - storage commands
 * [metal tenant](metal_tenant.md)	 - manage tenant entities
