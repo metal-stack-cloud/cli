@@ -27,7 +27,7 @@ func newTenantCmd(c *config.Config) *cobra.Command {
 
 	cmdsConfig := &genericcli.CmdsConfig[*apiv1.TenantServiceCreateRequest, *apiv1.TenantServiceUpdateRequest, *apiv1.Tenant]{
 		BinaryName:      config.BinaryName,
-		GenericCLI:      genericcli.NewGenericCLI[*apiv1.TenantServiceCreateRequest, *apiv1.TenantServiceUpdateRequest, *apiv1.Tenant](w).WithFS(c.Fs),
+		GenericCLI:      genericcli.NewGenericCLI(w).WithFS(c.Fs),
 		Singular:        "tenant",
 		Plural:          "tenants",
 		Description:     "manage api tenants",
@@ -246,11 +246,15 @@ func (c *tenant) Convert(r *apiv1.Tenant) (string, *apiv1.TenantServiceCreateReq
 			PhoneNumber: &r.PhoneNumber,
 		},
 		&apiv1.TenantServiceUpdateRequest{
-			Login:     r.Login,
-			Name:      pointer.PointerOrNil(r.Name),
-			Email:     pointer.PointerOrNil(r.Email),
-			AvatarUrl: pointer.PointerOrNil(r.AvatarUrl),
-		}, nil
+			Login:                    r.Login,
+			Name:                     pointer.PointerOrNil(r.Name),
+			Email:                    pointer.PointerOrNil(r.Email),
+			AvatarUrl:                pointer.PointerOrNil(r.AvatarUrl),
+			Description:              pointer.PointerOrNil(r.Description),
+			Onboarded:                pointer.PointerOrNil(r.Onboarded),
+			AcceptTermsAndConditions: pointer.PointerOrNil(pointer.SafeDeref(r.TermsAndConditions).Accepted),
+		},
+		nil
 }
 
 func (c *tenant) Update(rq *apiv1.TenantServiceUpdateRequest) (*apiv1.Tenant, error) {

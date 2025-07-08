@@ -1,12 +1,15 @@
 ## metal payment
 
+manage payment entities
+
+### Synopsis
+
 manage payment of the metalstack.cloud
 
 ### Options
 
 ```
-  -h, --help              help for payment
-      --sort-by strings   sort by (comma separated) column(s), sort direction can be changed by appending :asc or :desc behind the column identifier. possible values: name|price|type
+  -h, --help   help for payment
 ```
 
 ### Options inherited from parent commands
@@ -25,5 +28,11 @@ manage payment of the metalstack.cloud
 ### SEE ALSO
 
 * [metal](metal.md)	 - cli for managing entities in metal-stack-cloud
+* [metal payment apply](metal_payment_apply.md)	 - applies one or more payments from a given file
+* [metal payment create](metal_payment_create.md)	 - creates the payment
+* [metal payment delete](metal_payment_delete.md)	 - deletes the payment
+* [metal payment describe](metal_payment_describe.md)	 - describes the payment
+* [metal payment edit](metal_payment_edit.md)	 - edit the payment through an editor and update
 * [metal payment show-default-prices](metal_payment_show-default-prices.md)	 - show default prices
+* [metal payment update](metal_payment_update.md)	 - updates the payment
 
