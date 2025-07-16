@@ -43,13 +43,7 @@ func (cs *Contexts) Get(name string) (*Context, bool) {
 }
 
 func (cs *Contexts) List() []*Context {
-	var res []*Context
-
-	for _, context := range cs.Contexts {
-		res = append(res, context)
-	}
-
-	return res
+	return append([]*Context{}, cs.Contexts...)
 }
 
 func (cs *Contexts) Validate() error {
