@@ -224,16 +224,6 @@ func (c *tenant) Delete(id string) (*apiv1.Tenant, error) {
 }
 
 func (c *tenant) Convert(r *apiv1.Tenant) (string, *apiv1.TenantServiceCreateRequest, *apiv1.TenantServiceUpdateRequest, error) {
-	var paymentDetails *apiv1.PaymentDetailsUpdate
-	if r.PaymentDetails != nil {
-		paymentDetails = &apiv1.PaymentDetailsUpdate{
-			CustomerId:      pointer.PointerOrNil(r.PaymentDetails.CustomerId),
-			PaymentMethodId: r.PaymentDetails.PaymentMethodId,
-			SubscriptionId:  pointer.PointerOrNil(r.PaymentDetails.SubscriptionId),
-			Vat:             pointer.PointerOrNil(r.PaymentDetails.Vat),
-		}
-	}
-
 	return r.Login, &apiv1.TenantServiceCreateRequest{
 			Name:        r.Name,
 			Description: &r.Description,
@@ -242,11 +232,10 @@ func (c *tenant) Convert(r *apiv1.Tenant) (string, *apiv1.TenantServiceCreateReq
 			PhoneNumber: &r.PhoneNumber,
 		},
 		&apiv1.TenantServiceUpdateRequest{
-			Login:          r.Login,
-			Name:           pointer.PointerOrNil(r.Name),
-			Email:          pointer.PointerOrNil(r.Email),
-			AvatarUrl:      pointer.PointerOrNil(r.AvatarUrl),
-			PaymentDetails: paymentDetails,
+			Login:     r.Login,
+			Name:      pointer.PointerOrNil(r.Name),
+			Email:     pointer.PointerOrNil(r.Email),
+			AvatarUrl: pointer.PointerOrNil(r.AvatarUrl),
 		},
 		nil
 }

@@ -7,7 +7,6 @@ import (
 	"github.com/dustin/go-humanize"
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
 	"github.com/metal-stack/metal-lib/pkg/genericcli"
-	"github.com/olekukonko/tablewriter"
 )
 
 func (t *TablePrinter) ProjectTable(data []*apiv1.Project, _ bool) ([]string, [][]string, error) {
@@ -28,9 +27,7 @@ func (t *TablePrinter) ProjectTable(data []*apiv1.Project, _ bool) ([]string, []
 		rows = append(rows, row)
 	}
 
-	t.t.MutateTable(func(table *tablewriter.Table) {
-		table.SetAutoWrapText(false)
-	})
+	t.t.DisableAutoWrap(false)
 
 	return header, rows, nil
 }
@@ -52,9 +49,7 @@ func (t *TablePrinter) ProjectInviteTable(data []*apiv1.ProjectInvite, _ bool) (
 		rows = append(rows, row)
 	}
 
-	t.t.MutateTable(func(table *tablewriter.Table) {
-		table.SetAutoWrapText(false)
-	})
+	t.t.DisableAutoWrap(false)
 
 	return header, rows, nil
 }
