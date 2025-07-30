@@ -79,14 +79,14 @@ func Test_TenantCmd_MultiResult(t *testing.T) {
 				},
 			},
 			WantTable: pointer.Pointer(`
-ID         NAME      EMAIL              PROVIDER                 REGISTERED     ADMITTED   COUPONS   TERMS AND CONDITIONS
-loginTwo   nameTwo   testtwo@mail.com   O_AUTH_PROVIDER_AZURE    1 minute ago   true       -         true
-loginOne   nameOne   testone@mail.com   O_AUTH_PROVIDER_GITHUB   1 hour ago     false      -         false
+ID        NAME     EMAIL             PROVIDER                REGISTERED    ADMITTED  COUPONS  TERMS AND CONDITIONS  
+loginTwo  nameTwo  testtwo@mail.com  O_AUTH_PROVIDER_AZURE   1 minute ago  true      -        true                  
+loginOne  nameOne  testone@mail.com  O_AUTH_PROVIDER_GITHUB  1 hour ago    false     -        false
 `),
 			WantWideTable: pointer.Pointer(`
-ID         NAME      EMAIL              PROVIDER                 REGISTERED     ADMITTED   COUPONS   TERMS AND CONDITIONS
-loginTwo   nameTwo   testtwo@mail.com   O_AUTH_PROVIDER_AZURE    1 minute ago   true       -         true
-loginOne   nameOne   testone@mail.com   O_AUTH_PROVIDER_GITHUB   1 hour ago     false      -         false
+ID        NAME     EMAIL             PROVIDER                REGISTERED    ADMITTED  COUPONS  TERMS AND CONDITIONS  
+loginTwo  nameTwo  testtwo@mail.com  O_AUTH_PROVIDER_AZURE   1 minute ago  true      -        true                  
+loginOne  nameOne  testone@mail.com  O_AUTH_PROVIDER_GITHUB  1 hour ago    false     -        false
 `),
 			Template: pointer.Pointer("{{ .login }} {{ .name }} {{ .email }} {{ .oauth_provider }} {{ if .admitted }}true{{ else }}false{{ end }} {{ if .terms_and_conditions.accepted }}true{{ else }}false{{ end }}"),
 			WantTemplate: pointer.Pointer(`
@@ -94,7 +94,7 @@ loginTwo nameTwo testtwo@mail.com 2 true true
 loginOne nameOne testone@mail.com 1 false false
 			`),
 			WantMarkdown: pointer.Pointer(`
-|    ID    |  NAME   |      EMAIL       |        PROVIDER        |  REGISTERED  | ADMITTED | COUPONS | TERMS AND CONDITIONS |
+| ID       | NAME    | EMAIL            | PROVIDER               | REGISTERED   | ADMITTED | COUPONS | TERMS AND CONDITIONS |
 |----------|---------|------------------|------------------------|--------------|----------|---------|----------------------|
 | loginTwo | nameTwo | testtwo@mail.com | O_AUTH_PROVIDER_AZURE  | 1 minute ago | true     | -       | true                 |
 | loginOne | nameOne | testone@mail.com | O_AUTH_PROVIDER_GITHUB | 1 hour ago   | false    | -       | false                |

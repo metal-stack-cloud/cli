@@ -7,7 +7,6 @@ import (
 
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
 	"github.com/metal-stack-cloud/cli/pkg/helpers"
-	"github.com/olekukonko/tablewriter"
 )
 
 func (t *TablePrinter) TokenTable(data []*apiv1.Token, _ bool) ([]string, [][]string, error) {
@@ -38,9 +37,7 @@ func (t *TablePrinter) TokenTable(data []*apiv1.Token, _ bool) ([]string, [][]st
 		rows = append(rows, row)
 	}
 
-	t.t.MutateTable(func(table *tablewriter.Table) {
-		table.SetAutoWrapText(false)
-	})
+	t.t.DisableAutoWrap(false)
 
 	return header, rows, nil
 }

@@ -71,14 +71,14 @@ func Test_IPCmd_MultiResult(t *testing.T) {
 				ip2(),
 			},
 			WantTable: pointer.Pointer(`
-IP        PROJECT   ID                                     TYPE        NAME   ATTACHED SERVICE
-1.1.1.1   a         2e0144a2-09ef-42b7-b629-4263295db6e8   static      a      ingress-nginx
-4.3.2.1   b         9cef40ec-29c6-4dfa-aee8-47ee1f49223d   ephemeral   b
+IP       PROJECT  ID                                    TYPE       NAME  ATTACHED SERVICE  
+1.1.1.1  a        2e0144a2-09ef-42b7-b629-4263295db6e8  static     a     ingress-nginx     
+4.3.2.1  b        9cef40ec-29c6-4dfa-aee8-47ee1f49223d  ephemeral  b
 `),
 			WantWideTable: pointer.Pointer(`
-IP        PROJECT   ID                                     TYPE        NAME   DESCRIPTION     LABELS
-1.1.1.1   a         2e0144a2-09ef-42b7-b629-4263295db6e8   static      a      a description   cluster.metal-stack.io/id/namespace/service=<cluster>/default/ingress-nginx
-4.3.2.1   b         9cef40ec-29c6-4dfa-aee8-47ee1f49223d   ephemeral   b      b description   a=b
+IP       PROJECT  ID                                    TYPE       NAME  DESCRIPTION    LABELS                                                                       
+1.1.1.1  a        2e0144a2-09ef-42b7-b629-4263295db6e8  static     a     a description  cluster.metal-stack.io/id/namespace/service=<cluster>/default/ingress-nginx  
+4.3.2.1  b        9cef40ec-29c6-4dfa-aee8-47ee1f49223d  ephemeral  b     b description  a=b
 `),
 			Template: pointer.Pointer("{{ .ip }} {{ .project }}"),
 			WantTemplate: pointer.Pointer(`
@@ -86,7 +86,7 @@ IP        PROJECT   ID                                     TYPE        NAME   DE
 4.3.2.1 b
 			`),
 			WantMarkdown: pointer.Pointer(`
-|   IP    | PROJECT |                  ID                  |   TYPE    | NAME | ATTACHED SERVICE |
+| IP      | PROJECT | ID                                   | TYPE      | NAME | ATTACHED SERVICE |
 |---------|---------|--------------------------------------|-----------|------|------------------|
 | 1.1.1.1 | a       | 2e0144a2-09ef-42b7-b629-4263295db6e8 | static    | a    | ingress-nginx    |
 | 4.3.2.1 | b       | 9cef40ec-29c6-4dfa-aee8-47ee1f49223d | ephemeral | b    |                  |
@@ -214,19 +214,19 @@ func Test_IPCmd_SingleResult(t *testing.T) {
 			},
 			Want: ip1(),
 			WantTable: pointer.Pointer(`
-IP        PROJECT   ID                                     TYPE     NAME   ATTACHED SERVICE
-1.1.1.1   a         2e0144a2-09ef-42b7-b629-4263295db6e8   static   a      ingress-nginx
+IP       PROJECT  ID                                    TYPE    NAME  ATTACHED SERVICE  
+1.1.1.1  a        2e0144a2-09ef-42b7-b629-4263295db6e8  static  a     ingress-nginx
 `),
 			WantWideTable: pointer.Pointer(`
-IP        PROJECT   ID                                     TYPE     NAME   DESCRIPTION     LABELS
-1.1.1.1   a         2e0144a2-09ef-42b7-b629-4263295db6e8   static   a      a description   cluster.metal-stack.io/id/namespace/service=<cluster>/default/ingress-nginx
+IP       PROJECT  ID                                    TYPE    NAME  DESCRIPTION    LABELS                                                                       
+1.1.1.1  a        2e0144a2-09ef-42b7-b629-4263295db6e8  static  a     a description  cluster.metal-stack.io/id/namespace/service=<cluster>/default/ingress-nginx
 `),
 			Template: pointer.Pointer("{{ .ip }} {{ .project }}"),
 			WantTemplate: pointer.Pointer(`
 1.1.1.1 a
 			`),
 			WantMarkdown: pointer.Pointer(`
-|   IP    | PROJECT |                  ID                  |  TYPE  | NAME | ATTACHED SERVICE |
+| IP      | PROJECT | ID                                   | TYPE   | NAME | ATTACHED SERVICE |
 |---------|---------|--------------------------------------|--------|------|------------------|
 | 1.1.1.1 | a       | 2e0144a2-09ef-42b7-b629-4263295db6e8 | static | a    | ingress-nginx    |
 `),

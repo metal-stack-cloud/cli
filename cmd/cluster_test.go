@@ -137,14 +137,14 @@ func Test_ClusterCmd_MultiResult(t *testing.T) {
 				cluster2(),
 			},
 			WantTable: pointer.Pointer(`
-TENANT        PROJECT   ID                                     NAME       PARTITION     VERSION   SIZE    AGE
-72%    metal-stack   a         6c631ff1-9038-4ad0-b75e-3ea173b7cdb1   cluster1   partition-a   1.25.10   1 - 3   now
-100%   metal-stack   a         0c538734-c469-46a0-8efd-98e439d4dc8a   cluster2   partition-b   1.27.9    3 - 6   now
+TENANT       PROJECT  ID                                    NAME      PARTITION    VERSION  SIZE   AGE  
+72%   metal-stack  a        6c631ff1-9038-4ad0-b75e-3ea173b7cdb1  cluster1  partition-a  1.25.10  1 - 3  now  
+100%  metal-stack  a        0c538734-c469-46a0-8efd-98e439d4dc8a  cluster2  partition-b  1.27.9   3 - 6  now
 `),
 			WantWideTable: pointer.Pointer(`
-ID                                     TENANT        PROJECT   NAME       PARTITION     PURPOSE      VERSION   OPERATION    PROGRESS           API   CONTROL   NODES   SYS   SIZE    AGE
-6c631ff1-9038-4ad0-b75e-3ea173b7cdb1   metal-stack   a         cluster1   partition-a   evaluation   1.25.10   Processing   72% [Reconcile]     ✔       ✔        ✗      ✔    1 - 3   now
-0c538734-c469-46a0-8efd-98e439d4dc8a   metal-stack   a         cluster2   partition-b   production   1.27.9    Succeeded    100% [Reconcile]    ✔       ✔        ✔      ✔    3 - 6   now
+ID                                    TENANT       PROJECT  NAME      PARTITION    PURPOSE     VERSION  OPERATION   PROGRESS          API  CONTROL  NODES  SYS  SIZE   AGE  
+6c631ff1-9038-4ad0-b75e-3ea173b7cdb1  metal-stack  a        cluster1  partition-a  evaluation  1.25.10  Processing  72% [Reconcile]   ✔    ✔        ✗      ✔    1 - 3  now  
+0c538734-c469-46a0-8efd-98e439d4dc8a  metal-stack  a        cluster2  partition-b  production  1.27.9   Succeeded   100% [Reconcile]  ✔    ✔        ✔      ✔    3 - 6  now
 `),
 			Template: pointer.Pointer("{{ .uuid }} {{ .project }}"),
 			WantTemplate: pointer.Pointer(`
@@ -152,7 +152,7 @@ ID                                     TENANT        PROJECT   NAME       PARTIT
 0c538734-c469-46a0-8efd-98e439d4dc8a a
 			`),
 			WantMarkdown: pointer.Pointer(`
-|      |   TENANT    | PROJECT |                  ID                  |   NAME   |  PARTITION  | VERSION | SIZE  | AGE |
+|      | TENANT      | PROJECT | ID                                   | NAME     | PARTITION   | VERSION | SIZE  | AGE |
 |------|-------------|---------|--------------------------------------|----------|-------------|---------|-------|-----|
 | 72%  | metal-stack | a       | 6c631ff1-9038-4ad0-b75e-3ea173b7cdb1 | cluster1 | partition-a | 1.25.10 | 1 - 3 | now |
 | 100% | metal-stack | a       | 0c538734-c469-46a0-8efd-98e439d4dc8a | cluster2 | partition-b | 1.27.9  | 3 - 6 | now |
@@ -277,19 +277,19 @@ func Test_ClusterCmd_SingleResult(t *testing.T) {
 			},
 			Want: cluster1(),
 			WantTable: pointer.Pointer(`
-TENANT        PROJECT   ID                                     NAME       PARTITION     VERSION   SIZE    AGE
-72%   metal-stack   a         6c631ff1-9038-4ad0-b75e-3ea173b7cdb1   cluster1   partition-a   1.25.10   1 - 3   now
+TENANT       PROJECT  ID                                    NAME      PARTITION    VERSION  SIZE   AGE  
+72%  metal-stack  a        6c631ff1-9038-4ad0-b75e-3ea173b7cdb1  cluster1  partition-a  1.25.10  1 - 3  now
 `),
 			WantWideTable: pointer.Pointer(`
-ID                                     TENANT        PROJECT   NAME       PARTITION     PURPOSE      VERSION   OPERATION    PROGRESS          API   CONTROL   NODES   SYS   SIZE    AGE
-6c631ff1-9038-4ad0-b75e-3ea173b7cdb1   metal-stack   a         cluster1   partition-a   evaluation   1.25.10   Processing   72% [Reconcile]    ✔       ✔        ✗      ✔    1 - 3   now
+ID                                    TENANT       PROJECT  NAME      PARTITION    PURPOSE     VERSION  OPERATION   PROGRESS         API  CONTROL  NODES  SYS  SIZE   AGE  
+6c631ff1-9038-4ad0-b75e-3ea173b7cdb1  metal-stack  a        cluster1  partition-a  evaluation  1.25.10  Processing  72% [Reconcile]  ✔    ✔        ✗      ✔    1 - 3  now
 `),
 			Template: pointer.Pointer("{{ .uuid }} {{ .project }}"),
 			WantTemplate: pointer.Pointer(`
 6c631ff1-9038-4ad0-b75e-3ea173b7cdb1 a
 			`),
 			WantMarkdown: pointer.Pointer(`
-|     |   TENANT    | PROJECT |                  ID                  |   NAME   |  PARTITION  | VERSION | SIZE  | AGE |
+|     | TENANT      | PROJECT | ID                                   | NAME     | PARTITION   | VERSION | SIZE  | AGE |
 |-----|-------------|---------|--------------------------------------|----------|-------------|---------|-------|-----|
 | 72% | metal-stack | a       | 6c631ff1-9038-4ad0-b75e-3ea173b7cdb1 | cluster1 | partition-a | 1.25.10 | 1 - 3 | now |
 `),

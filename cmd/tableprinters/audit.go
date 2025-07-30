@@ -4,7 +4,6 @@ import (
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
 	"github.com/metal-stack/metal-lib/pkg/genericcli"
 	"github.com/metal-stack/metal-lib/pkg/pointer"
-	"github.com/olekukonko/tablewriter"
 	"google.golang.org/grpc/codes"
 )
 
@@ -40,9 +39,7 @@ func (t *TablePrinter) AuditTable(data []*apiv1.AuditTrace, wide bool) ([]string
 		}
 	}
 
-	t.t.MutateTable(func(table *tablewriter.Table) {
-		table.SetAutoWrapText(false)
-	})
+	t.t.DisableAutoWrap(false)
 
 	return header, rows, nil
 }

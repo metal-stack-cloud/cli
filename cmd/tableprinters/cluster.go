@@ -9,7 +9,6 @@ import (
 	adminv1 "github.com/metal-stack-cloud/api/go/admin/v1"
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
 	"github.com/metal-stack/metal-lib/pkg/pointer"
-	"github.com/olekukonko/tablewriter"
 )
 
 func (t *TablePrinter) ClusterTable(clusters []*apiv1.Cluster, machines map[string][]*adminv1.Machine, wide bool) ([]string, [][]string, error) {
@@ -140,27 +139,7 @@ func (t *TablePrinter) ClusterTable(clusters []*apiv1.Cluster, machines map[stri
 		}
 	}
 
-	t.t.MutateTable(func(table *tablewriter.Table) {
-		if wide {
-			table.SetColumnAlignment([]int{
-				tablewriter.ALIGN_LEFT,
-				tablewriter.ALIGN_LEFT,
-				tablewriter.ALIGN_LEFT,
-				tablewriter.ALIGN_LEFT,
-				tablewriter.ALIGN_LEFT,
-				tablewriter.ALIGN_LEFT,
-				tablewriter.ALIGN_LEFT,
-				tablewriter.ALIGN_LEFT,
-				tablewriter.ALIGN_LEFT,
-				tablewriter.ALIGN_CENTER,
-				tablewriter.ALIGN_CENTER,
-				tablewriter.ALIGN_CENTER,
-				tablewriter.ALIGN_CENTER,
-				tablewriter.ALIGN_LEFT,
-				tablewriter.ALIGN_LEFT,
-			})
-		}
-	})
+	t.t.DisableAutoWrap(false)
 
 	return header, rows, nil
 }
@@ -182,9 +161,7 @@ func (t *TablePrinter) ClusterStatusLastErrorTable(data []*apiv1.ClusterStatusLa
 		)
 	}
 
-	t.t.MutateTable(func(table *tablewriter.Table) {
-		table.SetAutoWrapText(false)
-	})
+	t.t.DisableAutoWrap(false)
 
 	return header, rows, nil
 }
@@ -217,9 +194,7 @@ func (t *TablePrinter) ClusterStatusConditionsTable(data []*apiv1.ClusterStatusC
 		})
 	}
 
-	t.t.MutateTable(func(table *tablewriter.Table) {
-		table.SetAutoWrapText(false)
-	})
+	t.t.DisableAutoWrap(false)
 
 	return header, rows, nil
 }

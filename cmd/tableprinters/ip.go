@@ -5,7 +5,6 @@ import (
 
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
 	"github.com/metal-stack/metal-lib/pkg/tag"
-	"github.com/olekukonko/tablewriter"
 )
 
 func (t *TablePrinter) IPTable(data []*apiv1.IP, wide bool) ([]string, [][]string, error) {
@@ -49,10 +48,7 @@ func (t *TablePrinter) IPTable(data []*apiv1.IP, wide bool) ([]string, [][]strin
 			rows = append(rows, []string{ip.Ip, ip.Project, ip.Uuid, t, ip.Name, attachedService})
 		}
 	}
-
-	t.t.MutateTable(func(table *tablewriter.Table) {
-		table.SetAutoWrapText(false)
-	})
+	t.t.DisableAutoWrap(false)
 
 	return header, rows, nil
 }

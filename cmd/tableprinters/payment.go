@@ -5,7 +5,6 @@ import (
 
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
 	"github.com/metal-stack/metal-lib/pkg/genericcli"
-	"github.com/olekukonko/tablewriter"
 )
 
 func (t *TablePrinter) PaymentPricesTable(data []*apiv1.Price, wide bool) ([]string, [][]string, error) {
@@ -32,9 +31,7 @@ func (t *TablePrinter) PaymentPricesTable(data []*apiv1.Price, wide bool) ([]str
 		rows = append(rows, row)
 	}
 
-	t.t.MutateTable(func(table *tablewriter.Table) {
-		table.SetAutoWrapText(false)
-	})
+	t.t.DisableAutoWrap(false)
 
 	return header, rows, nil
 }

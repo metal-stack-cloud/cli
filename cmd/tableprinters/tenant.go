@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/dustin/go-humanize"
-	"github.com/olekukonko/tablewriter"
 
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
 )
@@ -92,9 +91,7 @@ func (t *TablePrinter) TenantInviteTable(data []*apiv1.TenantInvite, _ bool) ([]
 		rows = append(rows, row)
 	}
 
-	t.t.MutateTable(func(table *tablewriter.Table) {
-		table.SetAutoWrapText(false)
-	})
+	t.t.DisableAutoWrap(false)
 
 	return header, rows, nil
 }
