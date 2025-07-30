@@ -6,15 +6,13 @@ import (
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
 )
 
-func (t *TablePrinter) AssetTable(data []*apiv1.Asset, _ bool) ([]string, [][]string, error) {
+func (t *TablePrinter) AssetTable(data *apiv1.AssetServiceListResponse, _ bool) ([]string, [][]string, error) {
 	var (
 		rows   [][]string
 		header = []string{"Region", "Partition", "Machine Types"}
 	)
 
-	for _, asset := range data {
-		asset := asset
-
+	for _, asset := range data.Assets {
 		if asset.Region == nil {
 			continue
 		}

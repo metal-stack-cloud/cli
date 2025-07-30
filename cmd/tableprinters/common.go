@@ -25,9 +25,7 @@ func (t *TablePrinter) SetPrinter(printer *printers.TablePrinter) {
 func (t *TablePrinter) ToHeaderAndRows(data any, wide bool) ([]string, [][]string, error) {
 	switch d := data.(type) {
 
-	case *apiv1.Asset:
-		return t.AssetTable(pointer.WrapInSlice(d), wide)
-	case []*apiv1.Asset:
+	case *apiv1.AssetServiceListResponse:
 		return t.AssetTable(d, wide)
 
 	case *apiv1.AuditTrace:

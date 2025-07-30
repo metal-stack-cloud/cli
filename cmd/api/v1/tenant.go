@@ -49,6 +49,10 @@ func newTenantCmd(c *config.Config) *cobra.Command {
 		UpdateCmdMutateFn: func(cmd *cobra.Command) {
 			cmd.Flags().String("name", "", "the name of the tenant to update")
 			cmd.Flags().String("description", "", "the description of the tenant to update")
+			cmd.Flags().String("email", "", "the name of the tenant to update")
+			cmd.Flags().String("avatar-url", "", "the avatar url of the tenant to create")
+			cmd.Flags().String("tenant", "", "the tenant to update")
+			cmd.Flags().Bool("accept-terms-and-conditions", false, "can be used to accept the terms and conditions")
 		},
 		UpdateRequestFromCLI: w.updateRequestFromCLI,
 		ValidArgsFn:          w.c.Completion.TenantListCompletion,
@@ -236,8 +240,7 @@ func (c *tenant) Convert(r *apiv1.Tenant) (string, *apiv1.TenantServiceCreateReq
 			Name:      pointer.PointerOrNil(r.Name),
 			Email:     pointer.PointerOrNil(r.Email),
 			AvatarUrl: pointer.PointerOrNil(r.AvatarUrl),
-		},
-		nil
+		}, nil
 }
 
 func (c *tenant) Update(rq *apiv1.TenantServiceUpdateRequest) (*apiv1.Tenant, error) {
@@ -263,7 +266,56 @@ func (c *tenant) createRequestFromCLI() (*apiv1.TenantServiceCreateRequest, erro
 }
 
 func (c *tenant) updateRequestFromCLI(args []string) (*apiv1.TenantServiceUpdateRequest, error) {
-	return nil, fmt.Errorf("not implemented")
+	login, err := c.c.GetTenant()
+	if err != nil {
+		return nil, err
+	}
+
+	var termsAndConditions *bool
+
+	if viper.IsSet("accept-terms-and-conditions") {
+		accepted := viper.GetBool("accept-terms-and-conditions")
+
+		if !accepted {
+			return nil, fmt.Errorf("you can only withdraw terms and conditions by deleting your account, please contact the metalstack.cloud support if necessary")
+		}
+
+		termsAndConditions = pointer.Pointer(true)
+
+		ctx, cancel := c.c.NewRequestContext()
+		defer cancel()
+
+		assetResp, err := c.c.Client.Apiv1().Asset().List(ctx, connect.NewRequest(&apiv1.AssetServiceListRequest{}))
+		if err != nil {
+			return nil, fmt.Errorf("unable to retrieve assets from api: %w", err)
+		}
+
+		env := pointer.SafeDeref(assetResp.Msg.Environment)
+
+		if env.TermsAndConditionsUrl == nil {
+			_, _ = fmt.Fprintf(c.c.Out, "%s\n", color.YellowString("no terms and conditions provided by the api, skipping manual approval"))
+			_, _ = fmt.Fprintln(c.c.Out)
+		} else {
+			err = genericcli.PromptCustom(&genericcli.PromptConfig{
+				Message:     fmt.Sprintf(color.YellowString("The terms and conditions can be found on %s. Do you accept?"), *env.TermsAndConditionsUrl),
+				ShowAnswers: true,
+				In:          c.c.In,
+				Out:         c.c.Out,
+			})
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	return &apiv1.TenantServiceUpdateRequest{
+		Login:                    login,
+		Name:                     pointer.PointerOrNil(viper.GetString("name")),
+		Email:                    pointer.PointerOrNil(viper.GetString("email")),
+		Description:              pointer.PointerOrNil(viper.GetString("description")),
+		AvatarUrl:                pointer.PointerOrNil(viper.GetString("avatar-url")),
+		AcceptTermsAndConditions: termsAndConditions,
+	}, nil
 }
 
 func (c *tenant) join(args []string) error {
@@ -315,6 +367,13 @@ func (c *tenant) generateInvite() error {
 	ctx, cancel := c.c.NewRequestContext()
 	defer cancel()
 
+	assetResp, err := c.c.Client.Apiv1().Asset().List(ctx, connect.NewRequest(&apiv1.AssetServiceListRequest{}))
+	if err != nil {
+		return fmt.Errorf("unable to retrieve assets from api: %w", err)
+	}
+
+	env := pointer.SafeDeref(assetResp.Msg.Environment)
+
 	tenant, err := c.c.GetTenant()
 	if err != nil {
 		return err
@@ -329,7 +388,7 @@ func (c *tenant) generateInvite() error {
 	}
 
 	_, _ = fmt.Fprintf(c.c.Out, "You can share this secret with the member to join, it expires in %s:\n\n", humanize.Time(resp.Msg.Invite.ExpiresAt.AsTime()))
-	_, _ = fmt.Fprintf(c.c.Out, "%s (https://console.metalstack.cloud/organization-invite/%s)\n", resp.Msg.Invite.Secret, resp.Msg.Invite.Secret)
+	_, _ = fmt.Fprintf(c.c.Out, "%s (%s/organization-invite/%s)\n", resp.Msg.Invite.Secret, pointer.SafeDerefOrDefault(env.ConsoleUrl, config.DefaultConsoleURL), resp.Msg.Invite.Secret)
 
 	return nil
 }

@@ -23,7 +23,7 @@ func newCouponCmd(c *config.Config) *cobra.Command {
 
 	cmdsConfig := &genericcli.CmdsConfig[any, any, *apiv1.Coupon]{
 		BinaryName:  config.BinaryName,
-		GenericCLI:  genericcli.NewGenericCLI[any, any, *apiv1.Coupon](w).WithFS(c.Fs),
+		GenericCLI:  genericcli.NewGenericCLI(w).WithFS(c.Fs),
 		Singular:    "coupon",
 		Plural:      "coupons",
 		Description: "coupon related actions of metalstack.cloud",

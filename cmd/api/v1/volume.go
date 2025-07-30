@@ -32,7 +32,7 @@ func newVolumeCmd(c *config.Config) *cobra.Command {
 
 	cmdsConfig := &genericcli.CmdsConfig[any, *apiv1.VolumeServiceUpdateRequest, *apiv1.Volume]{
 		BinaryName:      config.BinaryName,
-		GenericCLI:      genericcli.NewGenericCLI[any, *apiv1.VolumeServiceUpdateRequest, *apiv1.Volume](w).WithFS(c.Fs),
+		GenericCLI:      genericcli.NewGenericCLI(w).WithFS(c.Fs),
 		Singular:        "volume",
 		Plural:          "volumes",
 		Description:     "volume related actions of metalstack.cloud",
@@ -215,7 +215,7 @@ func (c *volume) volumeManifest(args []string) error {
 
 	if len(volume.AttachedTo) > 0 {
 		nodes := connectedHosts(volume)
-		_, _ = fmt.Fprintf(c.c.Out, "# be cautios! at the time being your volume:%s is still attached to worker node:%s, you can not mount it twice\n", volume.Uuid, strings.Join(nodes, ","))
+		_, _ = fmt.Fprintf(c.c.Out, "# be cautious! at the time being your volume:%s is still attached to worker node:%s, you can not mount it twice\n", volume.Uuid, strings.Join(nodes, ","))
 	}
 
 	y, err := yaml.Marshal(pv)

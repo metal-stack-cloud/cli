@@ -52,6 +52,14 @@ func newLoginCmd(c *config.Config) *cobra.Command {
 }
 
 func (l *login) login() error {
+	mc := newApiClient(l.c.GetApiURL(), "")
+	assetResp, err := mc.Apiv1().Asset().List(context.Background(), connect.NewRequest(&apiv1.AssetServiceListRequest{}))
+	if err != nil {
+		return fmt.Errorf("unable to retrieve assets from api: %w", err)
+	}
+
+	env := pointer.SafeDeref(assetResp.Msg.Environment)
+
 	provider := l.c.GetProvider()
 	if provider == "" {
 		return errors.New("provider must be specified")
@@ -94,7 +102,7 @@ func (l *login) login() error {
 	http.HandleFunc("/callback", func(w http.ResponseWriter, r *http.Request) {
 		tokenChan <- r.URL.Query().Get("token")
 
-		http.Redirect(w, r, "https://metalstack.cloud", http.StatusSeeOther)
+		http.Redirect(w, r, pointer.SafeDerefOrDefault(env.AfterLoginUrl, config.DefaultAfterLoginPage), http.StatusSeeOther)
 	})
 
 	listener, err := net.Listen("tcp", "localhost:0")
