@@ -14,6 +14,7 @@ metal context add <context-name> [flags]
       --api-url string           sets the api-url for this context
       --default-project string   sets a default project to act on
   -h, --help                     help for add
+      --provider string          sets the login provider for this context
       --timeout duration         sets a default request timeout
 ```
 
