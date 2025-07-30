@@ -19,6 +19,7 @@ import (
 	"github.com/metal-stack/metal-lib/pkg/pointer"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"google.golang.org/protobuf/types/known/durationpb"
 )
 
 type login struct {
@@ -40,15 +41,18 @@ func newLoginCmd(c *config.Config) *cobra.Command {
 
 	loginCmd.Flags().String("provider", "", "the provider used to login with")
 	loginCmd.Flags().String("context", "", "the context into which the token gets injected, if not specified it uses the current context or creates a context named default in case there is no current context set")
+	loginCmd.Flags().String("admin-role", "", "operators can use this flag to issue an admin token with the token retrieved from login and store this into context")
 
+	genericcli.Must(loginCmd.Flags().MarkHidden("admin-role"))
 	genericcli.Must(loginCmd.RegisterFlagCompletionFunc("provider", c.Completion.LoginProviderCompletion))
 	genericcli.Must(loginCmd.RegisterFlagCompletionFunc("context", c.ContextListCompletion))
+	genericcli.Must(loginCmd.RegisterFlagCompletionFunc("admin-role", c.Completion.TokenAdminRoleCompletion))
 
 	return loginCmd
 }
 
 func (l *login) login() error {
-	provider := viper.GetString("provider")
+	provider := l.c.GetProvider()
 	if provider == "" {
 		return errors.New("provider must be specified")
 	}
@@ -78,6 +82,8 @@ func (l *login) login() error {
 
 		ctx = &newCtx
 	}
+
+	ctx.Provider = provider
 
 	// switch into new context
 	ctxs.PreviousContext = ctxs.CurrentContext
@@ -127,6 +133,21 @@ func (l *login) login() error {
 
 	if token == "" {
 		return errors.New("no token was retrieved")
+	}
+
+	if viper.IsSet("admin-role") {
+		mc := newApiClient(l.c.GetApiURL(), token)
+
+		tokenResp, err := mc.Apiv1().Token().Create(context.Background(), connect.NewRequest(&apiv1.TokenServiceCreateRequest{
+			Description: "admin access issues by metal cli",
+			Expires:     durationpb.New(3 * time.Hour),
+			AdminRole:   pointer.Pointer(apiv1.AdminRole((apiv1.AdminRole_value[viper.GetString("admin-role")]))),
+		}))
+		if err != nil {
+			return fmt.Errorf("unable to issue admin token: %w", err)
+		}
+
+		token = tokenResp.Msg.Secret
 	}
 
 	ctx.Token = token
