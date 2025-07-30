@@ -48,7 +48,7 @@ func newLoginCmd(c *config.Config) *cobra.Command {
 }
 
 func (l *login) login() error {
-	provider := viper.GetString("provider")
+	provider := l.c.GetProvider()
 	if provider == "" {
 		return errors.New("provider must be specified")
 	}
@@ -78,6 +78,8 @@ func (l *login) login() error {
 
 		ctx = &newCtx
 	}
+
+	ctx.Provider = provider
 
 	// switch into new context
 	ctxs.PreviousContext = ctxs.CurrentContext

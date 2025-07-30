@@ -26,7 +26,6 @@ func newContextCmd(c *config.Config) *cobra.Command {
 		Aliases: []string{"ctx"},
 		Short:   "manage cli contexts",
 		Long:    "you can switch back and forth contexts with \"-\"",
-		Example: config.HelpTemplate(),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return w.list()
@@ -92,6 +91,7 @@ func newContextCmd(c *config.Config) *cobra.Command {
 	contextAddCmd.Flags().String("default-project", "", "sets a default project to act on")
 	contextAddCmd.Flags().Duration("timeout", 0, "sets a default request timeout")
 	contextAddCmd.Flags().Bool("activate", false, "immediately switches to the new context")
+	contextAddCmd.Flags().String("provider", "", "sets the login provider for this context")
 
 	genericcli.Must(contextAddCmd.MarkFlagRequired("api-token"))
 
@@ -108,6 +108,7 @@ func newContextCmd(c *config.Config) *cobra.Command {
 	contextUpdateCmd.Flags().String("default-project", "", "sets a default project to act on")
 	contextUpdateCmd.Flags().Duration("timeout", 0, "sets a default request timeout")
 	contextUpdateCmd.Flags().Bool("activate", false, "immediately switches to the new context")
+	contextUpdateCmd.Flags().String("provider", "", "sets the login provider for this context")
 
 	genericcli.Must(contextUpdateCmd.RegisterFlagCompletionFunc("default-project", c.Completion.ProjectListCompletion))
 
@@ -171,6 +172,7 @@ func (c *ctx) add(args []string) error {
 		Token:          viper.GetString("api-token"),
 		DefaultProject: viper.GetString("default-project"),
 		Timeout:        pointer.PointerOrNil(viper.GetDuration("timeout")),
+		Provider:       viper.GetString("provider"),
 	}
 
 	ctxs.Contexts = append(ctxs.Contexts, ctx)
@@ -217,6 +219,9 @@ func (c *ctx) update(args []string) error {
 	}
 	if viper.IsSet("timeout") {
 		ctx.Timeout = pointer.PointerOrNil(viper.GetDuration("timeout"))
+	}
+	if viper.IsSet("provider") {
+		ctx.Provider = viper.GetString("provider")
 	}
 	if viper.GetBool("activate") {
 		ctxs.PreviousContext = ctxs.CurrentContext

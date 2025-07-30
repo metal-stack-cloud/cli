@@ -51,22 +51,6 @@ func (c *Config) NewRequestContext() (context.Context, context.CancelFunc) {
 	return context.WithTimeout(context.Background(), *timeout)
 }
 
-func HelpTemplate() string {
-	return `Here is how an template configuration looks like:
-~/.metal-stack-cloud/config.yaml
----
-current: dev
-previous: prod
-contexts:
-    - name: dev
-    api-token: <dev-token>
-    default-project: dev-project
-    - name: prod
-    api-token: <prod-token>
-        default-project: prod-project
-`
-}
-
 func DefaultConfigDirectory() (string, error) {
 	h, err := os.UserHomeDir()
 	if err != nil {
@@ -143,4 +127,11 @@ func (c *Config) GetApiURL() string {
 
 	// fallback to the default specified by viper
 	return viper.GetString("api-url")
+}
+
+func (c *Config) GetProvider() string {
+	if viper.IsSet("provider") {
+		return viper.GetString("provider")
+	}
+	return c.Context.Provider
 }

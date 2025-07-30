@@ -9,7 +9,7 @@ import (
 
 func (t *TablePrinter) ContextTable(data *config.Contexts, wide bool) ([]string, [][]string, error) {
 	var (
-		header = []string{"", "Name", "Default Project"}
+		header = []string{"", "Name", "Provider", "Default Project"}
 		rows   [][]string
 	)
 
@@ -23,7 +23,7 @@ func (t *TablePrinter) ContextTable(data *config.Contexts, wide bool) ([]string,
 			active = color.GreenString("✔")
 		}
 
-		row := []string{active, c.Name, c.DefaultProject}
+		row := []string{active, c.Name, c.Provider, c.DefaultProject}
 		if wide {
 			url := pointer.SafeDeref(c.ApiURL)
 			if url == "" {
