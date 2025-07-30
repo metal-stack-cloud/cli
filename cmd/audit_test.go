@@ -69,14 +69,14 @@ func Test_AuditCmd_MultiResult(t *testing.T) {
 				auditTrace1,
 			},
 			WantTable: pointer.Pointer(`
-TIME                  REQUEST-ID                             USER     PROJECT     METHOD           PHASE                  CODE
-2022-05-19 01:02:03   b5817ef7-980a-41ef-9ed3-741a143870b0   b-user   project-b   /apiv1/cluster   AUDIT_PHASE_RESPONSE   NotFound
-2022-05-19 01:02:03   c40ad996-e1fd-4511-a7bf-418219cb8d91   a-user   project-a   /apiv1/ip        AUDIT_PHASE_REQUEST    OK
+TIME                 REQUEST - ID                          USER    PROJECT    METHOD          PHASE                 CODE      
+2022-05-19 01:02:03  b5817ef7-980a-41ef-9ed3-741a143870b0  b-user  project-b  /apiv1/cluster  AUDIT_PHASE_RESPONSE  NotFound  
+2022-05-19 01:02:03  c40ad996-e1fd-4511-a7bf-418219cb8d91  a-user  project-a  /apiv1/ip       AUDIT_PHASE_REQUEST   OK
 				`),
 			WantWideTable: pointer.Pointer(`
-TIME                  REQUEST-ID                             USER     PROJECT     METHOD           PHASE                  SOURCE-IP     CODE       BODY
-2022-05-19 01:02:03   b5817ef7-980a-41ef-9ed3-741a143870b0   b-user   project-b   /apiv1/cluster   AUDIT_PHASE_RESPONSE   192.168.2.3   NotFound   {"c": "d"}
-2022-05-19 01:02:03   c40ad996-e1fd-4511-a7bf-418219cb8d91   a-user   project-a   /apiv1/ip        AUDIT_PHASE_REQUEST    192.168.2.1   OK         {"a": "b"}
+TIME                 REQUEST - ID                          USER    PROJECT    METHOD          PHASE                 SOURCE - IP  CODE      BODY        
+2022-05-19 01:02:03  b5817ef7-980a-41ef-9ed3-741a143870b0  b-user  project-b  /apiv1/cluster  AUDIT_PHASE_RESPONSE  192.168.2.3  NotFound  {"c": "d"}  
+2022-05-19 01:02:03  c40ad996-e1fd-4511-a7bf-418219cb8d91  a-user  project-a  /apiv1/ip       AUDIT_PHASE_REQUEST   192.168.2.1  OK        {"a": "b"}
 				`),
 			Template: pointer.Pointer(`{{ date "02/01/2006" .timestamp }} {{ .uuid }}`),
 			WantTemplate: pointer.Pointer(`
@@ -84,7 +84,7 @@ TIME                  REQUEST-ID                             USER     PROJECT   
 19/05/2022 c40ad996-e1fd-4511-a7bf-418219cb8d91
 				`),
 			WantMarkdown: pointer.Pointer(`
-|        TIME         |              REQUEST-ID              |  USER  |  PROJECT  |     METHOD     |        PHASE         |   CODE   |
+| TIME                | REQUEST - ID                         | USER   | PROJECT   | METHOD         | PHASE                | CODE     |
 |---------------------|--------------------------------------|--------|-----------|----------------|----------------------|----------|
 | 2022-05-19 01:02:03 | b5817ef7-980a-41ef-9ed3-741a143870b0 | b-user | project-b | /apiv1/cluster | AUDIT_PHASE_RESPONSE | NotFound |
 | 2022-05-19 01:02:03 | c40ad996-e1fd-4511-a7bf-418219cb8d91 | a-user | project-a | /apiv1/ip      | AUDIT_PHASE_REQUEST  | OK       |
@@ -146,21 +146,21 @@ TIME                  REQUEST-ID                             USER     PROJECT   
 				auditTrace1,
 			},
 			WantTable: pointer.Pointer(`
-TIME                  REQUEST-ID                             USER     PROJECT     METHOD      PHASE                 CODE
-2022-05-19 01:02:03   c40ad996-e1fd-4511-a7bf-418219cb8d91   a-user   project-a   /apiv1/ip   AUDIT_PHASE_REQUEST   OK
+TIME                 REQUEST - ID                          USER    PROJECT    METHOD     PHASE                CODE  
+2022-05-19 01:02:03  c40ad996-e1fd-4511-a7bf-418219cb8d91  a-user  project-a  /apiv1/ip  AUDIT_PHASE_REQUEST  OK
 			`),
 			WantWideTable: pointer.Pointer(`
-TIME                  REQUEST-ID                             USER     PROJECT     METHOD      PHASE                 SOURCE-IP     CODE   BODY
-2022-05-19 01:02:03   c40ad996-e1fd-4511-a7bf-418219cb8d91   a-user   project-a   /apiv1/ip   AUDIT_PHASE_REQUEST   192.168.2.1   OK     {
-                                                                                                                                             "a": "b"
-                                                                                                                                         }
+TIME                 REQUEST - ID                          USER    PROJECT    METHOD     PHASE                SOURCE - IP  CODE  BODY      
+2022-05-19 01:02:03  c40ad996-e1fd-4511-a7bf-418219cb8d91  a-user  project-a  /apiv1/ip  AUDIT_PHASE_REQUEST  192.168.2.1  OK    {         
+																																		"a":  
+																																	}
 			`),
 			Template: pointer.Pointer(`{{ date "02/01/2006" .timestamp }} {{ .uuid }}`),
 			WantTemplate: pointer.Pointer(`
 19/05/2022 c40ad996-e1fd-4511-a7bf-418219cb8d91
 						`),
 			WantMarkdown: pointer.Pointer(`
-|        TIME         |              REQUEST-ID              |  USER  |  PROJECT  |  METHOD   |        PHASE        | CODE |
+| TIME                | REQUEST - ID                         | USER   | PROJECT   | METHOD    | PHASE               | CODE |
 |---------------------|--------------------------------------|--------|-----------|-----------|---------------------|------|
 | 2022-05-19 01:02:03 | c40ad996-e1fd-4511-a7bf-418219cb8d91 | a-user | project-a | /apiv1/ip | AUDIT_PHASE_REQUEST | OK   |
 			`),

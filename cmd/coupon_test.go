@@ -75,14 +75,14 @@ func Test_CouponCmd_MultiResult(t *testing.T) {
 				},
 			},
 			WantTable: pointer.Pointer(`
-ID          NAME          AMOUNTOFF   DURATION   REDEEMED   CREATED
-someidone   somenameone   1.00 eur    4 month    1/30       1 hour ago
-someidtwo   somenametwo   0.00 eur    3 month    2/150      1 hour ago
+ID         NAME         AMOUNT OFF  DURATION  REDEEMED  CREATED     
+someidone  somenameone  1.00 eur    4 month   1/30      1 hour ago  
+someidtwo  somenametwo  0.00 eur    3 month   2/150     1 hour ago
 `),
 			WantWideTable: pointer.Pointer(`
-ID          NAME          AMOUNTOFF   DURATION   REDEEMED   CREATED
-someidone   somenameone   1.00 eur    4 month    1/30       1 hour ago
-someidtwo   somenametwo   0.00 eur    3 month    2/150      1 hour ago
+ID         NAME         AMOUNT OFF  DURATION  REDEEMED  CREATED     
+someidone  somenameone  1.00 eur    4 month   1/30      1 hour ago  
+someidtwo  somenametwo  0.00 eur    3 month   2/150     1 hour ago
 `),
 			Template: pointer.Pointer(`{{ .id }} {{ .name }} {{ .amount_off }} {{ .duration_in_month }} {{ .times_redeemed }}/{{ .max_redemptions }} {{ date "02/01/2006" .created_at }}`),
 			WantTemplate: pointer.Pointer(`
@@ -90,10 +90,10 @@ someidone somenameone 150 4 1/30 19/05/2022
 someidtwo somenametwo 50 3 2/150 19/05/2022
 			`),
 			WantMarkdown: pointer.Pointer(`
-|    ID     |    NAME     | AMOUNTOFF | DURATION | REDEEMED |  CREATED   |
-|-----------|-------------|-----------|----------|----------|------------|
-| someidone | somenameone | 1.00 eur  | 4 month  | 1/30     | 1 hour ago |
-| someidtwo | somenametwo | 0.00 eur  | 3 month  | 2/150    | 1 hour ago |
+| ID        | NAME        | AMOUNT OFF | DURATION | REDEEMED | CREATED    |
+|-----------|-------------|------------|----------|----------|------------|
+| someidone | somenameone | 1.00 eur   | 4 month  | 1/30     | 1 hour ago |
+| someidtwo | somenametwo | 0.00 eur   | 3 month  | 2/150    | 1 hour ago |
 			`),
 		},
 	}
