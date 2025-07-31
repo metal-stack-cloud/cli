@@ -162,11 +162,21 @@ func newTenantCmd(c *config.Config) *cobra.Command {
 	genericcli.Must(updateMemberCmd.RegisterFlagCompletionFunc("tenant", c.Completion.TenantListCompletion))
 	genericcli.Must(updateMemberCmd.RegisterFlagCompletionFunc("role", c.Completion.TenantRoleCompletion))
 
+	admissionCmd := &cobra.Command{
+		Use:   "request-admission <username> <email>",
+		Short: "request admission for tenant",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return w.requestAdmission(args)
+		},
+	}
+
+	admissionCmd.Flags().Bool("email-consent", false, "consent to receiving emails")
+
 	memberCmd.AddCommand(removeMemberCmd, updateMemberCmd, listMembersCmd)
 
 	inviteCmd.AddCommand(generateInviteCmd, deleteInviteCmd, listInvitesCmd, joinTenantCmd)
 
-	return genericcli.NewCmds(cmdsConfig, joinTenantCmd, inviteCmd, memberCmd)
+	return genericcli.NewCmds(cmdsConfig, joinTenantCmd, inviteCmd, memberCmd, admissionCmd)
 }
 
 func (c *tenant) Get(id string) (*apiv1.Tenant, error) {
@@ -518,4 +528,52 @@ func (c *tenant) listMembers() error {
 	}
 
 	return c.c.ListPrinter.Print(members)
+}
+
+func (c *tenant) requestAdmission(args []string) error {
+	user, err := genericcli.GetExactlyNArgs(2, args)
+	if err != nil {
+		return err
+	}
+	name := user[0]
+	email := user[1]
+
+	ctx, cancel := c.c.NewRequestContext()
+	defer cancel()
+
+	tenant, err := c.c.GetTenant()
+	if err != nil {
+		return err
+	}
+
+	assetResp, err := c.c.Client.Apiv1().Asset().List(ctx, connect.NewRequest(&apiv1.AssetServiceListRequest{}))
+	if err != nil {
+		return fmt.Errorf("unable to retrieve assets from api: %w", err)
+	}
+
+	env := pointer.SafeDeref(assetResp.Msg.Environment)
+	err = genericcli.PromptCustom(&genericcli.PromptConfig{
+		Message:     fmt.Sprintf(color.YellowString("The terms and conditions can be found on %s. Do you accept?"), *env.TermsAndConditionsUrl),
+		ShowAnswers: true,
+		In:          c.c.In,
+		Out:         c.c.Out,
+	})
+	if err != nil {
+		return err
+	}
+
+	_, err = c.c.Client.Apiv1().Tenant().RequestAdmission(ctx, connect.NewRequest(&apiv1.TenantServiceRequestAdmissionRequest{
+		Login:                      tenant,
+		Name:                       name,
+		Email:                      email,
+		AcceptedTermsAndConditions: true,
+		EmailConsent:               viper.GetBool("email-consent"),
+	}))
+	if err != nil {
+		return err
+	}
+
+	_, _ = fmt.Fprintf(c.c.Out, "%s\n", color.GreenString("Your admission request has been submitted. We will contact you as soon as possible."))
+
+	return nil
 }
