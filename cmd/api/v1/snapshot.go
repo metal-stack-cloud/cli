@@ -24,7 +24,7 @@ func newSnapshotCmd(c *config.Config) *cobra.Command {
 
 	cmdsConfig := &genericcli.CmdsConfig[any, any, *apiv1.Snapshot]{
 		BinaryName:  config.BinaryName,
-		GenericCLI:  genericcli.NewGenericCLI[any, any, *apiv1.Snapshot](w).WithFS(c.Fs),
+		GenericCLI:  genericcli.NewGenericCLI(w).WithFS(c.Fs),
 		Singular:    "snapshot",
 		Plural:      "snapshots",
 		Description: "snapshot related actions of metalstack.cloud",

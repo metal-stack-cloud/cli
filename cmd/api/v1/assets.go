@@ -21,7 +21,7 @@ func newAssetCmd(c *config.Config) *cobra.Command {
 				return err
 			}
 
-			return c.ListPrinter.Print(resp.Msg.Assets)
+			return c.ListPrinter.Print(resp.Msg)
 		},
 	}
 

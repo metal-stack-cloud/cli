@@ -27,7 +27,7 @@ func newIPCmd(c *config.Config) *cobra.Command {
 
 	cmdsConfig := &genericcli.CmdsConfig[*apiv1.IPServiceAllocateRequest, *apiv1.IPServiceUpdateRequest, *apiv1.IP]{
 		BinaryName:      config.BinaryName,
-		GenericCLI:      genericcli.NewGenericCLI[*apiv1.IPServiceAllocateRequest, *apiv1.IPServiceUpdateRequest, *apiv1.IP](w).WithFS(c.Fs),
+		GenericCLI:      genericcli.NewGenericCLI(w).WithFS(c.Fs),
 		Singular:        "ip",
 		Plural:          "ips",
 		Description:     "an ip address of metalstack.cloud",

@@ -328,6 +328,13 @@ func (c *project) generateInvite() error {
 	ctx, cancel := c.c.NewRequestContext()
 	defer cancel()
 
+	assetResp, err := c.c.Client.Apiv1().Asset().List(ctx, connect.NewRequest(&apiv1.AssetServiceListRequest{}))
+	if err != nil {
+		return fmt.Errorf("unable to retrieve assets from api: %w", err)
+	}
+
+	env := pointer.SafeDeref(assetResp.Msg.Environment)
+
 	project := c.c.GetProject()
 	if project == "" {
 		return fmt.Errorf("project is required")
@@ -342,7 +349,7 @@ func (c *project) generateInvite() error {
 	}
 
 	_, _ = fmt.Fprintf(c.c.Out, "You can share this secret with the member to join, it expires in %s:\n\n", humanize.Time(resp.Msg.Invite.ExpiresAt.AsTime()))
-	_, _ = fmt.Fprintf(c.c.Out, "%s (https://console.metalstack.cloud/project-invite/%s)\n", resp.Msg.Invite.Secret, resp.Msg.Invite.Secret)
+	_, _ = fmt.Fprintf(c.c.Out, "%s (%s/project-invite/%s)\n", resp.Msg.Invite.Secret, pointer.SafeDerefOrDefault(env.ConsoleUrl, config.DefaultConsoleURL), resp.Msg.Invite.Secret)
 
 	return nil
 }

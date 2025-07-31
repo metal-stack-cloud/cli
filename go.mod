@@ -12,7 +12,7 @@ require (
 	github.com/fatih/color v1.18.0
 	github.com/golang-jwt/jwt/v5 v5.2.3
 	github.com/google/go-cmp v0.7.0
-	github.com/metal-stack-cloud/api v0.15.0
+	github.com/metal-stack-cloud/api v0.15.1
 	github.com/metal-stack/metal-lib v0.23.3
 	github.com/metal-stack/v v1.0.3
 	github.com/spf13/afero v1.14.0

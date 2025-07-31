@@ -25,7 +25,7 @@ func newVolumeCmd(c *config.Config) *cobra.Command {
 
 	cmdsConfig := &genericcli.CmdsConfig[any, any, *apiv1.Volume]{
 		BinaryName:  config.BinaryName,
-		GenericCLI:  genericcli.NewGenericCLI[any, any, *apiv1.Volume](w).WithFS(c.Fs),
+		GenericCLI:  genericcli.NewGenericCLI(w).WithFS(c.Fs),
 		Singular:    "volume",
 		Plural:      "volumes",
 		Description: "volume related actions of metalstack.cloud",
