@@ -37,5 +37,6 @@ manage api tenants
 * [metal tenant join](metal_tenant_join.md)	 - join a tenant of someone who shared an invite secret with you
 * [metal tenant list](metal_tenant_list.md)	 - list all tenants
 * [metal tenant member](metal_tenant_member.md)	 - manage tenant members
+* [metal tenant request-admission](metal_tenant_request-admission.md)	 - request admission for tenant
 * [metal tenant update](metal_tenant_update.md)	 - updates the tenant
 
