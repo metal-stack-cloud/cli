@@ -1,6 +1,6 @@
 ## metal audit list
 
-list all audit traces
+list all audits
 
 ```
 metal audit list [flags]
@@ -41,5 +41,5 @@ metal audit list [flags]
 
 ### SEE ALSO
 
-* [metal audit](metal_audit.md)	 - manage audit trace entities
+* [metal audit](metal_audit.md)	 - manage audit entities
 
