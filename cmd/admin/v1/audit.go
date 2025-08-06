@@ -1,22 +1,19 @@
 package v1
 
 import (
-	"encoding/json"
 	"fmt"
-	"strings"
-	"time"
 
 	"connectrpc.com/connect"
 	adminApiv1 "github.com/metal-stack-cloud/api/go/admin/v1"
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
 	"github.com/metal-stack-cloud/cli/cmd/config"
 	"github.com/metal-stack-cloud/cli/cmd/sorters"
+	helpersaudit "github.com/metal-stack-cloud/cli/pkg/helpers/audit"
 	"github.com/metal-stack/metal-lib/pkg/genericcli"
 	"github.com/metal-stack/metal-lib/pkg/genericcli/printers"
 	"github.com/metal-stack/metal-lib/pkg/pointer"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type adminAudit struct {
@@ -31,8 +28,8 @@ func newAuditCmd(c *config.Config) *cobra.Command {
 	cmdsConfig := &genericcli.CmdsConfig[any, any, *apiv1.AuditTrace]{
 		BinaryName:      config.BinaryName,
 		GenericCLI:      genericcli.NewGenericCLI(a).WithFS(c.Fs),
-		Singular:        "audit trace",
-		Plural:          "audit traces",
+		Singular:        "audit",
+		Plural:          "audits",
 		Description:     "show audit traces of the api-server",
 		Sorter:          sorters.AuditSorter(),
 		OnlyCmds:        genericcli.OnlyCmds(genericcli.ListCmd, genericcli.DescribeCmd),
@@ -89,11 +86,11 @@ func (a *adminAudit) List() ([]*apiv1.AuditTrace, error) {
 	ctx, cancel := a.c.NewRequestContext()
 	defer cancel()
 
-	fromDateTime, err := eventuallyRelativeDateTime(viper.GetString("from"))
+	fromDateTime, err := helpersaudit.EventuallyRelativeDateTime(viper.GetString("from"))
 	if err != nil {
 		return nil, err
 	}
-	toDateTime, err := eventuallyRelativeDateTime(viper.GetString("to"))
+	toDateTime, err := helpersaudit.EventuallyRelativeDateTime(viper.GetString("to"))
 	if err != nil {
 		return nil, err
 	}
@@ -132,57 +129,25 @@ func (a *adminAudit) List() ([]*apiv1.AuditTrace, error) {
 }
 
 func (a *adminAudit) Convert(*apiv1.AuditTrace) (string, any, any, error) {
-	// NOTE: required by api but not needed here since admin audit is only used for listing audits
-	panic("unimplemented")
+	return helpersaudit.Convert()
 }
 
 func (a *adminAudit) Delete(id string) (*apiv1.AuditTrace, error) {
-	// NOTE: required by api but not needed here since admin audit is only used for listing audits
-	panic("unimplemented")
+	return helpersaudit.Delete()
 }
 
 func (a *adminAudit) Create(any) (*apiv1.AuditTrace, error) {
-	// NOTE: required by api but not needed here since admin audit is only used for listing audits
-	panic("unimplemented")
+	return helpersaudit.Create()
 }
 
 func (a *adminAudit) Update(any) (*apiv1.AuditTrace, error) {
-	// NOTE: required by api but not needed here since admin audit is only used for listing audits
-	panic("unimplemented")
-}
-
-func (a *adminAudit) tryPrettifyBody(trace *apiv1.AuditTrace) {
-	if trace.Body != nil {
-		trimmed := strings.Trim(*trace.Body, `"`)
-		body := map[string]any{}
-		if err := json.Unmarshal([]byte(trimmed), &body); err == nil {
-			if pretty, err := json.MarshalIndent(body, "", "    "); err == nil {
-				trace.Body = pointer.Pointer(string(pretty))
-			}
-		}
-	}
+	return helpersaudit.Update()
 }
 
 func (a *adminAudit) toPhase(phase string) *apiv1.AuditPhase {
-	p, ok := apiv1.AuditPhase_value[phase]
-	if !ok {
-		return nil
-	}
-
-	return pointer.Pointer(apiv1.AuditPhase(p))
+	return helpersaudit.ToPhase(phase)
 }
 
-func eventuallyRelativeDateTime(s string) (*timestamppb.Timestamp, error) {
-	if s == "" {
-		return nil, nil
-	}
-	duration, err := time.ParseDuration(s)
-	if err == nil {
-		return timestamppb.New(time.Now().Add(-duration)), nil
-	}
-	t, err := time.Parse("2006-01-02 15:04:05", s)
-	if err != nil {
-		return timestamppb.Now(), fmt.Errorf("failed to convert time: %w", err)
-	}
-	return timestamppb.New(t), nil
+func (a *adminAudit) tryPrettifyBody(trace *apiv1.AuditTrace) {
+	helpersaudit.TryPrettifyBody(trace)
 }

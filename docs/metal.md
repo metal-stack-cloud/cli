@@ -20,7 +20,7 @@ cli for managing entities in metal-stack-cloud
 
 * [metal api-methods](metal_api-methods.md)	 - show available api-methods of the metalstack.cloud api
 * [metal asset](metal_asset.md)	 - show asset
-* [metal audit](metal_audit.md)	 - manage audit trace entities
+* [metal audit](metal_audit.md)	 - manage audit entities
 * [metal cluster](metal_cluster.md)	 - manage cluster entities
 * [metal completion](metal_completion.md)	 - Generate the autocompletion script for the specified shell
 * [metal context](metal_context.md)	 - manage cli contexts
