@@ -99,6 +99,20 @@ func newTokenCmd(c *config.Config) *cobra.Command {
 				Expires:      durationpb.New(viper.GetDuration("expires")),
 			}, nil
 		},
+		UpdateRequestFromCLI: func(args []string) (*apiv1.TokenServiceUpdateRequest, error) {
+			id, err := genericcli.GetExactlyOneArg(args)
+			if err != nil {
+				return nil, err
+			}
+
+			return &apiv1.TokenServiceUpdateRequest{
+				Uuid:        id,
+				Description: pointer.PointerOrNil(viper.GetString("description")),
+			}, nil
+		},
+		UpdateCmdMutateFn: func(cmd *cobra.Command) {
+			cmd.Flags().String("description", "", "a short description for the intention to use this token for")
+		},
 		CreateCmdMutateFn: func(cmd *cobra.Command) {
 			cmd.Flags().String("description", "", "a short description for the intention to use this token for")
 			cmd.Flags().StringSlice("permissions", nil, "the permissions to associate with the api token in the form <project>=<methods-colon-separated>")

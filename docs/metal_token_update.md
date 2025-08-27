@@ -3,22 +3,23 @@
 updates the token
 
 ```
-metal token update [flags]
+metal token update <id> [flags]
 ```
 
 ### Options
 
 ```
       --bulk-output             when used with --file (bulk operation): prints results at the end as a list. default is printing results intermediately during the operation, which causes single entities to be printed in a row.
+      --description string      a short description for the intention to use this token for
   -f, --file string             filename of the create or update request in yaml format, or - for stdin.
                                 
                                 Example:
                                 $ metal token describe token-1 -o yaml > token.yaml
                                 $ vi token.yaml
                                 $ # either via stdin
-                                $ cat token.yaml | metal token update -f -
+                                $ cat token.yaml | metal token update <id> -f -
                                 $ # or via file
-                                $ metal token update -f token.yaml
+                                $ metal token update <id> -f token.yaml
                                 
                                 the file can also contain multiple documents and perform a bulk operation.
                                 	

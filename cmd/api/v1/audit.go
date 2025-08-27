@@ -88,7 +88,7 @@ func (a *audit) Get(id string) (*apiv1.AuditTrace, error) {
 	req := &apiv1.AuditServiceGetRequest{
 		Login: tenant,
 		Uuid:  id,
-		Phase: a.toPhase(viper.GetString("phase")),
+		Phase: helpersaudit.ToPhase(viper.GetString("phase")),
 	}
 
 	resp, err := a.c.Client.Apiv1().Audit().Get(ctx, connect.NewRequest(req))
@@ -97,7 +97,7 @@ func (a *audit) Get(id string) (*apiv1.AuditTrace, error) {
 	}
 
 	if viper.GetBool("prettify-body") {
-		a.tryPrettifyBody(resp.Msg.Trace)
+		helpersaudit.TryPrettifyBody(resp.Msg.Trace)
 	}
 
 	return resp.Msg.Trace, nil
@@ -138,7 +138,7 @@ func (a *audit) List() ([]*apiv1.AuditTrace, error) {
 		Body:       pointer.PointerOrNil(viper.GetString("body")),
 		SourceIp:   pointer.PointerOrNil(viper.GetString("source-ip")),
 		Limit:      pointer.PointerOrNil(viper.GetInt32("limit")),
-		Phase:      a.toPhase(viper.GetString("phase")),
+		Phase:      helpersaudit.ToPhase(viper.GetString("phase")),
 	}
 
 	resp, err := a.c.Client.Apiv1().Audit().List(ctx, connect.NewRequest(req))
@@ -148,7 +148,7 @@ func (a *audit) List() ([]*apiv1.AuditTrace, error) {
 
 	if viper.GetBool("prettify-body") {
 		for _, trace := range resp.Msg.Traces {
-			a.tryPrettifyBody(trace)
+			helpersaudit.TryPrettifyBody(trace)
 		}
 	}
 
@@ -156,25 +156,17 @@ func (a *audit) List() ([]*apiv1.AuditTrace, error) {
 }
 
 func (a *audit) Convert(*apiv1.AuditTrace) (string, any, any, error) {
-	return helpersaudit.Convert()
+	panic("unimplemented")
 }
 
 func (a *audit) Delete(id string) (*apiv1.AuditTrace, error) {
-	return helpersaudit.Delete()
+	panic("unimplemented")
 }
 
 func (a *audit) Create(any) (*apiv1.AuditTrace, error) {
-	return helpersaudit.Create()
+	panic("unimplemented")
 }
 
 func (a *audit) Update(any) (*apiv1.AuditTrace, error) {
-	return helpersaudit.Update()
-}
-
-func (a *audit) toPhase(phase string) *apiv1.AuditPhase {
-	return helpersaudit.ToPhase(phase)
-}
-
-func (a *audit) tryPrettifyBody(trace *apiv1.AuditTrace) {
-	helpersaudit.TryPrettifyBody(trace)
+	panic("unimplemented")
 }

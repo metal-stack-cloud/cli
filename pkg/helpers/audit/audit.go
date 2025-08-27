@@ -11,22 +11,6 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-func Convert() (string, any, any, error) {
-	return "", nil, nil, fmt.Errorf("not implemented for audit traces")
-}
-
-func Delete() (*apiv1.AuditTrace, error) {
-	return nil, fmt.Errorf("not implemented for audit traces")
-}
-
-func Create() (*apiv1.AuditTrace, error) {
-	return nil, fmt.Errorf("not implemented for audit traces")
-}
-
-func Update() (*apiv1.AuditTrace, error) {
-	return nil, fmt.Errorf("not implemented for audit traces")
-}
-
 func EventuallyRelativeDateTime(s string) (*timestamppb.Timestamp, error) {
 	if s == "" {
 		return nil, nil

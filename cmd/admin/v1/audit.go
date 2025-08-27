@@ -5,6 +5,7 @@ import (
 
 	"connectrpc.com/connect"
 	adminApiv1 "github.com/metal-stack-cloud/api/go/admin/v1"
+	adminv1 "github.com/metal-stack-cloud/api/go/admin/v1"
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
 	"github.com/metal-stack-cloud/cli/cmd/config"
 	"github.com/metal-stack-cloud/cli/cmd/sorters"
@@ -78,8 +79,24 @@ func newAuditCmd(c *config.Config) *cobra.Command {
 }
 
 func (a *adminAudit) Get(id string) (*apiv1.AuditTrace, error) {
-	// NOTE: required by api but not needed here since admin audit is only used for listing audits
-	panic("unimplemented")
+	ctx, cancel := a.c.NewRequestContext()
+	defer cancel()
+
+	req := &adminv1.AuditServiceGetRequest{
+		Uuid:  id,
+		Phase: helpersaudit.ToPhase(viper.GetString("phase")),
+	}
+
+	resp, err := a.c.Client.Adminv1().Audit().Get(ctx, connect.NewRequest(req))
+	if err != nil {
+		return nil, fmt.Errorf("failed to get audit trace: %w", err)
+	}
+
+	if viper.GetBool("prettify-body") {
+		helpersaudit.TryPrettifyBody(resp.Msg.Trace)
+	}
+
+	return resp.Msg.Trace, nil
 }
 
 func (a *adminAudit) List() ([]*apiv1.AuditTrace, error) {
@@ -111,7 +128,7 @@ func (a *adminAudit) List() ([]*apiv1.AuditTrace, error) {
 		Body:       pointer.PointerOrNil(viper.GetString("body")),
 		SourceIp:   pointer.PointerOrNil(viper.GetString("source-ip")),
 		Limit:      pointer.PointerOrNil(viper.GetInt32("limit")),
-		Phase:      a.toPhase(viper.GetString("phase")),
+		Phase:      helpersaudit.ToPhase(viper.GetString("phase")),
 	}
 
 	resp, err := a.c.Client.Adminv1().Audit().List(ctx, connect.NewRequest(req))
@@ -121,7 +138,7 @@ func (a *adminAudit) List() ([]*apiv1.AuditTrace, error) {
 
 	if viper.GetBool("prettify-body") {
 		for _, trace := range resp.Msg.Traces {
-			a.tryPrettifyBody(trace)
+			helpersaudit.TryPrettifyBody(trace)
 		}
 	}
 
@@ -129,25 +146,17 @@ func (a *adminAudit) List() ([]*apiv1.AuditTrace, error) {
 }
 
 func (a *adminAudit) Convert(*apiv1.AuditTrace) (string, any, any, error) {
-	return helpersaudit.Convert()
+	panic("unimplemented")
 }
 
 func (a *adminAudit) Delete(id string) (*apiv1.AuditTrace, error) {
-	return helpersaudit.Delete()
+	panic("unimplemented")
 }
 
 func (a *adminAudit) Create(any) (*apiv1.AuditTrace, error) {
-	return helpersaudit.Create()
+	panic("unimplemented")
 }
 
 func (a *adminAudit) Update(any) (*apiv1.AuditTrace, error) {
-	return helpersaudit.Update()
-}
-
-func (a *adminAudit) toPhase(phase string) *apiv1.AuditPhase {
-	return helpersaudit.ToPhase(phase)
-}
-
-func (a *adminAudit) tryPrettifyBody(trace *apiv1.AuditTrace) {
-	helpersaudit.TryPrettifyBody(trace)
+	panic("unimplemented")
 }
