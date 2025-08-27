@@ -20,6 +20,7 @@ func AddCmds(cmd *cobra.Command, c *config.Config) {
 		Hidden:       true,
 	}
 
+	adminCmd.AddCommand(newAuditCmd(c))
 	adminCmd.AddCommand(newTenantCmd(c))
 	adminCmd.AddCommand(newCouponCmd(c))
 	adminCmd.AddCommand(newStorageCmd(c))

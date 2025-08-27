@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"connectrpc.com/connect"
+	adminv1 "github.com/metal-stack-cloud/api/go/admin/v1"
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
 	"github.com/metal-stack-cloud/cli/cmd/config"
 	"github.com/metal-stack-cloud/cli/cmd/sorters"
@@ -15,12 +16,12 @@ import (
 	"github.com/spf13/viper"
 )
 
-type audit struct {
+type adminAudit struct {
 	c *config.Config
 }
 
 func newAuditCmd(c *config.Config) *cobra.Command {
-	a := &audit{
+	a := &adminAudit{
 		c: c,
 	}
 
@@ -76,22 +77,16 @@ func newAuditCmd(c *config.Config) *cobra.Command {
 	return genericcli.NewCmds(cmdsConfig)
 }
 
-func (a *audit) Get(id string) (*apiv1.AuditTrace, error) {
+func (a *adminAudit) Get(id string) (*apiv1.AuditTrace, error) {
 	ctx, cancel := a.c.NewRequestContext()
 	defer cancel()
 
-	tenant, err := a.c.GetTenant()
-	if err != nil {
-		return nil, err
-	}
-
-	req := &apiv1.AuditServiceGetRequest{
-		Login: tenant,
+	req := &adminv1.AuditServiceGetRequest{
 		Uuid:  id,
 		Phase: helpersaudit.ToPhase(viper.GetString("phase")),
 	}
 
-	resp, err := a.c.Client.Apiv1().Audit().Get(ctx, connect.NewRequest(req))
+	resp, err := a.c.Client.Adminv1().Audit().Get(ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get audit trace: %w", err)
 	}
@@ -103,7 +98,7 @@ func (a *audit) Get(id string) (*apiv1.AuditTrace, error) {
 	return resp.Msg.Trace, nil
 }
 
-func (a *audit) List() ([]*apiv1.AuditTrace, error) {
+func (a *adminAudit) List() ([]*apiv1.AuditTrace, error) {
 	ctx, cancel := a.c.NewRequestContext()
 	defer cancel()
 
@@ -116,18 +111,12 @@ func (a *audit) List() ([]*apiv1.AuditTrace, error) {
 		return nil, err
 	}
 
-	tenant, err := a.c.GetTenant()
-	if err != nil {
-		return nil, fmt.Errorf("tenant is required %w", err)
-	}
-
 	var code *int32
 	if viper.IsSet("result-code") {
 		code = pointer.Pointer(viper.GetInt32("result-code"))
 	}
 
-	req := &apiv1.AuditServiceListRequest{
-		Login:      tenant,
+	req := &adminv1.AuditServiceListRequest{
 		Uuid:       pointer.PointerOrNil(viper.GetString("request-id")),
 		From:       fromDateTime,
 		To:         toDateTime,
@@ -141,7 +130,7 @@ func (a *audit) List() ([]*apiv1.AuditTrace, error) {
 		Phase:      helpersaudit.ToPhase(viper.GetString("phase")),
 	}
 
-	resp, err := a.c.Client.Apiv1().Audit().List(ctx, connect.NewRequest(req))
+	resp, err := a.c.Client.Adminv1().Audit().List(ctx, connect.NewRequest(req))
 	if err != nil {
 		return nil, fmt.Errorf("failed to list audit traces: %w", err)
 	}
@@ -155,18 +144,18 @@ func (a *audit) List() ([]*apiv1.AuditTrace, error) {
 	return resp.Msg.Traces, nil
 }
 
-func (a *audit) Convert(*apiv1.AuditTrace) (string, any, any, error) {
+func (a *adminAudit) Convert(*apiv1.AuditTrace) (string, any, any, error) {
 	panic("unimplemented")
 }
 
-func (a *audit) Delete(id string) (*apiv1.AuditTrace, error) {
+func (a *adminAudit) Delete(id string) (*apiv1.AuditTrace, error) {
 	panic("unimplemented")
 }
 
-func (a *audit) Create(any) (*apiv1.AuditTrace, error) {
+func (a *adminAudit) Create(any) (*apiv1.AuditTrace, error) {
 	panic("unimplemented")
 }
 
-func (a *audit) Update(any) (*apiv1.AuditTrace, error) {
+func (a *adminAudit) Update(any) (*apiv1.AuditTrace, error) {
 	panic("unimplemented")
 }

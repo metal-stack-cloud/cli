@@ -1,6 +1,6 @@
 ## metal audit
 
-manage audit trace entities
+manage audit entities
 
 ### Synopsis
 
@@ -28,6 +28,6 @@ show audit traces of the api-server
 ### SEE ALSO
 
 * [metal](metal.md)	 - cli for managing entities in metal-stack-cloud
-* [metal audit describe](metal_audit_describe.md)	 - describes the audit trace
-* [metal audit list](metal_audit_list.md)	 - list all audit traces
+* [metal audit describe](metal_audit_describe.md)	 - describes the audit
+* [metal audit list](metal_audit_list.md)	 - list all audits
 

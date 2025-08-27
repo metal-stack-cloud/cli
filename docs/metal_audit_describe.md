@@ -1,6 +1,6 @@
 ## metal audit describe
 
-describes the audit trace
+describes the audit
 
 ```
 metal audit describe <id> [flags]
@@ -30,5 +30,5 @@ metal audit describe <id> [flags]
 
 ### SEE ALSO
 
-* [metal audit](metal_audit.md)	 - manage audit trace entities
+* [metal audit](metal_audit.md)	 - manage audit entities
 

@@ -9,9 +9,8 @@ metal tenant request-admission <username> <email> [flags]
 ### Options
 
 ```
-      --accept-terms-and-conditions   accept terms and conditions (default true)
-      --email-consent                 consent to receiving emails (default true)
-  -h, --help                          help for request-admission
+      --email-consent   consent to receiving emails
+  -h, --help            help for request-admission
 ```
 
 ### Options inherited from parent commands
