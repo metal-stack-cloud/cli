@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"connectrpc.com/connect"
-	adminApiv1 "github.com/metal-stack-cloud/api/go/admin/v1"
 	adminv1 "github.com/metal-stack-cloud/api/go/admin/v1"
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
 	"github.com/metal-stack-cloud/cli/cmd/config"
@@ -117,7 +116,7 @@ func (a *adminAudit) List() ([]*apiv1.AuditTrace, error) {
 		code = pointer.Pointer(viper.GetInt32("result-code"))
 	}
 
-	req := &adminApiv1.AuditServiceListRequest{
+	req := &adminv1.AuditServiceListRequest{
 		Uuid:       pointer.PointerOrNil(viper.GetString("request-id")),
 		From:       fromDateTime,
 		To:         toDateTime,
