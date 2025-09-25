@@ -41,11 +41,6 @@ func (t *TablePrinter) ToHeaderAndRows(data any, wide bool) ([]string, [][]strin
 	case []*apiv1.IP:
 		return t.IPTable(d, wide)
 
-	case *apiv1.Coupon:
-		return t.CouponTable(pointer.WrapInSlice(d), wide)
-	case []*apiv1.Coupon:
-		return t.CouponTable(d, wide)
-
 	case *apiv1.Cluster:
 		return t.ClusterTable(pointer.WrapInSlice(d), nil, wide)
 	case []*apiv1.Cluster:
