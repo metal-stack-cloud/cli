@@ -72,8 +72,14 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 	}
 
 	kubeconfigCmd.Flags().DurationP("expiration", "", 8*time.Hour, "kubeconfig will expire after given time")
-	kubeconfigCmd.Flags().Bool("merge", true, "merges the kubeconfig into default kubeconfig instead of printing it to the console")
+	kubeconfigCmd.Flags().Bool("merge", true, "merges the kubeconfig into the current kubeconfig")
+	kubeconfigCmd.Flags().Bool("print-only", false, "only prints the kubeconfig to the console instead of writing it")
+	kubeconfigCmd.Flags().String("auth-type", string(kubernetes.AuthTypeExec), `the way how the resulting kubeconfig authenticates at the api server. can be "exec" or "certs".
+	  "exec" injects an exec config into the kubeconfig, which uses this CLI to automatically renew certificates when they expire.
+	  "certs" simply adds the client certificates to the kubeconfig, there is no automatic renewal once the certificates have expired, the CLI is not called automatically.`)
 	kubeconfigCmd.Flags().String("kubeconfig", "", "specify an explicit path for the merged kubeconfig to be written, defaults to default kubeconfig paths if not provided")
+
+	genericcli.Must(kubeconfigCmd.RegisterFlagCompletionFunc("auth-type", c.Completion.ClusterKubeconfigAuthType))
 
 	// metal admin cluster machine list
 
@@ -195,26 +201,22 @@ func (c *cluster) kubeconfig(args []string) error {
 		return fmt.Errorf("failed to get cluster credentials: %w", err)
 	}
 
-	if !viper.GetBool("merge") {
-		_, _ = fmt.Fprintln(c.c.Out, resp.Msg.Kubeconfig)
-		return nil
-	}
-
-	var (
-		kubeconfigPath = viper.GetString("kubeconfig")
-	)
-
-	merged, err := kubernetes.MergeKubeconfig(c.c.Fs, []byte(resp.Msg.Kubeconfig), pointer.PointerOrNil(kubeconfigPath), nil, c.c.GetProject(), id) // FIXME: reverse lookup project name
+	kubeconfig, err := kubernetes.NewKubeconfigFromRaw(c.c.Fs, c.c.In, c.c.Out, []byte(resp.Msg.Kubeconfig), nil, c.c.GetProject(), id) // FIXME: reverse lookup project name
 	if err != nil {
 		return err
 	}
 
-	err = afero.WriteFile(c.c.Fs, merged.Path, merged.Raw, 0600)
+	if viper.GetBool("print-only") {
+		_, _ = fmt.Fprintln(c.c.Out, string(kubeconfig.Raw))
+		return nil
+	}
+
+	err = afero.WriteFile(c.c.Fs, kubeconfig.Path, kubeconfig.Raw, 0600)
 	if err != nil {
 		return fmt.Errorf("unable to write merged kubeconfig: %w", err)
 	}
 
-	_, _ = fmt.Fprintf(c.c.Out, "%s merged context %q into %s\n", color.GreenString("✔"), merged.ContextName, merged.Path)
+	_, _ = fmt.Fprintf(c.c.Out, "%s wrote context %q into %s\n", color.GreenString("✔"), kubeconfig.ContextName, kubeconfig.Path)
 
 	return nil
 }
