@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/spf13/afero"
+	"github.com/spf13/viper"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/clientcmd/api"
@@ -14,16 +15,23 @@ import (
 	configv1 "k8s.io/client-go/tools/clientcmd/api/v1"
 )
 
-type MergedKubeconfig struct {
+type authType string
+
+const (
+	AuthTypeClientCerts authType = "certs"
+	AuthTypeExec        authType = "exec"
+)
+
+type Kubeconfig struct {
 	Raw         []byte
 	Path        string
 	ContextName string
 }
 
-func MergeKubeconfig(fs afero.Fs, raw []byte, kubeconfigPath, projectName *string, projectid, clusterid string) (*MergedKubeconfig, error) {
+func NewKubeconfigFromRaw(fs afero.Fs, raw []byte, projectName *string, projectid, clusterid string) (*Kubeconfig, error) {
 	path := os.Getenv(clientcmd.RecommendedConfigPathEnvVar)
-	if kubeconfigPath != nil {
-		path = *kubeconfigPath
+	if userPath := viper.GetString("kubeconfig"); userPath != "" {
+		path = userPath
 	}
 	if path == "" {
 		path = clientcmd.RecommendedHomeFile
@@ -40,13 +48,8 @@ func MergeKubeconfig(fs afero.Fs, raw []byte, kubeconfigPath, projectName *strin
 		}
 	}
 
-	currentConfig, err := clientcmd.LoadFromFile(path)
-	if err != nil {
-		return nil, fmt.Errorf("error loading kubeconfig: %w", err)
-	}
-
 	kubeconfig := &configv1.Config{}
-	err = runtime.DecodeInto(configlatest.Codec, raw, kubeconfig)
+	err := runtime.DecodeInto(configlatest.Codec, raw, kubeconfig)
 	if err != nil {
 		return nil, fmt.Errorf("unable to decode kubeconfig: %w", err)
 	}
@@ -58,8 +61,6 @@ func MergeKubeconfig(fs afero.Fs, raw []byte, kubeconfigPath, projectName *strin
 	)
 
 	for _, cl := range kubeconfig.Clusters {
-		cl := cl
-
 		prefix, _, found := strings.Cut(cl.Name, "-external")
 		if !found {
 			continue
@@ -73,8 +74,6 @@ func MergeKubeconfig(fs afero.Fs, raw []byte, kubeconfigPath, projectName *strin
 	}
 
 	for _, a := range kubeconfig.AuthInfos {
-		a := a
-
 		if !strings.HasSuffix(a.Name, clusterName+"-external") {
 			continue
 		}
@@ -91,30 +90,67 @@ func MergeKubeconfig(fs afero.Fs, raw []byte, kubeconfigPath, projectName *strin
 		contextName = fmt.Sprintf("%s-%s@metalstack.cloud", clusterName, *projectName)
 	}
 
+	currentConfig := &api.Config{
+		Clusters:  map[string]*api.Cluster{},
+		Contexts:  map[string]*api.Context{},
+		AuthInfos: map[string]*api.AuthInfo{},
+	}
+	if viper.GetBool("merge") {
+		var err error
+		currentConfig, err = clientcmd.LoadFromFile(path)
+		if err != nil {
+			return nil, fmt.Errorf("error loading kubeconfig: %w", err)
+		}
+	}
+
 	currentConfig.Contexts[contextName] = &api.Context{
 		Cluster:  contextName,
 		AuthInfo: contextName,
 	}
+
 	currentConfig.Clusters[contextName] = &api.Cluster{
 		Server:                   cluster.Cluster.Server,
 		CertificateAuthorityData: cluster.Cluster.CertificateAuthorityData,
 	}
 
-	metalcli, err := os.Executable()
-	if err != nil {
-		return nil, fmt.Errorf("unable to get executable path: %w", err)
-	}
-	currentConfig.AuthInfos[contextName] = &api.AuthInfo{
-		Exec: &api.ExecConfig{
-			Command:         metalcli,
-			Args:            []string{"cluster", "exec-config", "-p", projectid, clusterid},
-			APIVersion:      "client.authentication.k8s.io/v1", // since k8s 1.22, if earlier versions are used, the API version is client.authentication.k8s.io/v1beta1
-			InteractiveMode: api.IfAvailableExecInteractiveMode,
-		},
-	}
-
 	if currentConfig.CurrentContext == "" {
 		currentConfig.CurrentContext = contextName
+	}
+
+	auth := AuthTypeExec
+	if viper.GetString("auth-type") != "" {
+		auth = authType(viper.GetString("auth-type"))
+	}
+
+	switch auth {
+	case AuthTypeExec:
+		metalcli, err := os.Executable()
+		if err != nil {
+			return nil, fmt.Errorf("unable to get executable path: %w", err)
+		}
+
+		currentConfig.AuthInfos[contextName] = &api.AuthInfo{
+			Exec: &api.ExecConfig{
+				Command:         metalcli,
+				Args:            []string{"cluster", "exec-config", "-p", projectid, clusterid},
+				APIVersion:      "client.authentication.k8s.io/v1", // since k8s 1.22, if earlier versions are used, the API version is client.authentication.k8s.io/v1beta1
+				InteractiveMode: api.IfAvailableExecInteractiveMode,
+			},
+		}
+
+		ec, err := NewUserExecCache(fs)
+		if err != nil {
+			return nil, err
+		}
+		// remove cached credentials so a new one will be created
+		_ = ec.Clean(clusterid)
+	case AuthTypeClientCerts:
+		currentConfig.AuthInfos[contextName] = &api.AuthInfo{
+			ClientCertificateData: authInfo.ClientCertificateData,
+			ClientKeyData:         authInfo.ClientKeyData,
+		}
+	default:
+		return nil, fmt.Errorf("unsupported auth type for kubeconfig: %s", auth)
 	}
 
 	merged, err := runtime.Encode(configlatest.Codec, currentConfig)
@@ -122,14 +158,7 @@ func MergeKubeconfig(fs afero.Fs, raw []byte, kubeconfigPath, projectName *strin
 		return nil, fmt.Errorf("unable to encode kubeconfig: %w", err)
 	}
 
-	ec, err := NewUserExecCache(fs)
-	if err != nil {
-		return nil, err
-	}
-	// remove cached credentials so a new one will be created
-	_ = ec.Clean(clusterid)
-
-	return &MergedKubeconfig{
+	return &Kubeconfig{
 		Raw:         merged,
 		ContextName: contextName,
 		Path:        path,

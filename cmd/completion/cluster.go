@@ -4,6 +4,7 @@ import (
 	"connectrpc.com/connect"
 	adminv1 "github.com/metal-stack-cloud/api/go/admin/v1"
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
+	"github.com/metal-stack-cloud/cli/cmd/kubernetes"
 	"github.com/metal-stack/metal-lib/pkg/genericcli"
 	"github.com/spf13/cobra"
 )
@@ -107,8 +108,6 @@ func (c *Completion) AdminClusterFirewallListCompletion(cmd *cobra.Command, args
 
 	var names []string
 	for _, machine := range resp.Msg.Machines {
-		machine := machine
-
 		if machine.Role != "firewall" {
 			continue
 		}
@@ -117,4 +116,8 @@ func (c *Completion) AdminClusterFirewallListCompletion(cmd *cobra.Command, args
 	}
 
 	return names, cobra.ShellCompDirectiveNoFileComp
+}
+
+func (c *Completion) ClusterKubeconfigAuthType(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	return []string{string(kubernetes.AuthTypeExec), string(kubernetes.AuthTypeClientCerts)}, cobra.ShellCompDirectiveNoFileComp
 }

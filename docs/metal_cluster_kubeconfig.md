@@ -9,10 +9,14 @@ metal cluster kubeconfig [flags]
 ### Options
 
 ```
+      --auth-type string      the way how the resulting kubeconfig authenticates at the api server. can be "exec" or "certs".
+                              	  "exec" injects an exec config into the kubeconfig, which uses this CLI to automatically renew certificates when they expire.
+                              	  "certs" simply adds the client certificates to the kubeconfig, there is no automatic renewal once the certificates have expired, the CLI is not called automatically. (default "exec")
       --expiration duration   kubeconfig will expire after given time (default 8h0m0s)
   -h, --help                  help for kubeconfig
       --kubeconfig string     specify an explicit path for the merged kubeconfig to be written, defaults to default kubeconfig paths if not provided
-      --merge                 merges the kubeconfig into default kubeconfig instead of printing it to the console (default true)
+      --merge                 merges the kubeconfig into the current kubeconfig (default true)
+      --print-only            only prints the kubeconfig to the console instead of writing it
   -p, --project string        the project in which the cluster resides for which to get the kubeconfig for
 ```
 
