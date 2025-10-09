@@ -577,7 +577,7 @@ func (c *cluster) kubeconfig(args []string) error {
 		projectName = helpers.TrimProvider(projectResp.Msg.Project.Name)
 	)
 
-	kubeconfig, err := kubernetes.NewKubeconfigFromRaw(c.c.Fs, []byte(resp.Msg.Kubeconfig), &projectName, projectResp.Msg.Project.Uuid, id)
+	kubeconfig, err := kubernetes.NewKubeconfigFromRaw(c.c.Fs, c.c.In, c.c.Out, []byte(resp.Msg.Kubeconfig), &projectName, projectResp.Msg.Project.Uuid, id)
 	if err != nil {
 		return err
 	}

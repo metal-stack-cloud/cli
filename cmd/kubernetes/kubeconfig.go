@@ -2,9 +2,12 @@ package kubernetes
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"strings"
 
+	"github.com/fatih/color"
+	"github.com/metal-stack/metal-lib/pkg/genericcli"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -28,7 +31,7 @@ type Kubeconfig struct {
 	ContextName string
 }
 
-func NewKubeconfigFromRaw(fs afero.Fs, raw []byte, projectName *string, projectid, clusterid string) (*Kubeconfig, error) {
+func NewKubeconfigFromRaw(fs afero.Fs, in io.Reader, out io.Writer, raw []byte, projectName *string, projectid, clusterid string) (*Kubeconfig, error) {
 	path := os.Getenv(clientcmd.RecommendedConfigPathEnvVar)
 	if userPath := viper.GetString("kubeconfig"); userPath != "" {
 		path = userPath
@@ -41,15 +44,13 @@ func NewKubeconfigFromRaw(fs afero.Fs, raw []byte, projectName *string, projecti
 		return nil, fmt.Errorf("it is currently not supported to merge when multiple kubeconfigs are provided")
 	}
 
-	if _, err := fs.Stat(path); os.IsNotExist(err) {
-		err := afero.WriteFile(fs, path, nil, 0600)
-		if err != nil {
-			return nil, fmt.Errorf("error to write to: %w", err)
-		}
+	exists, err := afero.Exists(fs, path)
+	if err != nil {
+		return nil, fmt.Errorf("unable to determine if file exists: %w", err)
 	}
 
 	kubeconfig := &configv1.Config{}
-	err := runtime.DecodeInto(configlatest.Codec, raw, kubeconfig)
+	err = runtime.DecodeInto(configlatest.Codec, raw, kubeconfig)
 	if err != nil {
 		return nil, fmt.Errorf("unable to decode kubeconfig: %w", err)
 	}
@@ -95,11 +96,24 @@ func NewKubeconfigFromRaw(fs afero.Fs, raw []byte, projectName *string, projecti
 		Contexts:  map[string]*api.Context{},
 		AuthInfos: map[string]*api.AuthInfo{},
 	}
+
 	if viper.GetBool("merge") {
 		var err error
 		currentConfig, err = clientcmd.LoadFromFile(path)
 		if err != nil {
 			return nil, fmt.Errorf("error loading kubeconfig: %w", err)
+		}
+	} else {
+		if exists {
+			err = genericcli.PromptCustom(&genericcli.PromptConfig{
+				Message:     fmt.Sprintf(color.YellowString("There is already a file at %s. In combination with --merge=false this file will be overwritten. Are you sure you want to continue?"), path),
+				ShowAnswers: true,
+				In:          in,
+				Out:         out,
+			})
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 

@@ -201,7 +201,7 @@ func (c *cluster) kubeconfig(args []string) error {
 		return fmt.Errorf("failed to get cluster credentials: %w", err)
 	}
 
-	kubeconfig, err := kubernetes.NewKubeconfigFromRaw(c.c.Fs, []byte(resp.Msg.Kubeconfig), nil, c.c.GetProject(), id) // FIXME: reverse lookup project name
+	kubeconfig, err := kubernetes.NewKubeconfigFromRaw(c.c.Fs, c.c.In, c.c.Out, []byte(resp.Msg.Kubeconfig), nil, c.c.GetProject(), id) // FIXME: reverse lookup project name
 	if err != nil {
 		return err
 	}
