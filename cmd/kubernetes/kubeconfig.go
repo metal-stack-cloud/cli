@@ -147,7 +147,7 @@ func NewKubeconfigFromRaw(fs afero.Fs, in io.Reader, out io.Writer, raw []byte, 
 			Exec: &api.ExecConfig{
 				Command:         metalcli,
 				Args:            []string{"cluster", "exec-config", "-p", projectid, clusterid},
-				APIVersion:      "client.authentication.k8s.io/v1", // since k8s 1.22, if earlier versions are used, the API version is client.authentication.k8s.io/v1beta1
+				APIVersion:      "client.authentication.k8s.io/v1",
 				InteractiveMode: api.IfAvailableExecInteractiveMode,
 			},
 		}
