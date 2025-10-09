@@ -592,7 +592,7 @@ func (c *cluster) kubeconfig(args []string) error {
 		return fmt.Errorf("unable to write merged kubeconfig: %w", err)
 	}
 
-	_, _ = fmt.Fprintf(c.c.Out, "%s merged context %q into %s\n", color.GreenString("✔"), kubeconfig.ContextName, kubeconfig.Path)
+	_, _ = fmt.Fprintf(c.c.Out, "%s wrote context %q into %s\n", color.GreenString("✔"), kubeconfig.ContextName, kubeconfig.Path)
 
 	return nil
 }
