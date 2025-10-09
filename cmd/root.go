@@ -12,6 +12,7 @@ import (
 
 	client "github.com/metal-stack-cloud/api/go/client"
 	"github.com/metal-stack/metal-lib/pkg/genericcli"
+	"github.com/metal-stack/v"
 
 	adminv1cmds "github.com/metal-stack-cloud/cli/cmd/admin/v1"
 	apiv1cmds "github.com/metal-stack-cloud/cli/cmd/api/v1"
@@ -57,6 +58,7 @@ func newRootCmd(c *config.Config) *cobra.Command {
 		Short:        "cli for managing entities in metal-stack-cloud",
 		Long:         "",
 		SilenceUsage: true,
+
 		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
 			viper.SetFs(c.Fs)
 
@@ -80,6 +82,9 @@ func newRootCmd(c *config.Config) *cobra.Command {
 	rootCmd.PersistentFlags().String("api-token", "", "the token used for api requests")
 
 	genericcli.Must(viper.BindPFlags(rootCmd.PersistentFlags()))
+
+	// somehow setting version in the command does not work, but setting it directly in the template is fine?
+	rootCmd.SetVersionTemplate(v.Version + "\n")
 
 	markdownCmd := &cobra.Command{
 		Use:   "markdown",
