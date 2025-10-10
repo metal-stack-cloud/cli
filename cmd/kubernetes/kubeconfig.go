@@ -97,14 +97,14 @@ func NewKubeconfigFromRaw(fs afero.Fs, in io.Reader, out io.Writer, raw []byte, 
 		AuthInfos: map[string]*api.AuthInfo{},
 	}
 
-	if viper.GetBool("merge") {
-		var err error
-		currentConfig, err = clientcmd.LoadFromFile(path)
-		if err != nil {
-			return nil, fmt.Errorf("error loading kubeconfig: %w", err)
-		}
-	} else {
-		if exists {
+	if exists {
+		if viper.GetBool("merge") {
+			var err error
+			currentConfig, err = clientcmd.LoadFromFile(path)
+			if err != nil {
+				return nil, fmt.Errorf("error loading kubeconfig: %w", err)
+			}
+		} else {
 			err = genericcli.PromptCustom(&genericcli.PromptConfig{
 				Message:     fmt.Sprintf(color.YellowString("There is already a file at %s. In combination with --merge=false this file will be overwritten. Are you sure you want to continue?"), path),
 				ShowAnswers: true,
