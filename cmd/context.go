@@ -6,6 +6,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/metal-stack-cloud/cli/cmd/config"
 	"github.com/metal-stack-cloud/cli/cmd/sorters"
+	"github.com/metal-stack/metal-lib/pkg/cmd"
 	"github.com/metal-stack/metal-lib/pkg/genericcli"
 	"github.com/metal-stack/metal-lib/pkg/pointer"
 	"github.com/spf13/cobra"
@@ -21,11 +22,9 @@ func newContextCmd(c *config.Config) *cobra.Command {
 		c: c,
 	}
 
-	contextCmd := &cobra.Command{
-		Use:     "context",
-		Aliases: []string{"ctx"},
-		Short:   "manage cli contexts",
-		Long:    "you can switch back and forth contexts with \"-\"",
+	contextCmd := cmd.NewContextCmd(&cmd.ContextConfig{
+		Short: "manage cli contexts",
+		Long:  "you can switch back and forth contexts with \"-\"",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return w.list()
@@ -33,7 +32,7 @@ func newContextCmd(c *config.Config) *cobra.Command {
 
 			return w.set(args)
 		},
-	}
+	})
 
 	contextListCmd := &cobra.Command{
 		Use:     "list",
