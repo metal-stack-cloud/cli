@@ -22,15 +22,6 @@ func newContextCmd(c *config.Config) *cobra.Command {
 		c: c,
 	}
 
-	contextCmd := cmd.ContextBaseCmd(&cmd.CmdConfig{
-		RunE: func(cmd *cobra.Command, args []string) error {
-			if len(args) == 0 {
-				return w.list()
-			}
-			return w.set(args)
-		},
-	})
-
 	contextListCmd := cmd.ContextListCmd(&cmd.CmdConfig{
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return w.list()
@@ -72,42 +63,54 @@ func newContextCmd(c *config.Config) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return w.add(args)
 		},
-	})
-	contextAddCmd.Flags().String("api-url", "", "sets the api-url for this context")
-	contextAddCmd.Flags().String("api-token", "", "sets the api-token for this context")
-	contextAddCmd.Flags().String("default-project", "", "sets a default project to act on")
-	contextAddCmd.Flags().Duration("timeout", 0, "sets a default request timeout")
-	contextAddCmd.Flags().Bool("activate", false, "immediately switches to the new context")
-	contextAddCmd.Flags().String("provider", "", "sets the login provider for this context")
+		MutateFn: func(cmd *cobra.Command) {
+			cmd.Flags().String("api-url", "", "sets the api-url for this context")
+			cmd.Flags().String("api-token", "", "sets the api-token for this context")
+			cmd.Flags().String("default-project", "", "sets a default project to act on")
+			cmd.Flags().Duration("timeout", 0, "sets a default request timeout")
+			cmd.Flags().Bool("activate", false, "immediately switches to the new context")
+			cmd.Flags().String("provider", "", "sets the login provider for this context")
 
-	genericcli.Must(contextAddCmd.MarkFlagRequired("api-token"))
+			genericcli.Must(cmd.MarkFlagRequired("api-token"))
+		},
+	})
 
 	contextUpdateCmd := cmd.ContextUpdateCmd(&cmd.CmdConfig{
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return w.update(args)
 		},
 		ValidArgsFunction: c.ContextListCompletion,
+		MutateFn: func(cmd *cobra.Command) {
+			cmd.Flags().String("api-url", "", "sets the api-url for this context")
+			cmd.Flags().String("api-token", "", "sets the api-token for this context")
+			cmd.Flags().String("default-project", "", "sets a default project to act on")
+			cmd.Flags().Duration("timeout", 0, "sets a default request timeout")
+			cmd.Flags().Bool("activate", false, "immediately switches to the new context")
+			cmd.Flags().String("provider", "", "sets the login provider for this context")
+
+			genericcli.Must(cmd.RegisterFlagCompletionFunc("default-project", c.Completion.ProjectListCompletion))
+		},
 	})
-	contextUpdateCmd.Flags().String("api-url", "", "sets the api-url for this context")
-	contextUpdateCmd.Flags().String("api-token", "", "sets the api-token for this context")
-	contextUpdateCmd.Flags().String("default-project", "", "sets a default project to act on")
-	contextUpdateCmd.Flags().Duration("timeout", 0, "sets a default request timeout")
-	contextUpdateCmd.Flags().Bool("activate", false, "immediately switches to the new context")
-	contextUpdateCmd.Flags().String("provider", "", "sets the login provider for this context")
 
-	genericcli.Must(contextUpdateCmd.RegisterFlagCompletionFunc("default-project", c.Completion.ProjectListCompletion))
-
-	contextCmd.AddCommand(
-		contextListCmd,
-		contextSwitchCmd,
-		contextAddCmd,
-		contextUpdateCmd,
-		contextRemoveCmd,
-		contextShortCmd,
-		contextSetProjectCmd,
-	)
-
-	return contextCmd
+	return cmd.ContextBaseCmd(&cmd.CmdConfig{
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
+				return w.list()
+			}
+			return w.set(args)
+		},
+		MutateFn: func(cmd *cobra.Command) {
+			cmd.AddCommand(
+				contextListCmd,
+				contextSwitchCmd,
+				contextAddCmd,
+				contextUpdateCmd,
+				contextRemoveCmd,
+				contextShortCmd,
+				contextSetProjectCmd,
+			)
+		},
+	})
 }
 
 func (c *ctx) list() error {
