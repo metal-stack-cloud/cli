@@ -22,26 +22,20 @@ func newContextCmd(c *config.Config) *cobra.Command {
 		c: c,
 	}
 
-	contextCmd := cmd.NewContextCmd(&cmd.ContextConfig{
-		Short: "manage cli contexts",
-		Long:  "you can switch back and forth contexts with \"-\"",
+	contextCmd := cmd.ContextBaseCmd(&cmd.CmdConfig{
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return w.list()
 			}
-
 			return w.set(args)
 		},
 	})
 
-	contextListCmd := &cobra.Command{
-		Use:     "list",
-		Aliases: []string{"ls"},
-		Short:   "list the configured cli contexts",
+	contextListCmd := cmd.ContextListCmd(&cmd.CmdConfig{
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return w.list()
 		},
-	}
+	})
 	contextSwitchCmd := &cobra.Command{
 		Use:     "switch <context-name>",
 		Short:   "switch the cli context",
@@ -67,24 +61,18 @@ func newContextCmd(c *config.Config) *cobra.Command {
 		},
 		ValidArgsFunction: c.Completion.ProjectListCompletion,
 	}
-	contextRemoveCmd := &cobra.Command{
-		Use:     "remove <context-name>",
-		Aliases: []string{"rm", "delete"},
-		Short:   "remove a cli context",
+	contextRemoveCmd := cmd.ContextRemoveCmd(&cmd.CmdConfig{
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return w.remove(args)
 		},
 		ValidArgsFunction: c.ContextListCompletion,
-	}
+	})
 
-	contextAddCmd := &cobra.Command{
-		Use:     "add <context-name>",
-		Aliases: []string{"create"},
-		Short:   "add a cli context",
+	contextAddCmd := cmd.ContextAddCmd(&cmd.CmdConfig{
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return w.add(args)
 		},
-	}
+	})
 	contextAddCmd.Flags().String("api-url", "", "sets the api-url for this context")
 	contextAddCmd.Flags().String("api-token", "", "sets the api-token for this context")
 	contextAddCmd.Flags().String("default-project", "", "sets a default project to act on")
@@ -94,14 +82,12 @@ func newContextCmd(c *config.Config) *cobra.Command {
 
 	genericcli.Must(contextAddCmd.MarkFlagRequired("api-token"))
 
-	contextUpdateCmd := &cobra.Command{
-		Use:   "update <context-name>",
-		Short: "update a cli context",
+	contextUpdateCmd := cmd.ContextUpdateCmd(&cmd.CmdConfig{
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return w.update(args)
 		},
 		ValidArgsFunction: c.ContextListCompletion,
-	}
+	})
 	contextUpdateCmd.Flags().String("api-url", "", "sets the api-url for this context")
 	contextUpdateCmd.Flags().String("api-token", "", "sets the api-token for this context")
 	contextUpdateCmd.Flags().String("default-project", "", "sets a default project to act on")
