@@ -45,7 +45,7 @@ func newLoginCmd(c *config.Config) *cobra.Command {
 
 	genericcli.Must(loginCmd.Flags().MarkHidden("admin-role"))
 	genericcli.Must(loginCmd.RegisterFlagCompletionFunc("provider", c.Completion.LoginProviderCompletion))
-	genericcli.Must(loginCmd.RegisterFlagCompletionFunc("context", c.ContextListCompletion))
+	genericcli.Must(loginCmd.RegisterFlagCompletionFunc("context", c.ContextConfig.ContextListCompletion))
 	genericcli.Must(loginCmd.RegisterFlagCompletionFunc("admin-role", c.Completion.TokenAdminRoleCompletion))
 
 	return loginCmd
@@ -67,7 +67,7 @@ func (l *login) login() error {
 
 	// identify the context in which to inject the token
 
-	ctxs, err := l.c.GetContexts()
+	ctxs, err := l.c.ContextConfig.GetContexts()
 	if err != nil {
 		return err
 	}
@@ -77,14 +77,14 @@ func (l *login) login() error {
 		ctxName = viper.GetString("context")
 	}
 
-	ctx, ok := ctxs.Get(ctxName)
+	ctx, ok := ctxs.GetByName(ctxName)
 	if !ok {
-		newCtx := l.c.MustDefaultContext()
+		newCtx := l.c.ContextConfig.MustDefaultContext()
 		newCtx.Name = "default"
 		if viper.IsSet("context") {
 			newCtx.Name = viper.GetString("context")
 		}
-		newCtx.ApiURL = pointer.Pointer(l.c.GetApiURL())
+		newCtx.APIURL = pointer.Pointer(l.c.GetApiURL())
 
 		ctxs.Contexts = append(ctxs.Contexts, &newCtx)
 
@@ -158,7 +158,7 @@ func (l *login) login() error {
 		token = tokenResp.Msg.Secret
 	}
 
-	ctx.Token = token
+	ctx.APIToken = token
 
 	if ctx.DefaultProject == "" {
 		mc := newApiClient(l.c.GetApiURL(), token)
@@ -177,7 +177,7 @@ func (l *login) login() error {
 		}
 	}
 
-	err = l.c.WriteContexts(ctxs)
+	err = l.c.ContextConfig.WriteContexts(ctxs)
 	if err != nil {
 		return err
 	}

@@ -12,6 +12,7 @@ import (
 
 	client "github.com/metal-stack-cloud/api/go/client"
 	"github.com/metal-stack/metal-lib/pkg/genericcli"
+	"github.com/metal-stack/metal-lib/pkg/genericcli/printers"
 	"github.com/metal-stack/v"
 
 	adminv1cmds "github.com/metal-stack-cloud/cli/cmd/admin/v1"
@@ -76,10 +77,10 @@ func newRootCmd(c *config.Config) *cobra.Command {
 	rootCmd.PersistentFlags().StringP("template", "", "", `output template for template output-format, go template format. For property names inspect the output of -o json or -o yaml for reference.`)
 	rootCmd.PersistentFlags().Bool("force-color", false, "force colored output even without tty")
 	rootCmd.PersistentFlags().Bool("debug", false, "debug output")
-	rootCmd.PersistentFlags().Duration("timeout", 0, "request timeout used for api requests")
+	rootCmd.PersistentFlags().Duration(genericcli.KeyTimeout, 0, "request timeout used for api requests")
 
-	rootCmd.PersistentFlags().String("api-url", "https://api.metalstack.cloud", "the url to the metalstack.cloud api")
-	rootCmd.PersistentFlags().String("api-token", "", "the token used for api requests")
+	rootCmd.PersistentFlags().String(genericcli.KeyAPIURL, "https://api.metalstack.cloud", "the url to the metalstack.cloud api")
+	rootCmd.PersistentFlags().String(genericcli.KeyAPIToken, "", "the token used for api requests")
 
 	genericcli.Must(viper.BindPFlags(rootCmd.PersistentFlags()))
 
@@ -98,7 +99,15 @@ func newRootCmd(c *config.Config) *cobra.Command {
 		},
 	}
 
-	rootCmd.AddCommand(newContextCmd(c), markdownCmd, newLoginCmd(c))
+	c.ContextConfig = genericcli.ContextConfig{
+		BinaryName:            config.BinaryName,
+		ConfigDirName:         config.ConfigDir,
+		Fs:                    c.Fs,
+		DescribePrinter:       func() printers.Printer { return c.DescribePrinter },
+		ProjectListCompletion: c.Completion.ProjectListCompletion,
+	}
+
+	rootCmd.AddCommand(genericcli.NewContextCmd(&c.ContextConfig), markdownCmd, newLoginCmd(c))
 	adminv1cmds.AddCmds(rootCmd, c)
 	apiv1cmds.AddCmds(rootCmd, c)
 
@@ -106,7 +115,7 @@ func newRootCmd(c *config.Config) *cobra.Command {
 }
 
 func initConfigWithViperCtx(c *config.Config) error {
-	c.Context = c.MustDefaultContext()
+	c.Context = c.ContextConfig.MustDefaultContext()
 
 	listPrinter, err := newPrinterFromCLI(c.Out)
 	if err != nil {
