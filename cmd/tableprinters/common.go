@@ -5,6 +5,7 @@ import (
 
 	adminv1 "github.com/metal-stack-cloud/api/go/admin/v1"
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
+	"github.com/metal-stack/metal-lib/pkg/genericcli"
 	"github.com/metal-stack/metal-lib/pkg/genericcli/printers"
 	"github.com/metal-stack/metal-lib/pkg/pointer"
 )
@@ -31,6 +32,9 @@ func (t *TablePrinter) ToHeaderAndRows(data any, wide bool) ([]string, [][]strin
 		return t.AuditTable(pointer.WrapInSlice(d), wide)
 	case []*apiv1.AuditTrace:
 		return t.AuditTable(d, wide)
+
+	case []*genericcli.Context:
+		return genericcli.ContextTable(data, wide)
 
 	case *apiv1.IP:
 		return t.IPTable(pointer.WrapInSlice(d), wide)

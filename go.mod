@@ -161,3 +161,5 @@ require (
 	sigs.k8s.io/structured-merge-diff/v4 v4.6.0 // indirect
 	tailscale.com v1.84.3 // indirect
 )
+
+replace github.com/metal-stack/metal-lib => /home/philipp/Projects/metal-stack/metal-lib/

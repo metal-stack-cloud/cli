@@ -9,6 +9,7 @@ import (
 	"connectrpc.com/connect"
 	"github.com/metal-stack-cloud/api/go/client"
 	"github.com/metal-stack-cloud/cli/cmd/completion"
+	constants "github.com/metal-stack-cloud/cli/cmd/console-key-constants"
 	"github.com/metal-stack/metal-lib/pkg/genericcli"
 	"github.com/metal-stack/metal-lib/pkg/genericcli/printers"
 	"github.com/metal-stack/metal-lib/pkg/pointer"
@@ -35,8 +36,8 @@ type Config struct {
 	ListPrinter     printers.Printer
 	DescribePrinter printers.Printer
 	Completion      *completion.Completion
+	ContextManager  *genericcli.ContextManager
 	Context         genericcli.Context
-	ContextConfig   genericcli.ContextConfig
 }
 
 func (c *Config) NewRequestContext() (context.Context, context.CancelFunc) {
@@ -44,12 +45,34 @@ func (c *Config) NewRequestContext() (context.Context, context.CancelFunc) {
 	if timeout == nil {
 		timeout = pointer.Pointer(30 * time.Second)
 	}
-	if viper.IsSet(genericcli.KeyTimeout) {
-		timeout = pointer.Pointer(viper.GetDuration(genericcli.KeyTimeout))
+	if viper.IsSet(constants.KeyTimeout) {
+		timeout = pointer.Pointer(viper.GetDuration(constants.KeyTimeout))
 	}
 
 	return context.WithTimeout(context.Background(), *timeout)
 }
+
+// func DefaultConfigDirectory() (string, error) {
+// 	h, err := os.UserHomeDir()
+// 	if err != nil {
+// 		return "", err
+// 	}
+
+// 	return path.Join(h, "."+ConfigDir), nil
+// }
+
+// func ConfigPath() (string, error) {
+// 	if viper.IsSet("config") {
+// 		return viper.GetString("config"), nil
+// 	}
+
+// 	dir, err := DefaultConfigDirectory()
+// 	if err != nil {
+// 		return "", err
+// 	}
+
+// 	return path.Join(dir, "config.yaml"), nil
+// }
 
 func (c *Config) GetProject() string {
 	if viper.IsSet("project") {
@@ -89,27 +112,27 @@ func (c *Config) GetTenant() (string, error) {
 }
 
 func (c *Config) GetToken() string {
-	if viper.IsSet(genericcli.KeyAPIToken) {
-		return viper.GetString(genericcli.KeyAPIToken)
+	if viper.IsSet(constants.KeyAPIToken) {
+		return viper.GetString(constants.KeyAPIToken)
 	}
 	return c.Context.APIToken
 }
 
 func (c *Config) GetApiURL() string {
-	if viper.IsSet(genericcli.KeyAPIURL) {
-		return viper.GetString(genericcli.KeyAPIURL)
+	if viper.IsSet(constants.KeyAPIURL) {
+		return viper.GetString(constants.KeyAPIURL)
 	}
 	if c.Context.APIURL != nil {
 		return *c.Context.APIURL
 	}
 
 	// fallback to the default specified by viper
-	return viper.GetString(genericcli.KeyAPIURL)
+	return viper.GetString(constants.KeyAPIURL)
 }
 
 func (c *Config) GetProvider() string {
-	if viper.IsSet(genericcli.KeyProvider) {
-		return viper.GetString(genericcli.KeyProvider)
+	if viper.IsSet(constants.KeyProvider) {
+		return viper.GetString(constants.KeyProvider)
 	}
 	return c.Context.Provider
 }

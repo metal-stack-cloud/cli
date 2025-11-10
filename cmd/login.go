@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"cmp"
 	"context"
 	"errors"
 	"fmt"
@@ -45,7 +46,7 @@ func newLoginCmd(c *config.Config) *cobra.Command {
 
 	genericcli.Must(loginCmd.Flags().MarkHidden("admin-role"))
 	genericcli.Must(loginCmd.RegisterFlagCompletionFunc("provider", c.Completion.LoginProviderCompletion))
-	genericcli.Must(loginCmd.RegisterFlagCompletionFunc("context", c.ContextConfig.ContextListCompletion))
+	genericcli.Must(loginCmd.RegisterFlagCompletionFunc("context", c.ContextManager.ContextListCompletion))
 	genericcli.Must(loginCmd.RegisterFlagCompletionFunc("admin-role", c.Completion.TokenAdminRoleCompletion))
 
 	return loginCmd
@@ -64,38 +65,6 @@ func (l *login) login() error {
 	if provider == "" {
 		return errors.New("provider must be specified")
 	}
-
-	// identify the context in which to inject the token
-
-	ctxs, err := l.c.ContextConfig.GetContexts()
-	if err != nil {
-		return err
-	}
-
-	ctxName := ctxs.CurrentContext
-	if viper.IsSet("context") {
-		ctxName = viper.GetString("context")
-	}
-
-	ctx, ok := ctxs.GetByName(ctxName)
-	if !ok {
-		newCtx := l.c.ContextConfig.MustDefaultContext()
-		newCtx.Name = "default"
-		if viper.IsSet("context") {
-			newCtx.Name = viper.GetString("context")
-		}
-		newCtx.APIURL = pointer.Pointer(l.c.GetApiURL())
-
-		ctxs.Contexts = append(ctxs.Contexts, &newCtx)
-
-		ctx = &newCtx
-	}
-
-	ctx.Provider = provider
-
-	// switch into new context
-	ctxs.PreviousContext = ctxs.CurrentContext
-	ctxs.CurrentContext = ctx.Name
 
 	tokenChan := make(chan string)
 
@@ -158,8 +127,21 @@ func (l *login) login() error {
 		token = tokenResp.Msg.Secret
 	}
 
-	ctx.APIToken = token
+	var ctx *genericcli.Context
+	var defaultCtx bool
+	name := viper.GetString("context")
 
+	if viper.IsSet("context") {
+		ctx, err = l.c.ContextManager.Get(name)
+		if err != nil {
+			return err
+		}
+	} else {
+		ctx, err = l.c.ContextManager.GetCurrentContext()
+		defaultCtx = err != nil || ctx == nil
+	}
+
+	var project string
 	if ctx.DefaultProject == "" {
 		mc := newApiClient(l.c.GetApiURL(), token)
 
@@ -173,16 +155,40 @@ func (l *login) login() error {
 		})
 
 		if idx >= 0 {
-			ctx.DefaultProject = projects.Msg.Projects[idx].Uuid
+			project = projects.Msg.Projects[idx].Uuid
 		}
 	}
 
-	err = l.c.ContextConfig.WriteContexts(ctxs)
+	if defaultCtx {
+		ctx, err = l.c.ContextManager.Create(&genericcli.Context{
+			Name:           genericcli.DefaultContextName,
+			APIURL:         pointer.PointerOrNil((l.c.GetApiURL())),
+			APIToken:       token,
+			DefaultProject: project,
+			// Timeout:        &0,
+			Provider:  provider,
+			IsCurrent: true,
+		})
+		if err != nil {
+			return err
+		}
+		_, _ = fmt.Fprintf(l.c.Out, "%s Context \"%s\" is actived \n", color.GreenString("✔"), color.GreenString(ctx.Name))
+		_, _ = fmt.Fprintf(l.c.Out, "%s Login successful!\n", color.GreenString("✔"))
+		return nil
+	}
+
+	_, err = l.c.ContextManager.Update(&genericcli.ContextUpdateRequest{
+		Name:           ctx.Name,
+		APIURL:         ctx.APIURL,
+		APIToken:       &token,
+		DefaultProject: pointer.Pointer(cmp.Or(ctx.DefaultProject, project)),
+		Provider:       &provider,
+		Activate:       true,
+	})
 	if err != nil {
 		return err
 	}
-
-	_, _ = fmt.Fprintf(l.c.Out, "%s login successful! Updated and activated context \"%s\"\n", color.GreenString("✔"), color.GreenString(ctx.Name))
+	_, _ = fmt.Fprintf(l.c.Out, "%s Login successful!\n", color.GreenString("✔"))
 
 	return nil
 }

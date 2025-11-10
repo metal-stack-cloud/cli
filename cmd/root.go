@@ -17,6 +17,7 @@ import (
 
 	adminv1cmds "github.com/metal-stack-cloud/cli/cmd/admin/v1"
 	apiv1cmds "github.com/metal-stack-cloud/cli/cmd/api/v1"
+	constants "github.com/metal-stack-cloud/cli/cmd/console-key-constants"
 
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
 
@@ -77,10 +78,10 @@ func newRootCmd(c *config.Config) *cobra.Command {
 	rootCmd.PersistentFlags().StringP("template", "", "", `output template for template output-format, go template format. For property names inspect the output of -o json or -o yaml for reference.`)
 	rootCmd.PersistentFlags().Bool("force-color", false, "force colored output even without tty")
 	rootCmd.PersistentFlags().Bool("debug", false, "debug output")
-	rootCmd.PersistentFlags().Duration(genericcli.KeyTimeout, 0, "request timeout used for api requests")
+	rootCmd.PersistentFlags().Duration(constants.KeyTimeout, 0, "request timeout used for api requests")
 
-	rootCmd.PersistentFlags().String(genericcli.KeyAPIURL, "https://api.metalstack.cloud", "the url to the metalstack.cloud api")
-	rootCmd.PersistentFlags().String(genericcli.KeyAPIToken, "", "the token used for api requests")
+	rootCmd.PersistentFlags().String(constants.KeyAPIURL, "https://api.metalstack.cloud", "the url to the metalstack.cloud api")
+	rootCmd.PersistentFlags().String(constants.KeyAPIToken, "", "the token used for api requests")
 
 	genericcli.Must(viper.BindPFlags(rootCmd.PersistentFlags()))
 
@@ -99,15 +100,18 @@ func newRootCmd(c *config.Config) *cobra.Command {
 		},
 	}
 
-	c.ContextConfig = genericcli.ContextConfig{
+	contextConfig := &genericcli.ContextConfig{
 		BinaryName:            config.BinaryName,
 		ConfigDirName:         config.ConfigDir,
 		Fs:                    c.Fs,
 		DescribePrinter:       func() printers.Printer { return c.DescribePrinter },
+		ListPrinter:           func() printers.Printer { return c.ListPrinter },
 		ProjectListCompletion: c.Completion.ProjectListCompletion,
 	}
 
-	rootCmd.AddCommand(genericcli.NewContextCmd(&c.ContextConfig), markdownCmd, newLoginCmd(c))
+	c.ContextManager = genericcli.NewContextManager(contextConfig)
+
+	rootCmd.AddCommand(genericcli.NewContextCmd(contextConfig), markdownCmd, newLoginCmd(c))
 	adminv1cmds.AddCmds(rootCmd, c)
 	apiv1cmds.AddCmds(rootCmd, c)
 
@@ -115,7 +119,7 @@ func newRootCmd(c *config.Config) *cobra.Command {
 }
 
 func initConfigWithViperCtx(c *config.Config) error {
-	c.Context = c.ContextConfig.MustDefaultContext()
+	c.Context = *c.ContextManager.GetContextCurrentOrDefault()
 
 	listPrinter, err := newPrinterFromCLI(c.Out)
 	if err != nil {
