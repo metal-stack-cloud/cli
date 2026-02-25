@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	context0 "context"
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -128,7 +128,7 @@ func initConfigWithViperCtx(c *config.Config) error {
 
 	c.Client = mc
 	c.Completion.Client = mc
-	c.Completion.Ctx = context0.Background()
+	c.Completion.Ctx = context.Background()
 	c.Completion.Project = c.GetProject()
 
 	return nil
