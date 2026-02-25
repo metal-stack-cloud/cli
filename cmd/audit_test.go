@@ -151,7 +151,7 @@ TIME                 REQUEST - ID                          USER    PROJECT    ME
 			WantWideTable: new(`
 TIME                 REQUEST - ID                          USER    PROJECT    METHOD     PHASE                SOURCE - IP  CODE  BODY      
 2022-05-19 01:02:03  c40ad996-e1fd-4511-a7bf-418219cb8d91  a-user  project-a  /apiv1/ip  AUDIT_PHASE_REQUEST  192.168.2.1  OK    {         
-																																		"a":  
+																																		"a": "b" 
 																																	}
 			`),
 			Template: new(`{{ date "02/01/2006" .timestamp }} {{ .uuid }}`),
