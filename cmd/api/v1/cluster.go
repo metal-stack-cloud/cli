@@ -363,7 +363,6 @@ func ClusterResponseToUpdate(r *apiv1.Cluster) *apiv1.ClusterServiceUpdateReques
 func clusterWorkersToWorkerUpdate(workers []*apiv1.Worker) []*apiv1.WorkerUpdate {
 	var res []*apiv1.WorkerUpdate
 	for _, worker := range workers {
-		worker := worker
 
 		res = append(res, clusterWorkerToWorkerUpdate(worker))
 	}
@@ -374,11 +373,11 @@ func clusterWorkersToWorkerUpdate(workers []*apiv1.Worker) []*apiv1.WorkerUpdate
 func clusterWorkerToWorkerUpdate(worker *apiv1.Worker) *apiv1.WorkerUpdate {
 	return &apiv1.WorkerUpdate{
 		Name:           worker.Name,
-		MachineType:    pointer.Pointer(worker.MachineType),
-		Minsize:        pointer.Pointer(worker.Minsize),
-		Maxsize:        pointer.Pointer(worker.Maxsize),
-		Maxsurge:       pointer.Pointer(worker.Maxsurge),
-		Maxunavailable: pointer.Pointer(worker.Maxunavailable),
+		MachineType:    new(worker.MachineType),
+		Minsize:        new(worker.Minsize),
+		Maxsize:        new(worker.Maxsize),
+		Maxsurge:       new(worker.Maxsurge),
+		Maxunavailable: new(worker.Maxunavailable),
 	}
 }
 
@@ -443,7 +442,6 @@ func (c *cluster) updateFromCLI(args []string) (*apiv1.ClusterServiceUpdateReque
 		}
 
 		for _, worker := range cluster.Workers {
-			worker := worker
 			if worker.Name == viper.GetString("worker-group") {
 				return worker, nil
 			}
@@ -515,25 +513,24 @@ func (c *cluster) updateFromCLI(args []string) (*apiv1.ClusterServiceUpdateReque
 				}
 
 				for _, worker := range cluster.Workers {
-					worker := worker
 
 					workerUpdate := clusterWorkerToWorkerUpdate(worker)
 
 					if worker.Name == selectedGroup.Name {
 						if viper.IsSet("worker-min") {
-							workerUpdate.Minsize = pointer.Pointer(viper.GetUint32("worker-min"))
+							workerUpdate.Minsize = new(viper.GetUint32("worker-min"))
 						}
 						if viper.IsSet("worker-max") {
-							workerUpdate.Maxsize = pointer.Pointer(viper.GetUint32("worker-max"))
+							workerUpdate.Maxsize = new(viper.GetUint32("worker-max"))
 						}
 						if viper.IsSet("worker-max-surge") {
-							workerUpdate.Maxsurge = pointer.Pointer(viper.GetUint32("worker-max-surge"))
+							workerUpdate.Maxsurge = new(viper.GetUint32("worker-max-surge"))
 						}
 						if viper.IsSet("worker-max-unavailable") {
-							workerUpdate.Maxunavailable = pointer.Pointer(viper.GetUint32("worker-max-unavailable"))
+							workerUpdate.Maxunavailable = new(viper.GetUint32("worker-max-unavailable"))
 						}
 						if viper.IsSet("worker-type") {
-							workerUpdate.MachineType = pointer.Pointer(viper.GetString("worker-type"))
+							workerUpdate.MachineType = new(viper.GetString("worker-type"))
 						}
 					}
 

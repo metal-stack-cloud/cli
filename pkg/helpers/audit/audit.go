@@ -7,7 +7,6 @@ import (
 	"time"
 
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
-	"github.com/metal-stack/metal-lib/pkg/pointer"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -32,7 +31,7 @@ func ToPhase(phase string) *apiv1.AuditPhase {
 		return nil
 	}
 
-	return pointer.Pointer(apiv1.AuditPhase(p))
+	return new(apiv1.AuditPhase(p))
 }
 
 func TryPrettifyBody(trace *apiv1.AuditTrace) *apiv1.AuditTrace {
@@ -41,7 +40,7 @@ func TryPrettifyBody(trace *apiv1.AuditTrace) *apiv1.AuditTrace {
 		body := map[string]any{}
 		if err := json.Unmarshal([]byte(trimmed), &body); err == nil {
 			if pretty, err := json.MarshalIndent(body, "", "    "); err == nil {
-				trace.Body = pointer.Pointer(string(pretty))
+				trace.Body = new(string(pretty))
 			}
 		}
 	}

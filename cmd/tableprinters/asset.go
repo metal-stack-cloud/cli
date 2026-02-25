@@ -25,13 +25,11 @@ func (t *TablePrinter) AssetTable(data *apiv1.AssetServiceListResponse, _ bool) 
 
 		var machineTypes []string
 		for _, p := range asset.MachineTypes {
-			p := p
 
 			machineTypes = append(machineTypes, p.Id)
 		}
 
 		for _, p := range region.Partitions {
-			p := p
 
 			rows = append(rows, []string{region.Id, p.Id, strings.Join(machineTypes, ",")})
 		}

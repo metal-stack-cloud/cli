@@ -10,7 +10,6 @@ import (
 	"github.com/metal-stack-cloud/cli/cmd/sorters"
 	"github.com/metal-stack/metal-lib/pkg/genericcli"
 	"github.com/metal-stack/metal-lib/pkg/genericcli/printers"
-	"github.com/metal-stack/metal-lib/pkg/pointer"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -67,7 +66,7 @@ func (p *project) List() ([]*apiv1.Project, error) {
 
 	if viper.IsSet("limit") {
 		req.Paging = &apiv1.Paging{
-			Count: pointer.Pointer(viper.GetUint64("limit")),
+			Count: new(viper.GetUint64("limit")),
 			Page:  nextPage,
 		}
 	}

@@ -11,7 +11,6 @@ import (
 	"github.com/metal-stack-cloud/cli/cmd/sorters"
 	"github.com/metal-stack/metal-lib/pkg/genericcli"
 	"github.com/metal-stack/metal-lib/pkg/genericcli/printers"
-	"github.com/metal-stack/metal-lib/pkg/pointer"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -172,11 +171,11 @@ func (c *tenant) List() ([]*apiv1.Tenant, error) {
 	req := &adminv1.TenantServiceListRequest{}
 
 	if viper.IsSet("admitted") {
-		req.Admitted = pointer.Pointer(viper.GetBool("admitted"))
+		req.Admitted = new(viper.GetBool("admitted"))
 	}
 	if viper.IsSet("limit") {
 		req.Paging = &apiv1.Paging{
-			Count: pointer.Pointer(viper.GetUint64("limit")),
+			Count: new(viper.GetUint64("limit")),
 			Page:  nextpage,
 		}
 	}
@@ -185,10 +184,10 @@ func (c *tenant) List() ([]*apiv1.Tenant, error) {
 		req.OauthProvider = &provider
 	}
 	if viper.IsSet("email") {
-		req.Email = pointer.Pointer(viper.GetString("email"))
+		req.Email = new(viper.GetString("email"))
 	}
 	if viper.IsSet("tenant") {
-		req.Tenant = pointer.Pointer(viper.GetString("tenant"))
+		req.Tenant = new(viper.GetString("tenant"))
 	}
 
 	resp, err := c.c.Client.Adminv1().Tenant().List(ctx, connect.NewRequest(req))

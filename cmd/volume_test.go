@@ -6,7 +6,6 @@ import (
 	"connectrpc.com/connect"
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
 	apitests "github.com/metal-stack-cloud/api/go/tests"
-	"github.com/metal-stack/metal-lib/pkg/pointer"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -114,22 +113,22 @@ func Test_VolumeCmd_MultiResult(t *testing.T) {
 				volume1(),
 				volume2(),
 			},
-			WantTable: pointer.Pointer(`
+			WantTable: new(`
 ID                                    NAME     SIZE     USAGE  REPLICAS  CLUSTER NAME  STORAGE CLASS   PROJECT  PARTITION
 0372d029-1077-4e9b-b303-7d64ad5496fd  volume2  1.0 KiB  42 B   0         cluster-a2    storageclass-a  a        partition-a
 bd0f32e2-eabf-4eb7-a0db-25fc993c3678  volume1  1.0 KiB  42 B   0         cluster-a1    storageclass-a  a        partition-a
 		`),
-			WantWideTable: pointer.Pointer(`
+			WantWideTable: new(`
 ID                                    NAME     SIZE     USAGE  REPLICAS  CLUSTER NAME  STORAGE CLASS   PROJECT  PARTITION    NODES  LABELS
 0372d029-1077-4e9b-b303-7d64ad5496fd  volume2  1.0 KiB  42 B   0         cluster-a2    storageclass-a  a        partition-a         bar=baz
 bd0f32e2-eabf-4eb7-a0db-25fc993c3678  volume1  1.0 KiB  42 B   0         cluster-a1    storageclass-a  a        partition-a         foo=bar
 		`),
-			Template: pointer.Pointer("{{ .uuid }} {{ .project }}"),
-			WantTemplate: pointer.Pointer(`
+			Template: new("{{ .uuid }} {{ .project }}"),
+			WantTemplate: new(`
 bd0f32e2-eabf-4eb7-a0db-25fc993c3678 a
 0372d029-1077-4e9b-b303-7d64ad5496fd a
 		`),
-			WantMarkdown: pointer.Pointer(`
+			WantMarkdown: new(`
 | ID                                   | NAME    | SIZE    | USAGE | REPLICAS | CLUSTER NAME | STORAGE CLASS  | PROJECT | PARTITION   |
 |--------------------------------------|---------|---------|-------|----------|--------------|----------------|---------|-------------|
 | 0372d029-1077-4e9b-b303-7d64ad5496fd | volume2 | 1.0 KiB | 42 B  | 0        | cluster-a2   | storageclass-a | a       | partition-a |
@@ -166,22 +165,22 @@ bd0f32e2-eabf-4eb7-a0db-25fc993c3678 a
 				volume1(),
 				volume2(),
 			},
-			WantTable: pointer.Pointer(`
+			WantTable: new(`
 ID                                    NAME     SIZE     USAGE  REPLICAS  CLUSTER NAME  STORAGE CLASS   PROJECT  PARTITION    
 0372d029-1077-4e9b-b303-7d64ad5496fd  volume2  1.0 KiB  42 B   0         cluster-a2    storageclass-a  a        partition-a  
 bd0f32e2-eabf-4eb7-a0db-25fc993c3678  volume1  1.0 KiB  42 B   0         cluster-a1    storageclass-a  a        partition-a
 		`),
-			WantWideTable: pointer.Pointer(`
+			WantWideTable: new(`
 ID                                    NAME     SIZE     USAGE  REPLICAS  CLUSTER NAME  STORAGE CLASS   PROJECT  PARTITION    NODES  LABELS   
 0372d029-1077-4e9b-b303-7d64ad5496fd  volume2  1.0 KiB  42 B   0         cluster-a2    storageclass-a  a        partition-a         bar=baz  
 bd0f32e2-eabf-4eb7-a0db-25fc993c3678  volume1  1.0 KiB  42 B   0         cluster-a1    storageclass-a  a        partition-a         foo=bar
 		`),
-			Template: pointer.Pointer("{{ .uuid }} {{ .project }}"),
-			WantTemplate: pointer.Pointer(`
+			Template: new("{{ .uuid }} {{ .project }}"),
+			WantTemplate: new(`
 bd0f32e2-eabf-4eb7-a0db-25fc993c3678 a
 0372d029-1077-4e9b-b303-7d64ad5496fd a
 		`),
-			WantMarkdown: pointer.Pointer(`
+			WantMarkdown: new(`
 | ID                                   | NAME    | SIZE    | USAGE | REPLICAS | CLUSTER NAME | STORAGE CLASS  | PROJECT | PARTITION   |
 |--------------------------------------|---------|---------|-------|----------|--------------|----------------|---------|-------------|
 | 0372d029-1077-4e9b-b303-7d64ad5496fd | volume2 | 1.0 KiB | 42 B  | 0        | cluster-a2   | storageclass-a | a       | partition-a |
@@ -207,7 +206,7 @@ bd0f32e2-eabf-4eb7-a0db-25fc993c3678 a
 					Volume: func(m *mock.Mock) {
 						m.On("List", mock.Anything, connect.NewRequest(&apiv1.VolumeServiceListRequest{
 							Project: "a",
-							Name:    pointer.Pointer("volume1"),
+							Name:    new("volume1"),
 						})).Return(&connect.Response[apiv1.VolumeServiceListResponse]{Msg: &apiv1.VolumeServiceListResponse{
 							Volumes: []*apiv1.Volume{
 								volume1(),
@@ -220,19 +219,19 @@ bd0f32e2-eabf-4eb7-a0db-25fc993c3678 a
 			Want: []*apiv1.Volume{
 				volume1(),
 			},
-			WantTable: pointer.Pointer(`
+			WantTable: new(`
 ID                                    NAME     SIZE     USAGE  REPLICAS  CLUSTER NAME  STORAGE CLASS   PROJECT  PARTITION
 bd0f32e2-eabf-4eb7-a0db-25fc993c3678  volume1  1.0 KiB  42 B   0         cluster-a1    storageclass-a  a        partition-a
 		`),
-			WantWideTable: pointer.Pointer(`
+			WantWideTable: new(`
 ID                                    NAME     SIZE     USAGE  REPLICAS  CLUSTER NAME  STORAGE CLASS   PROJECT  PARTITION    NODES  LABELS
 bd0f32e2-eabf-4eb7-a0db-25fc993c3678  volume1  1.0 KiB  42 B   0         cluster-a1    storageclass-a  a        partition-a         foo=bar
 		`),
-			Template: pointer.Pointer("{{ .uuid }} {{ .project }}"),
-			WantTemplate: pointer.Pointer(`
+			Template: new("{{ .uuid }} {{ .project }}"),
+			WantTemplate: new(`
 bd0f32e2-eabf-4eb7-a0db-25fc993c3678 a
 		`),
-			WantMarkdown: pointer.Pointer(`
+			WantMarkdown: new(`
 | ID                                   | NAME    | SIZE    | USAGE | REPLICAS | CLUSTER NAME | STORAGE CLASS  | PROJECT | PARTITION   |
 |--------------------------------------|---------|---------|-------|----------|--------------|----------------|---------|-------------|
 | bd0f32e2-eabf-4eb7-a0db-25fc993c3678 | volume1 | 1.0 KiB | 42 B  | 0        | cluster-a1   | storageclass-a | a       | partition-a |
@@ -270,17 +269,17 @@ func Test_VolumeCmd_SingleResult(t *testing.T) {
 				},
 			},
 			Want: volume1(),
-			WantTable: pointer.Pointer(`
+			WantTable: new(`
 ID                                    NAME     SIZE     USAGE  REPLICAS  CLUSTER NAME  STORAGE CLASS   PROJECT  PARTITION    
 bd0f32e2-eabf-4eb7-a0db-25fc993c3678  volume1  1.0 KiB  42 B   0         cluster-a1    storageclass-a  a        partition-a
 `),
-			WantWideTable: pointer.Pointer(`
+			WantWideTable: new(`
 ID                                    NAME     SIZE     USAGE  REPLICAS  CLUSTER NAME  STORAGE CLASS   PROJECT  PARTITION    NODES  LABELS   
 bd0f32e2-eabf-4eb7-a0db-25fc993c3678  volume1  1.0 KiB  42 B   0         cluster-a1    storageclass-a  a        partition-a         foo=bar
 `),
-			Template:     pointer.Pointer("{{ .uuid }} {{ .project }}"),
-			WantTemplate: pointer.Pointer(`bd0f32e2-eabf-4eb7-a0db-25fc993c3678 a`),
-			WantMarkdown: pointer.Pointer(`
+			Template:     new("{{ .uuid }} {{ .project }}"),
+			WantTemplate: new(`bd0f32e2-eabf-4eb7-a0db-25fc993c3678 a`),
+			WantMarkdown: new(`
 | ID                                   | NAME    | SIZE    | USAGE | REPLICAS | CLUSTER NAME | STORAGE CLASS  | PROJECT | PARTITION   |
 |--------------------------------------|---------|---------|-------|----------|--------------|----------------|---------|-------------|
 | bd0f32e2-eabf-4eb7-a0db-25fc993c3678 | volume1 | 1.0 KiB | 42 B  | 0        | cluster-a1   | storageclass-a | a       | partition-a |
@@ -309,17 +308,17 @@ bd0f32e2-eabf-4eb7-a0db-25fc993c3678  volume1  1.0 KiB  42 B   0         cluster
 				},
 			},
 			Want: volume2(),
-			WantTable: pointer.Pointer(`
+			WantTable: new(`
 ID                                    NAME     SIZE     USAGE  REPLICAS  CLUSTER NAME  STORAGE CLASS   PROJECT  PARTITION    
 0372d029-1077-4e9b-b303-7d64ad5496fd  volume2  1.0 KiB  42 B   0         cluster-a2    storageclass-a  a        partition-a
 `),
-			WantWideTable: pointer.Pointer(`
+			WantWideTable: new(`
 ID                                    NAME     SIZE     USAGE  REPLICAS  CLUSTER NAME  STORAGE CLASS   PROJECT  PARTITION    NODES  LABELS   
 0372d029-1077-4e9b-b303-7d64ad5496fd  volume2  1.0 KiB  42 B   0         cluster-a2    storageclass-a  a        partition-a         bar=baz
 `),
-			Template:     pointer.Pointer("{{ .uuid }} {{ .project }}"),
-			WantTemplate: pointer.Pointer(`0372d029-1077-4e9b-b303-7d64ad5496fd a`),
-			WantMarkdown: pointer.Pointer(`
+			Template:     new("{{ .uuid }} {{ .project }}"),
+			WantTemplate: new(`0372d029-1077-4e9b-b303-7d64ad5496fd a`),
+			WantMarkdown: new(`
 | ID                                   | NAME    | SIZE    | USAGE | REPLICAS | CLUSTER NAME | STORAGE CLASS  | PROJECT | PARTITION   |
 |--------------------------------------|---------|---------|-------|----------|--------------|----------------|---------|-------------|
 | 0372d029-1077-4e9b-b303-7d64ad5496fd | volume2 | 1.0 KiB | 42 B  | 0        | cluster-a2   | storageclass-a | a       | partition-a |
@@ -348,17 +347,17 @@ ID                                    NAME     SIZE     USAGE  REPLICAS  CLUSTER
 				},
 			},
 			Want: volume1(),
-			WantTable: pointer.Pointer(`
+			WantTable: new(`
 ID                                    NAME     SIZE     USAGE  REPLICAS  CLUSTER NAME  STORAGE CLASS   PROJECT  PARTITION    
 bd0f32e2-eabf-4eb7-a0db-25fc993c3678  volume1  1.0 KiB  42 B   0         cluster-a1    storageclass-a  a        partition-a
 `),
-			WantWideTable: pointer.Pointer(`
+			WantWideTable: new(`
 ID                                    NAME     SIZE     USAGE  REPLICAS  CLUSTER NAME  STORAGE CLASS   PROJECT  PARTITION    NODES  LABELS   
 bd0f32e2-eabf-4eb7-a0db-25fc993c3678  volume1  1.0 KiB  42 B   0         cluster-a1    storageclass-a  a        partition-a         foo=bar
 `),
-			Template:     pointer.Pointer("{{ .uuid }} {{ .project }}"),
-			WantTemplate: pointer.Pointer(`bd0f32e2-eabf-4eb7-a0db-25fc993c3678 a`),
-			WantMarkdown: pointer.Pointer(`
+			Template:     new("{{ .uuid }} {{ .project }}"),
+			WantTemplate: new(`bd0f32e2-eabf-4eb7-a0db-25fc993c3678 a`),
+			WantMarkdown: new(`
 | ID                                   | NAME    | SIZE    | USAGE | REPLICAS | CLUSTER NAME | STORAGE CLASS  | PROJECT | PARTITION   |
 |--------------------------------------|---------|---------|-------|----------|--------------|----------------|---------|-------------|
 | bd0f32e2-eabf-4eb7-a0db-25fc993c3678 | volume1 | 1.0 KiB | 42 B  | 0        | cluster-a1   | storageclass-a | a       | partition-a |
@@ -407,17 +406,17 @@ bd0f32e2-eabf-4eb7-a0db-25fc993c3678  volume1  1.0 KiB  42 B   0         cluster
 					Value: "world",
 				},
 			}),
-			WantTable: pointer.Pointer(`
+			WantTable: new(`
 ID                                    NAME     SIZE     USAGE  REPLICAS  CLUSTER NAME  STORAGE CLASS   PROJECT  PARTITION    
 bd0f32e2-eabf-4eb7-a0db-25fc993c3678  volume1  1.0 KiB  42 B   0         cluster-a1    storageclass-a  a        partition-a
 `),
-			WantWideTable: pointer.Pointer(`
+			WantWideTable: new(`
 ID                                    NAME     SIZE     USAGE  REPLICAS  CLUSTER NAME  STORAGE CLASS   PROJECT  PARTITION    NODES  LABELS       
 bd0f32e2-eabf-4eb7-a0db-25fc993c3678  volume1  1.0 KiB  42 B   0         cluster-a1    storageclass-a  a        partition-a         hello=world
 `),
-			Template:     pointer.Pointer("{{ .uuid }} {{ .project }}"),
-			WantTemplate: pointer.Pointer(`bd0f32e2-eabf-4eb7-a0db-25fc993c3678 a`),
-			WantMarkdown: pointer.Pointer(`
+			Template:     new("{{ .uuid }} {{ .project }}"),
+			WantTemplate: new(`bd0f32e2-eabf-4eb7-a0db-25fc993c3678 a`),
+			WantMarkdown: new(`
 | ID                                   | NAME    | SIZE    | USAGE | REPLICAS | CLUSTER NAME | STORAGE CLASS  | PROJECT | PARTITION   |
 |--------------------------------------|---------|---------|-------|----------|--------------|----------------|---------|-------------|
 | bd0f32e2-eabf-4eb7-a0db-25fc993c3678 | volume1 | 1.0 KiB | 42 B  | 0        | cluster-a1   | storageclass-a | a       | partition-a |

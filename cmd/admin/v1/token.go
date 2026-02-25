@@ -10,7 +10,6 @@ import (
 	"github.com/metal-stack-cloud/cli/cmd/sorters"
 	"github.com/metal-stack/metal-lib/pkg/genericcli"
 	"github.com/metal-stack/metal-lib/pkg/genericcli/printers"
-	"github.com/metal-stack/metal-lib/pkg/pointer"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -58,7 +57,7 @@ func (c *token) List() ([]*apiv1.Token, error) {
 	req := &adminv1.TokenServiceListRequest{}
 
 	if viper.IsSet("user") {
-		req.UserId = pointer.Pointer(viper.GetString("user"))
+		req.UserId = new(viper.GetString("user"))
 	}
 
 	resp, err := c.c.Client.Adminv1().Token().List(ctx, connect.NewRequest(req))

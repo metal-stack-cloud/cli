@@ -9,7 +9,6 @@ import (
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
 	apitests "github.com/metal-stack-cloud/api/go/tests"
 	v1 "github.com/metal-stack-cloud/cli/cmd/api/v1"
-	"github.com/metal-stack/metal-lib/pkg/pointer"
 	"github.com/metal-stack/metal-lib/pkg/tag"
 	"github.com/metal-stack/metal-lib/pkg/testcommon"
 	"github.com/spf13/afero"
@@ -70,22 +69,22 @@ func Test_IPCmd_MultiResult(t *testing.T) {
 				ip1(),
 				ip2(),
 			},
-			WantTable: pointer.Pointer(`
+			WantTable: new(`
 IP       PROJECT  ID                                    TYPE       NAME  ATTACHED SERVICE  
 1.1.1.1  a        2e0144a2-09ef-42b7-b629-4263295db6e8  static     a     ingress-nginx     
 4.3.2.1  b        9cef40ec-29c6-4dfa-aee8-47ee1f49223d  ephemeral  b
 `),
-			WantWideTable: pointer.Pointer(`
+			WantWideTable: new(`
 IP       PROJECT  ID                                    TYPE       NAME  DESCRIPTION    LABELS                                                                       
 1.1.1.1  a        2e0144a2-09ef-42b7-b629-4263295db6e8  static     a     a description  cluster.metal-stack.io/id/namespace/service=<cluster>/default/ingress-nginx  
 4.3.2.1  b        9cef40ec-29c6-4dfa-aee8-47ee1f49223d  ephemeral  b     b description  a=b
 `),
-			Template: pointer.Pointer("{{ .ip }} {{ .project }}"),
-			WantTemplate: pointer.Pointer(`
+			Template: new("{{ .ip }} {{ .project }}"),
+			WantTemplate: new(`
 1.1.1.1 a
 4.3.2.1 b
 			`),
-			WantMarkdown: pointer.Pointer(`
+			WantMarkdown: new(`
 | IP      | PROJECT | ID                                   | TYPE      | NAME | ATTACHED SERVICE |
 |---------|---------|--------------------------------------|-----------|------|------------------|
 | 1.1.1.1 | a       | 2e0144a2-09ef-42b7-b629-4263295db6e8 | static    | a    | ingress-nginx    |
@@ -213,19 +212,19 @@ func Test_IPCmd_SingleResult(t *testing.T) {
 				},
 			},
 			Want: ip1(),
-			WantTable: pointer.Pointer(`
+			WantTable: new(`
 IP       PROJECT  ID                                    TYPE    NAME  ATTACHED SERVICE  
 1.1.1.1  a        2e0144a2-09ef-42b7-b629-4263295db6e8  static  a     ingress-nginx
 `),
-			WantWideTable: pointer.Pointer(`
+			WantWideTable: new(`
 IP       PROJECT  ID                                    TYPE    NAME  DESCRIPTION    LABELS                                                                       
 1.1.1.1  a        2e0144a2-09ef-42b7-b629-4263295db6e8  static  a     a description  cluster.metal-stack.io/id/namespace/service=<cluster>/default/ingress-nginx
 `),
-			Template: pointer.Pointer("{{ .ip }} {{ .project }}"),
-			WantTemplate: pointer.Pointer(`
+			Template: new("{{ .ip }} {{ .project }}"),
+			WantTemplate: new(`
 1.1.1.1 a
 			`),
-			WantMarkdown: pointer.Pointer(`
+			WantMarkdown: new(`
 | IP      | PROJECT | ID                                   | TYPE   | NAME | ATTACHED SERVICE |
 |---------|---------|--------------------------------------|--------|------|------------------|
 | 1.1.1.1 | a       | 2e0144a2-09ef-42b7-b629-4263295db6e8 | static | a    | ingress-nginx    |

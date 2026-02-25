@@ -8,7 +8,6 @@ import (
 	adminv1 "github.com/metal-stack-cloud/api/go/admin/v1"
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
 	apitests "github.com/metal-stack-cloud/api/go/tests"
-	"github.com/metal-stack/metal-lib/pkg/pointer"
 	"github.com/stretchr/testify/mock"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -78,22 +77,22 @@ func Test_TenantCmd_MultiResult(t *testing.T) {
 					},
 				},
 			},
-			WantTable: pointer.Pointer(`
+			WantTable: new(`
 ID        NAME     EMAIL             PROVIDER                REGISTERED    ADMITTED  TERMS AND CONDITIONS
 loginTwo  nameTwo  testtwo@mail.com  O_AUTH_PROVIDER_AZURE   1 minute ago  true      true
 loginOne  nameOne  testone@mail.com  O_AUTH_PROVIDER_GITHUB  1 hour ago    false     false
 `),
-			WantWideTable: pointer.Pointer(`
+			WantWideTable: new(`
 ID        NAME     EMAIL             PROVIDER                REGISTERED    ADMITTED  TERMS AND CONDITIONS
 loginTwo  nameTwo  testtwo@mail.com  O_AUTH_PROVIDER_AZURE   1 minute ago  true      true
 loginOne  nameOne  testone@mail.com  O_AUTH_PROVIDER_GITHUB  1 hour ago    false     false
 `),
-			Template: pointer.Pointer("{{ .login }} {{ .name }} {{ .email }} {{ .oauth_provider }} {{ if .admitted }}true{{ else }}false{{ end }} {{ if .terms_and_conditions.accepted }}true{{ else }}false{{ end }}"),
-			WantTemplate: pointer.Pointer(`
+			Template: new("{{ .login }} {{ .name }} {{ .email }} {{ .oauth_provider }} {{ if .admitted }}true{{ else }}false{{ end }} {{ if .terms_and_conditions.accepted }}true{{ else }}false{{ end }}"),
+			WantTemplate: new(`
 loginTwo nameTwo testtwo@mail.com 2 true true
 loginOne nameOne testone@mail.com 1 false false
 			`),
-			WantMarkdown: pointer.Pointer(`
+			WantMarkdown: new(`
 | ID       | NAME    | EMAIL            | PROVIDER               | REGISTERED   | ADMITTED | TERMS AND CONDITIONS |
 |----------|---------|------------------|------------------------|--------------|----------|----------------------|
 | loginTwo | nameTwo | testtwo@mail.com | O_AUTH_PROVIDER_AZURE  | 1 minute ago | true     | true                 |

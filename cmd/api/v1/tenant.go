@@ -290,7 +290,7 @@ func (c *tenant) updateRequestFromCLI(args []string) (*apiv1.TenantServiceUpdate
 			return nil, fmt.Errorf("you can only withdraw terms and conditions by deleting your account, please contact the metalstack.cloud support if necessary")
 		}
 
-		termsAndConditions = pointer.Pointer(true)
+		termsAndConditions = new(true)
 
 		ctx, cancel := c.c.NewRequestContext()
 		defer cancel()

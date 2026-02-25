@@ -9,7 +9,6 @@ import (
 	"github.com/metal-stack-cloud/cli/cmd/config"
 	"github.com/metal-stack/metal-lib/pkg/genericcli"
 	"github.com/metal-stack/metal-lib/pkg/genericcli/printers"
-	"github.com/metal-stack/metal-lib/pkg/pointer"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -79,19 +78,19 @@ func (c *volume) List() ([]*apiv1.Volume, error) {
 	req := &adminv1.StorageServiceListVolumesRequest{}
 
 	if viper.IsSet("uuid") {
-		req.Uuid = pointer.Pointer(viper.GetString("uuid"))
+		req.Uuid = new(viper.GetString("uuid"))
 	}
 	if viper.IsSet("name") {
-		req.Name = pointer.Pointer(viper.GetString("name"))
+		req.Name = new(viper.GetString("name"))
 	}
 	if viper.IsSet("project") {
-		req.Project = pointer.Pointer(viper.GetString("project"))
+		req.Project = new(viper.GetString("project"))
 	}
 	if viper.IsSet("partition") {
-		req.Partition = pointer.Pointer(viper.GetString("partition"))
+		req.Partition = new(viper.GetString("partition"))
 	}
 	if viper.IsSet("tenant") {
-		req.Tenant = pointer.Pointer(viper.GetString("tenant"))
+		req.Tenant = new(viper.GetString("tenant"))
 	}
 
 	resp, err := c.c.Client.Adminv1().Storage().ListVolumes(ctx, connect.NewRequest(req))

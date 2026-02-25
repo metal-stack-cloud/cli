@@ -44,7 +44,6 @@ func (t *TablePrinter) ClusterTable(clusters []*apiv1.Cluster, machines map[stri
 	}
 
 	for _, cluster := range clusters {
-		cluster := cluster
 
 		var (
 			totalMinNodes, totalMaxNodes uint32
@@ -108,7 +107,6 @@ func (t *TablePrinter) ClusterTable(clusters []*apiv1.Cluster, machines map[stri
 			})
 
 			for i, machine := range machines[cluster.Uuid] {
-				machine := machine
 
 				prefix := "├"
 				if i == len(machines[cluster.Uuid])-1 {
@@ -151,7 +149,6 @@ func (t *TablePrinter) ClusterStatusLastErrorTable(data []*apiv1.ClusterStatusLa
 	)
 
 	for _, e := range data {
-		e := e
 
 		rows = append(rows, []string{
 			e.LastUpdateTime.AsTime().Format(time.RFC1123),
@@ -173,7 +170,6 @@ func (t *TablePrinter) ClusterStatusConditionsTable(data []*apiv1.ClusterStatusC
 	)
 
 	for _, condition := range data {
-		condition := condition
 
 		status := condition.Status
 		switch status {
@@ -206,7 +202,6 @@ func (t *TablePrinter) ClusterMachineTable(data []*adminv1.ClusterServiceGetResp
 	)
 
 	for _, cluster := range data {
-		cluster := cluster
 
 		clusters = append(clusters, cluster.Cluster)
 		machines[cluster.Cluster.Uuid] = append(machines[cluster.Cluster.Uuid], cluster.Machines...)
