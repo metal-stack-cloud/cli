@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"os"
 	"time"
 
@@ -135,11 +136,13 @@ func initConfigWithViperCtx(c *config.Config) error {
 }
 
 func newApiClient(apiURL, token string) client.Client {
-	dialConfig := client.DialConfig{
+	dialConfig := &client.DialConfig{
 		BaseURL:   apiURL,
 		Token:     token,
 		UserAgent: "metal-stack-cloud-cli",
-		Debug:     viper.GetBool("debug"),
+	}
+	if viper.GetBool("debug") {
+		dialConfig.Log = slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
 	}
 
 	return client.New(dialConfig)
