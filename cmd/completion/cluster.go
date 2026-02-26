@@ -19,7 +19,6 @@ func (c *Completion) ClusterListCompletion(cmd *cobra.Command, args []string, to
 	}
 	var names []string
 	for _, c := range resp.Msg.Clusters {
-		c := c
 		names = append(names, c.Uuid+"\t"+c.Name)
 	}
 	return names, cobra.ShellCompDirectiveNoFileComp
@@ -35,9 +34,7 @@ func (c *Completion) ClusterWorkerGroupsCompletion(cmd *cobra.Command, args []st
 	}
 	var names []string
 	for _, c := range resp.Msg.Clusters {
-		c := c
 		for _, w := range c.Workers {
-			w := w
 			names = append(names, w.Name)
 		}
 	}

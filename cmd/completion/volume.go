@@ -16,7 +16,6 @@ func (c *Completion) VolumeListCompletion(cmd *cobra.Command, args []string, toC
 	}
 	var names []string
 	for _, c := range resp.Msg.Volumes {
-		c := c
 		names = append(names, c.Uuid+"\t"+c.Name)
 	}
 	return names, cobra.ShellCompDirectiveNoFileComp

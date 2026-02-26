@@ -29,9 +29,7 @@ func (t *TablePrinter) HealthTable(data []*apiv1.Health, wide bool) ([]string, [
 	)
 
 	for _, h := range data {
-		h := h
 		for _, s := range h.Services {
-			s := s
 
 			name := ""
 			switch s.Name {
@@ -61,7 +59,6 @@ func (t *TablePrinter) HealthTable(data []*apiv1.Health, wide bool) ([]string, [
 
 			var partitions []partitionStatus
 			for id, p := range s.Partitions {
-				p := p
 
 				partitions = append(partitions, partitionStatus{
 					ID:              id,
@@ -74,7 +71,6 @@ func (t *TablePrinter) HealthTable(data []*apiv1.Health, wide bool) ([]string, [
 			})
 
 			for i, status := range partitions {
-				status := status
 
 				prefix := "├"
 				if i == len(partitions)-1 {

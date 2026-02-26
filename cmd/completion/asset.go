@@ -14,7 +14,6 @@ func (c *Completion) PartitionAssetListCompletion(cmd *cobra.Command, args []str
 	}
 	var names []string
 	for _, asset := range resp.Msg.Assets {
-		asset := asset
 		for partition := range asset.Region.Partitions {
 			names = append(names, partition)
 		}
@@ -30,9 +29,7 @@ func (c *Completion) KubernetesVersionAssetListCompletion(cmd *cobra.Command, ar
 	}
 	var versions []string
 	for _, asset := range resp.Msg.Assets {
-		asset := asset
 		for _, kubernetes := range asset.Kubernetes {
-			kubernetes := kubernetes
 			versions = append(versions, kubernetes.Version)
 		}
 	}
@@ -49,7 +46,6 @@ func (c *Completion) MachineTypeAssetListCompletion(cmd *cobra.Command, args []s
 
 	var relevantRegions []*apiv1.Asset
 	for _, asset := range resp.Msg.Assets {
-		asset := asset
 
 		if partition := cmd.Flag("partition").Value.String(); partition != "" {
 			_, ok := asset.Region.Partitions[partition]
@@ -63,10 +59,8 @@ func (c *Completion) MachineTypeAssetListCompletion(cmd *cobra.Command, args []s
 
 	var types []string
 	for _, region := range relevantRegions {
-		region := region
 
 		for _, machineType := range region.MachineTypes {
-			machineType := machineType
 			types = append(types, machineType.Name)
 		}
 	}

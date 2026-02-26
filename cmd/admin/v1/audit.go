@@ -113,7 +113,7 @@ func (a *adminAudit) List() ([]*apiv1.AuditTrace, error) {
 
 	var code *int32
 	if viper.IsSet("result-code") {
-		code = pointer.Pointer(viper.GetInt32("result-code"))
+		code = new(viper.GetInt32("result-code"))
 	}
 
 	req := &adminv1.AuditServiceListRequest{

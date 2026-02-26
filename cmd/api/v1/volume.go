@@ -12,7 +12,6 @@ import (
 	"github.com/metal-stack-cloud/cli/pkg/helpers"
 	"github.com/metal-stack/metal-lib/pkg/genericcli"
 	"github.com/metal-stack/metal-lib/pkg/genericcli/printers"
-	"github.com/metal-stack/metal-lib/pkg/pointer"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
@@ -145,13 +144,13 @@ func (c *volume) List() ([]*apiv1.Volume, error) {
 	}
 
 	if viper.IsSet("uuid") {
-		req.Uuid = pointer.Pointer(viper.GetString("uuid"))
+		req.Uuid = new(viper.GetString("uuid"))
 	}
 	if viper.IsSet("name") {
-		req.Name = pointer.Pointer(viper.GetString("name"))
+		req.Name = new(viper.GetString("name"))
 	}
 	if viper.IsSet("partition") {
-		req.Partition = pointer.Pointer(viper.GetString("partition"))
+		req.Partition = new(viper.GetString("partition"))
 	}
 
 	resp, err := c.c.Client.Apiv1().Volume().List(ctx, connect.NewRequest(req))

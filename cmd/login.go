@@ -84,7 +84,7 @@ func (l *login) login() error {
 		if viper.IsSet("context") {
 			newCtx.Name = viper.GetString("context")
 		}
-		newCtx.ApiURL = pointer.Pointer(l.c.GetApiURL())
+		newCtx.ApiURL = new(l.c.GetApiURL())
 
 		ctxs.Contexts = append(ctxs.Contexts, &newCtx)
 
@@ -149,7 +149,7 @@ func (l *login) login() error {
 		tokenResp, err := mc.Apiv1().Token().Create(context.Background(), connect.NewRequest(&apiv1.TokenServiceCreateRequest{
 			Description: "admin access issues by metal cli",
 			Expires:     durationpb.New(3 * time.Hour),
-			AdminRole:   pointer.Pointer(apiv1.AdminRole((apiv1.AdminRole_value[viper.GetString("admin-role")]))),
+			AdminRole:   new(apiv1.AdminRole((apiv1.AdminRole_value[viper.GetString("admin-role")]))),
 		}))
 		if err != nil {
 			return fmt.Errorf("unable to issue admin token: %w", err)

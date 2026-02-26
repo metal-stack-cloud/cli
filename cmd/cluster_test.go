@@ -11,7 +11,6 @@ import (
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
 	apitests "github.com/metal-stack-cloud/api/go/tests"
 	v1 "github.com/metal-stack-cloud/cli/cmd/api/v1"
-	"github.com/metal-stack/metal-lib/pkg/pointer"
 	"github.com/metal-stack/metal-lib/pkg/testcommon"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/mock"
@@ -40,8 +39,8 @@ var (
 				},
 			},
 			Maintenance: &apiv1.Maintenance{
-				KubernetesAutoupdate:   pointer.Pointer(true),
-				MachineimageAutoupdate: pointer.Pointer(false),
+				KubernetesAutoupdate:   new(true),
+				MachineimageAutoupdate: new(false),
 				TimeWindow: &apiv1.MaintenanceTimeWindow{
 					Begin: &apiv1.Time{
 						Hour:     18,
@@ -66,7 +65,7 @@ var (
 				SystemComponentsReady: "True",
 				LastErrors:            nil,
 			},
-			Purpose:    pointer.Pointer("evaluation"),
+			Purpose:    new("evaluation"),
 			Monitoring: &apiv1.ClusterMonitoring{},
 		}
 	}
@@ -103,7 +102,7 @@ var (
 				SystemComponentsReady: "True",
 				LastErrors:            nil,
 			},
-			Purpose:    pointer.Pointer("production"),
+			Purpose:    new("production"),
 			Monitoring: &apiv1.ClusterMonitoring{},
 		}
 	}
@@ -136,22 +135,22 @@ func Test_ClusterCmd_MultiResult(t *testing.T) {
 				cluster1(),
 				cluster2(),
 			},
-			WantTable: pointer.Pointer(`
+			WantTable: new(`
 TENANT       PROJECT  ID                                    NAME      PARTITION    VERSION  SIZE   AGE  
 72%   metal-stack  a        6c631ff1-9038-4ad0-b75e-3ea173b7cdb1  cluster1  partition-a  1.25.10  1 - 3  now  
 100%  metal-stack  a        0c538734-c469-46a0-8efd-98e439d4dc8a  cluster2  partition-b  1.27.9   3 - 6  now
 `),
-			WantWideTable: pointer.Pointer(`
+			WantWideTable: new(`
 ID                                    TENANT       PROJECT  NAME      PARTITION    PURPOSE     VERSION  OPERATION   PROGRESS          API  CONTROL  NODES  SYS  SIZE   AGE  
 6c631ff1-9038-4ad0-b75e-3ea173b7cdb1  metal-stack  a        cluster1  partition-a  evaluation  1.25.10  Processing  72% [Reconcile]   ✔    ✔        ✗      ✔    1 - 3  now  
 0c538734-c469-46a0-8efd-98e439d4dc8a  metal-stack  a        cluster2  partition-b  production  1.27.9   Succeeded   100% [Reconcile]  ✔    ✔        ✔      ✔    3 - 6  now
 `),
-			Template: pointer.Pointer("{{ .uuid }} {{ .project }}"),
-			WantTemplate: pointer.Pointer(`
+			Template: new("{{ .uuid }} {{ .project }}"),
+			WantTemplate: new(`
 6c631ff1-9038-4ad0-b75e-3ea173b7cdb1 a
 0c538734-c469-46a0-8efd-98e439d4dc8a a
 			`),
-			WantMarkdown: pointer.Pointer(`
+			WantMarkdown: new(`
 |      | TENANT      | PROJECT | ID                                   | NAME     | PARTITION   | VERSION | SIZE  | AGE |
 |------|-------------|---------|--------------------------------------|----------|-------------|---------|-------|-----|
 | 72%  | metal-stack | a       | 6c631ff1-9038-4ad0-b75e-3ea173b7cdb1 | cluster1 | partition-a | 1.25.10 | 1 - 3 | now |
@@ -276,19 +275,19 @@ func Test_ClusterCmd_SingleResult(t *testing.T) {
 				},
 			},
 			Want: cluster1(),
-			WantTable: pointer.Pointer(`
+			WantTable: new(`
 TENANT       PROJECT  ID                                    NAME      PARTITION    VERSION  SIZE   AGE  
 72%  metal-stack  a        6c631ff1-9038-4ad0-b75e-3ea173b7cdb1  cluster1  partition-a  1.25.10  1 - 3  now
 `),
-			WantWideTable: pointer.Pointer(`
+			WantWideTable: new(`
 ID                                    TENANT       PROJECT  NAME      PARTITION    PURPOSE     VERSION  OPERATION   PROGRESS         API  CONTROL  NODES  SYS  SIZE   AGE  
 6c631ff1-9038-4ad0-b75e-3ea173b7cdb1  metal-stack  a        cluster1  partition-a  evaluation  1.25.10  Processing  72% [Reconcile]  ✔    ✔        ✗      ✔    1 - 3  now
 `),
-			Template: pointer.Pointer("{{ .uuid }} {{ .project }}"),
-			WantTemplate: pointer.Pointer(`
+			Template: new("{{ .uuid }} {{ .project }}"),
+			WantTemplate: new(`
 6c631ff1-9038-4ad0-b75e-3ea173b7cdb1 a
 			`),
-			WantMarkdown: pointer.Pointer(`
+			WantMarkdown: new(`
 |     | TENANT      | PROJECT | ID                                   | NAME     | PARTITION   | VERSION | SIZE  | AGE |
 |-----|-------------|---------|--------------------------------------|----------|-------------|---------|-------|-----|
 | 72% | metal-stack | a       | 6c631ff1-9038-4ad0-b75e-3ea173b7cdb1 | cluster1 | partition-a | 1.25.10 | 1 - 3 | now |
