@@ -52,10 +52,30 @@ var (
 				ControlPlaneReady:     "True",
 				NodesReady:            "False",
 				SystemComponentsReady: "True",
-				LastErrors:            nil,
+				LastErrors: []*apiv1.ClusterStatusLastError{
+					&apiv1.ClusterStatusLastError{
+						Description:    "failed",
+						TaskId:         new("someid"),
+						LastUpdateTime: timestamppb.New(e2e.TimeBubbleStartTime()),
+					},
+				},
+				Conditions: []*apiv1.ClusterStatusCondition{
+					&apiv1.ClusterStatusCondition{
+						Type:               "Ready",
+						Status:             "True",
+						Reason:             "AllNodesHealthy",
+						StatusMessage:      "All cluster nodes are reporting healthy status",
+						LastTransitionTime: timestamppb.New(e2e.TimeBubbleStartTime().Add(-2 * time.Minute)),
+						LastUpdateTime:     timestamppb.New(e2e.TimeBubbleStartTime()),
+					},
+				},
 			},
-			Purpose:    new("evaluation"),
-			Monitoring: &apiv1.ClusterMonitoring{},
+			Purpose: new("evaluation"),
+			Monitoring: &apiv1.ClusterMonitoring{
+				Username: "username",
+				Password: "password",
+				Endpoint: "endpoint",
+			},
 		}
 	}
 	Cluster2 = func() *apiv1.Cluster {

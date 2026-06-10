@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"strconv"
 	"testing"
+	"time"
 
 	"connectrpc.com/connect"
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
@@ -14,6 +15,7 @@ import (
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/types/known/durationpb"
 )
 
 func Test_ClusterCmd_List(t *testing.T) {
@@ -28,13 +30,11 @@ func Test_ClusterCmd_List(t *testing.T) {
 						Cluster: func(m *mock.Mock) {
 							m.On("List", mock.Anything, connect.NewRequest(&apiv1.ClusterServiceListRequest{
 								Project: testresources.Cluster2().Project,
-							})).Return(&connect.Response[apiv1.ClusterServiceListResponse]{
-								Msg: &apiv1.ClusterServiceListResponse{
-									Clusters: []*apiv1.Cluster{
-										testresources.Cluster2(),
-									},
+							})).Return(connect.NewResponse(&apiv1.ClusterServiceListResponse{
+								Clusters: []*apiv1.Cluster{
+									testresources.Cluster2(),
 								},
-							}, nil)
+							}), nil)
 						},
 					},
 				},
@@ -410,6 +410,230 @@ func Test_ClusterCmd_Describe(t *testing.T) {
             |----------|--------------------------------------|----------|--------------------------------------|-------------|-------------|---------|-------|-----|
             | 72%      | 6c631ff1-9038-4ad0-b75e-3ea173b7cdb1 | cluster1 | c40ad996-e1fd-4511-a7bf-418219cb8d95 | metal-stack | partition-a | 1.25.10 | 1 - 3 | now |
 `),
+		},
+	}
+	for _, tt := range tests {
+		tt.TestCmd(t)
+	}
+}
+
+func Test_ClusterCmd_ExecConfig(t *testing.T) {
+	tests := []*e2e.Test[apiv1.ClusterServiceGetCredentialsResponse, string]{
+		{
+			Name:    "get exec-config",
+			CmdArgs: []string{"cluster", "exec-config", "--project", testresources.Cluster1().Project, "--expiration", "9h", testresources.Cluster1().Uuid},
+			NewRootCmd: e2erootcmd.NewRootCmd(t, &e2erootcmd.TestConfig{
+				ClientMocks: &apitests.ClientMockFns{
+					Apiv1Mocks: &apitests.Apiv1MockFns{
+						Cluster: func(m *mock.Mock) {
+							m.On("GetCredentials", mock.Anything, connect.NewRequest(&apiv1.ClusterServiceGetCredentialsRequest{
+								Project:    testresources.Cluster1().Project,
+								Uuid:       testresources.Cluster1().Uuid,
+								Expiration: durationpb.New(9 * time.Hour),
+							})).Return(connect.NewResponse(&apiv1.ClusterServiceGetCredentialsResponse{
+								Kubeconfig: `
+apiVersion: v1
+kind: Config
+clusters:
+- cluster:
+    server: https://example.com
+  name: test
+contexts:
+- context:
+    cluster: test
+    user: test
+  name: test
+current-context: test
+users:
+- name: test
+  user:
+    token: fake
+`,
+							}), nil)
+						},
+					},
+				},
+			}),
+			WantDefault: new(`
+{
+  "kind": "ExecCredential",
+  "apiVersion": "client.authentication.k8s.io/v1",
+  "spec": {
+    "interactive": false
+  },
+  "status": {
+    "expirationTimestamp": "2000-01-01T09:00:00Z"
+  }
+}
+			`),
+		},
+	}
+	for _, tt := range tests {
+		tt.TestCmd(t)
+	}
+}
+
+func Test_ClusterCmd_KubeConfig(t *testing.T) {
+	tests := []*e2e.Test[apiv1.ClusterServiceGetCredentialsResponse, string]{
+		{
+			Name: "get kubeconfig",
+			CmdArgs: []string{"cluster", "kubeconfig", testresources.Cluster1().Uuid,
+				"--project", testresources.Cluster1().Project, "--expiration", "9h", "--print-only=true", "--auth-type=certs"},
+			NewRootCmd: e2erootcmd.NewRootCmd(t, &e2erootcmd.TestConfig{
+				ClientMocks: &apitests.ClientMockFns{
+					Apiv1Mocks: &apitests.Apiv1MockFns{
+						Project: func(m *mock.Mock) {
+							m.On("Get", mock.Anything, connect.NewRequest(&apiv1.ProjectServiceGetRequest{
+								Project: testresources.Cluster1().Project,
+							})).Return(connect.NewResponse(&apiv1.ProjectServiceGetResponse{
+								Project: testresources.Project1(),
+							}), nil)
+						},
+						Cluster: func(m *mock.Mock) {
+							m.On("GetCredentials", mock.Anything, connect.NewRequest(&apiv1.ClusterServiceGetCredentialsRequest{
+								Project:    testresources.Cluster1().Project,
+								Uuid:       testresources.Cluster1().Uuid,
+								Expiration: durationpb.New(9 * time.Hour),
+							})).Return(connect.NewResponse(&apiv1.ClusterServiceGetCredentialsResponse{
+								Kubeconfig: `
+apiVersion: v1
+kind: Config
+
+clusters:
+- name: project--test-external
+  cluster:
+    server: https://example.com
+    insecure-skip-tls-verify: true
+
+users:
+- name: myuser-test-external
+  user:
+    token: fake-token
+
+contexts:
+- name: test
+  context:
+    cluster: project--test-external
+    user: myuser-test-external
+
+current-context: test
+preferences: {}
+`,
+							}), nil)
+						},
+					},
+				},
+			}),
+			WantDefault: new(`
+apiVersion: v1
+clusters:
+- cluster:
+    server: https://example.com
+  name: test-Some Initiative@metalstack.cloud
+contexts:
+- context:
+    cluster: test-Some Initiative@metalstack.cloud
+    user: test-Some Initiative@metalstack.cloud
+  name: test-Some Initiative@metalstack.cloud
+current-context: test-Some Initiative@metalstack.cloud
+kind: Config
+users:
+- name: test-Some Initiative@metalstack.cloud
+  user: {}
+			`),
+		},
+	}
+	for _, tt := range tests {
+		tt.TestCmd(t)
+	}
+}
+
+func Test_ClusterCmd_Monitoring(t *testing.T) {
+	tests := []*e2e.Test[apiv1.ClusterServiceGetResponse, *apiv1.Cluster]{
+		{
+			Name:    "cluster monitoring",
+			CmdArgs: []string{"cluster", "monitoring", "--project", testresources.Cluster1().Project, testresources.Cluster1().Uuid},
+			NewRootCmd: e2erootcmd.NewRootCmd(t, &e2erootcmd.TestConfig{
+				ClientMocks: &apitests.ClientMockFns{
+					Apiv1Mocks: &apitests.Apiv1MockFns{
+						Cluster: func(m *mock.Mock) {
+							m.On("Get", mock.Anything, connect.NewRequest(&apiv1.ClusterServiceGetRequest{
+								Project: testresources.Cluster1().Project,
+								Uuid:    testresources.Cluster1().Uuid,
+							})).Return(connect.NewResponse(&apiv1.ClusterServiceGetResponse{
+								Cluster: testresources.Cluster1(),
+							}), nil)
+						},
+					},
+				},
+			}),
+			WantDefault: new(`
+endpoint: endpoint
+password: password
+username: username
+			`),
+		},
+	}
+	for _, tt := range tests {
+		tt.TestCmd(t)
+	}
+}
+
+func Test_ClusterCmd_Reconcile(t *testing.T) {
+	tests := []*e2e.Test[apiv1.ClusterServiceOperateResponse, *apiv1.Cluster]{
+		{
+			Name:    "cluster monitoring",
+			CmdArgs: []string{"cluster", "reconcile", "--project", testresources.Cluster1().Project, testresources.Cluster1().Uuid},
+			NewRootCmd: e2erootcmd.NewRootCmd(t, &e2erootcmd.TestConfig{
+				ClientMocks: &apitests.ClientMockFns{
+					Apiv1Mocks: &apitests.Apiv1MockFns{
+						Cluster: func(m *mock.Mock) {
+							m.On("Operate", mock.Anything, connect.NewRequest(&apiv1.ClusterServiceOperateRequest{
+								Project: testresources.Cluster1().Project,
+								Uuid:    testresources.Cluster1().Uuid,
+								Operate: apiv1.Operate_OPERATE_RECONCILE,
+							})).Return(connect.NewResponse(&apiv1.ClusterServiceOperateResponse{
+								Cluster: testresources.Cluster1(),
+							}), nil)
+						},
+					},
+				},
+			}),
+			WantObject: testresources.Cluster1(),
+		},
+	}
+	for _, tt := range tests {
+		tt.TestCmd(t)
+	}
+}
+
+func Test_ClusterCmd_Status(t *testing.T) {
+	tests := []*e2e.Test[apiv1.ClusterServiceGetResponse, *apiv1.Cluster]{
+		{
+			Name:    "cluster status",
+			CmdArgs: []string{"cluster", "status", "--project", testresources.Cluster1().Project, testresources.Cluster1().Uuid},
+			NewRootCmd: e2erootcmd.NewRootCmd(t, &e2erootcmd.TestConfig{
+				ClientMocks: &apitests.ClientMockFns{
+					Apiv1Mocks: &apitests.Apiv1MockFns{
+						Cluster: func(m *mock.Mock) {
+							m.On("Get", mock.Anything, connect.NewRequest(&apiv1.ClusterServiceGetRequest{
+								Project: testresources.Cluster1().Project,
+								Uuid:    testresources.Cluster1().Uuid,
+							})).Return(connect.NewResponse(&apiv1.ClusterServiceGetResponse{
+								Cluster: testresources.Cluster1(),
+							}), nil)
+						},
+					},
+				},
+			}),
+			WantDefault: new(`
+   TYPE   MESSAGE                                         REASON           LAST UPDATE                    
+✔  Ready  All cluster nodes are reporting healthy status  AllNodesHealthy  Sat, 01 Jan 2000 00:00:00 UTC  
+
+Last Errors:
+TIME                           DESCRIPTION  TASK    
+Sat, 01 Jan 2000 00:00:00 UTC  failed       someid 
+			`),
 		},
 	}
 	for _, tt := range tests {

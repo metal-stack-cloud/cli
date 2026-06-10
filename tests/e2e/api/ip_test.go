@@ -26,13 +26,11 @@ func Test_IPCmd_List(t *testing.T) {
 						IP: func(m *mock.Mock) {
 							m.On("List", mock.Anything, connect.NewRequest(&apiv1.IPServiceListRequest{
 								Project: testresources.Project1().Uuid,
-							})).Return(&connect.Response[apiv1.IPServiceListResponse]{
-								Msg: &apiv1.IPServiceListResponse{
-									Ips: []*apiv1.IP{
-										testresources.Ip1(),
-									},
+							})).Return(connect.NewResponse(&apiv1.IPServiceListResponse{
+								Ips: []*apiv1.IP{
+									testresources.Ip1(),
 								},
-							}, nil)
+							}), nil)
 						},
 					},
 				},

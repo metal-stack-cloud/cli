@@ -27,13 +27,12 @@ func Test_AdminVolumeCmd_List(t *testing.T) {
 				ClientMocks: &apitests.ClientMockFns{
 					Adminv1Mocks: &apitests.Adminv1MockFns{
 						Storage: func(m *mock.Mock) {
-							m.On("ListVolumes", mock.Anything, connect.NewRequest(&adminv1.StorageServiceListVolumesRequest{})).Return(&connect.Response[adminv1.StorageServiceListVolumesResponse]{Msg: &adminv1.StorageServiceListVolumesResponse{
+							m.On("ListVolumes", mock.Anything, connect.NewRequest(&adminv1.StorageServiceListVolumesRequest{})).Return(connect.NewResponse(&adminv1.StorageServiceListVolumesResponse{
 								Volumes: []*apiv1.Volume{
 									testresources.Volume1(),
 									testresources.Volume2(),
 								},
-							},
-							}, nil)
+							}), nil)
 						},
 					},
 				},
@@ -84,12 +83,11 @@ func Test_AdminVolumeCmd_Describe(t *testing.T) {
 						Storage: func(m *mock.Mock) {
 							m.On("ListVolumes", mock.Anything, connect.NewRequest(&adminv1.StorageServiceListVolumesRequest{
 								Uuid: &testresources.Volume1().Uuid,
-							})).Return(&connect.Response[adminv1.StorageServiceListVolumesResponse]{Msg: &adminv1.StorageServiceListVolumesResponse{
+							})).Return(connect.NewResponse(&adminv1.StorageServiceListVolumesResponse{
 								Volumes: []*apiv1.Volume{
 									testresources.Volume1(),
 								},
-							},
-							}, nil)
+							}), nil)
 						},
 					},
 				}}),

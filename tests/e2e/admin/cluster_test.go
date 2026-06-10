@@ -25,14 +25,12 @@ func Test_AdminClusterCmd_List(t *testing.T) {
 						Cluster: func(m *mock.Mock) {
 							m.On("List", mock.Anything, connect.NewRequest(&adminv1.ClusterServiceListRequest{
 								Project: &testresources.Cluster2().Project,
-							})).Return(&connect.Response[adminv1.ClusterServiceListResponse]{
-								Msg: &adminv1.ClusterServiceListResponse{
-									Clusters: []*apiv1.Cluster{
-										testresources.Cluster2(),
-										testresources.Cluster1(),
-									},
+							})).Return(connect.NewResponse(&adminv1.ClusterServiceListResponse{
+								Clusters: []*apiv1.Cluster{
+									testresources.Cluster2(),
+									testresources.Cluster1(),
 								},
-							}, nil)
+							}), nil)
 						},
 					},
 				},

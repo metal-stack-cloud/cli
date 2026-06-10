@@ -23,14 +23,12 @@ func Test_TenantCmd_Get(t *testing.T) {
 						Tenant: func(m *mock.Mock) {
 							m.On("Get", mock.Anything, connect.NewRequest(&apiv1.TenantServiceGetRequest{
 								Login: testresources.Tenant1().Login,
-							})).Return(&connect.Response[apiv1.TenantServiceGetResponse]{
-								Msg: &apiv1.TenantServiceGetResponse{
-									Tenant: testresources.Tenant1(),
-									TenantMembers: []*apiv1.TenantMember{
-										testresources.TenantMember1(),
-									},
+							})).Return(connect.NewResponse(&apiv1.TenantServiceGetResponse{
+								Tenant: testresources.Tenant1(),
+								TenantMembers: []*apiv1.TenantMember{
+									testresources.TenantMember1(),
 								},
-							}, nil)
+							}), nil)
 						},
 					},
 				},
@@ -72,13 +70,11 @@ func Test_TenantCmd_List(t *testing.T) {
 						Tenant: func(m *mock.Mock) {
 							m.On("List", mock.Anything, connect.NewRequest(&apiv1.TenantServiceListRequest{
 								Id: &testresources.Tenant1().Login,
-							})).Return(&connect.Response[apiv1.TenantServiceListResponse]{
-								Msg: &apiv1.TenantServiceListResponse{
-									Tenants: []*apiv1.Tenant{
-										testresources.Tenant1(),
-									},
+							})).Return(connect.NewResponse(&apiv1.TenantServiceListResponse{
+								Tenants: []*apiv1.Tenant{
+									testresources.Tenant1(),
 								},
-							}, nil)
+							}), nil)
 						},
 					},
 				},

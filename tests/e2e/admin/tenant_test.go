@@ -22,13 +22,11 @@ func Test_AdminTenantCmd_List(t *testing.T) {
 				ClientMocks: &apitests.ClientMockFns{
 					Adminv1Mocks: &apitests.Adminv1MockFns{
 						Tenant: func(m *mock.Mock) {
-							m.On("List", mock.Anything, connect.NewRequest(&adminv1.TenantServiceListRequest{})).Return(&connect.Response[adminv1.TenantServiceListResponse]{
-								Msg: &adminv1.TenantServiceListResponse{
-									Tenants: []*apiv1.Tenant{
-										testresources.Tenant1(), testresources.Tenant2(),
-									},
+							m.On("List", mock.Anything, connect.NewRequest(&adminv1.TenantServiceListRequest{})).Return(connect.NewResponse(&adminv1.TenantServiceListResponse{
+								Tenants: []*apiv1.Tenant{
+									testresources.Tenant1(), testresources.Tenant2(),
 								},
-							}, nil)
+							}), nil)
 						},
 					},
 				},
@@ -72,11 +70,9 @@ func Test_AdminTenantCmd_Admit(t *testing.T) {
 						Tenant: func(m *mock.Mock) {
 							m.On("Admit", mock.Anything, connect.NewRequest(&adminv1.TenantServiceAdmitRequest{
 								TenantId: testresources.Tenant2().Login,
-							})).Return(&connect.Response[adminv1.TenantServiceAdmitResponse]{
-								Msg: &adminv1.TenantServiceAdmitResponse{
-									Tenant: testresources.Tenant2(),
-								},
-							}, nil)
+							})).Return(connect.NewResponse(&adminv1.TenantServiceAdmitResponse{
+								Tenant: testresources.Tenant2(),
+							}), nil)
 						},
 					},
 				}}),
@@ -112,10 +108,9 @@ func Test_AdminTenantCmd_Revoke(t *testing.T) {
 						Tenant: func(m *mock.Mock) {
 							m.On("Revoke", mock.Anything, connect.NewRequest(&adminv1.TenantServiceRevokeRequest{
 								TenantId: testresources.Tenant2().Login,
-							})).Return(&connect.Response[adminv1.TenantServiceRevokeResponse]{
-								Msg: &adminv1.TenantServiceRevokeResponse{
-									Tenant: testresources.Tenant2(),
-								}}, nil)
+							})).Return(connect.NewResponse(&adminv1.TenantServiceRevokeResponse{
+								Tenant: testresources.Tenant2(),
+							}), nil)
 						},
 					},
 				}}),

@@ -25,11 +25,9 @@ func Test_AuditCmd_Describe(t *testing.T) {
 							m.On("Get", mock.Anything, connect.NewRequest(&adminv1.AuditServiceGetRequest{
 								Uuid: testresources.AuditTrace1().Uuid,
 							})).
-								Return(&connect.Response[adminv1.AuditServiceGetResponse]{
-									Msg: &adminv1.AuditServiceGetResponse{
-										Trace: testresources.AuditTrace1(),
-									},
-								}, nil)
+								Return(connect.NewResponse(&adminv1.AuditServiceGetResponse{
+									Trace: testresources.AuditTrace1(),
+								}), nil)
 						},
 					},
 				},
@@ -69,14 +67,12 @@ func Test_AuditCmd_List(t *testing.T) {
 					Adminv1Mocks: &apitests.Adminv1MockFns{
 						Audit: func(m *mock.Mock) {
 							m.On("List", mock.Anything, connect.NewRequest(&adminv1.AuditServiceListRequest{})).
-								Return(&connect.Response[adminv1.AuditServiceListResponse]{
-									Msg: &adminv1.AuditServiceListResponse{
-										Traces: []*apiv1.AuditTrace{
-											testresources.AuditTrace1(),
-											testresources.AuditTrace2(),
-										},
+								Return(connect.NewResponse(&adminv1.AuditServiceListResponse{
+									Traces: []*apiv1.AuditTrace{
+										testresources.AuditTrace1(),
+										testresources.AuditTrace2(),
 									},
-								}, nil)
+								}), nil)
 						},
 					},
 				},

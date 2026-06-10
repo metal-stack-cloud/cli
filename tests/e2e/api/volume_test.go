@@ -29,12 +29,11 @@ func Test_VolumeCmd_List(t *testing.T) {
 						Volume: func(m *mock.Mock) {
 							m.On("List", mock.Anything, connect.NewRequest(&apiv1.VolumeServiceListRequest{
 								Project: testresources.Volume1().Project,
-							})).Return(&connect.Response[apiv1.VolumeServiceListResponse]{Msg: &apiv1.VolumeServiceListResponse{
+							})).Return(connect.NewResponse(&apiv1.VolumeServiceListResponse{
 								Volumes: []*apiv1.Volume{
 									testresources.Volume1(),
 								},
-							},
-							}, nil)
+							}), nil)
 						},
 					},
 				},
@@ -80,10 +79,9 @@ func Test_VolumeCmd_Describe(t *testing.T) {
 						Volume: func(m *mock.Mock) {
 							m.On("Get", mock.Anything, connect.NewRequest(&apiv1.VolumeServiceGetRequest{
 								Uuid: testresources.Volume1().Uuid,
-							})).Return(&connect.Response[apiv1.VolumeServiceGetResponse]{Msg: &apiv1.VolumeServiceGetResponse{
+							})).Return(connect.NewResponse(&apiv1.VolumeServiceGetResponse{
 								Volume: testresources.Volume1(),
-							},
-							}, nil)
+							}), nil)
 						},
 					},
 				}}),
@@ -126,10 +124,9 @@ func Test_VolumeCmd_Delete(t *testing.T) {
 						Volume: func(m *mock.Mock) {
 							m.On("Delete", mock.Anything, connect.NewRequest(&apiv1.VolumeServiceDeleteRequest{
 								Uuid: testresources.Volume1().Uuid,
-							})).Return(&connect.Response[apiv1.VolumeServiceDeleteResponse]{Msg: &apiv1.VolumeServiceDeleteResponse{
+							})).Return(connect.NewResponse(&apiv1.VolumeServiceDeleteResponse{
 								Volume: testresources.Volume1(),
-							},
-							}, nil)
+							}), nil)
 						},
 					},
 				},
@@ -174,10 +171,9 @@ func Test_VolumeCmd_Update(t *testing.T) {
 						Volume: func(m *mock.Mock) {
 							m.On("Update", mock.Anything, connect.NewRequest(&apiv1.VolumeServiceUpdateRequest{
 								Uuid: testresources.Volume1().Uuid,
-							})).Return(&connect.Response[apiv1.VolumeServiceUpdateResponse]{Msg: &apiv1.VolumeServiceUpdateResponse{
+							})).Return(connect.NewResponse(&apiv1.VolumeServiceUpdateResponse{
 								Volume: testresources.Volume1(),
-							},
-							}, nil)
+							}), nil)
 						},
 					},
 				},

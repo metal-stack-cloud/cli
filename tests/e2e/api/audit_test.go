@@ -23,22 +23,18 @@ func Test_AuditCmd_Describe(t *testing.T) {
 					Apiv1Mocks: &apitests.Apiv1MockFns{
 						User: func(m *mock.Mock) {
 							m.On("Get", mock.Anything, connect.NewRequest(&apiv1.UserServiceGetRequest{})).
-								Return(&connect.Response[apiv1.UserServiceGetResponse]{
-									Msg: &apiv1.UserServiceGetResponse{
-										User: testresources.User1(),
-									},
-								}, nil)
+								Return(connect.NewResponse(&apiv1.UserServiceGetResponse{
+									User: testresources.User1(),
+								}), nil)
 						},
 						Audit: func(m *mock.Mock) {
 							m.On("Get", mock.Anything, connect.NewRequest(&apiv1.AuditServiceGetRequest{
 								Login: testresources.AuditTrace1().Tenant,
 								Uuid:  testresources.AuditTrace1().Uuid,
 							})).
-								Return(&connect.Response[apiv1.AuditServiceGetResponse]{
-									Msg: &apiv1.AuditServiceGetResponse{
-										Trace: testresources.AuditTrace1(),
-									},
-								}, nil)
+								Return(connect.NewResponse(&apiv1.AuditServiceGetResponse{
+									Trace: testresources.AuditTrace1(),
+								}), nil)
 						},
 					},
 				},
@@ -80,13 +76,11 @@ func Test_AuditCmd_List(t *testing.T) {
 							m.On("List", mock.Anything, connect.NewRequest(&apiv1.AuditServiceListRequest{
 								Login: testresources.AuditTrace1().Tenant,
 							})).
-								Return(&connect.Response[apiv1.AuditServiceListResponse]{
-									Msg: &apiv1.AuditServiceListResponse{
-										Traces: []*apiv1.AuditTrace{
-											testresources.AuditTrace1(),
-										},
+								Return(connect.NewResponse(&apiv1.AuditServiceListResponse{
+									Traces: []*apiv1.AuditTrace{
+										testresources.AuditTrace1(),
 									},
-								}, nil)
+								}), nil)
 						},
 					},
 				},
@@ -144,13 +138,11 @@ func Test_AuditCmd_List(t *testing.T) {
 								Limit:      new(int32(100)),
 								Phase:      &testresources.AuditTrace1().Phase,
 							})).
-								Return(&connect.Response[apiv1.AuditServiceListResponse]{
-									Msg: &apiv1.AuditServiceListResponse{
-										Traces: []*apiv1.AuditTrace{
-											testresources.AuditTrace1(),
-										},
+								Return(connect.NewResponse(&apiv1.AuditServiceListResponse{
+									Traces: []*apiv1.AuditTrace{
+										testresources.AuditTrace1(),
 									},
-								}, nil)
+								}), nil)
 						},
 					},
 				},
