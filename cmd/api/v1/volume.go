@@ -341,9 +341,13 @@ func (v *volume) volumeResponseToUpdate(desired *apiv1.Volume) (*apiv1.VolumeSer
 		}
 	}
 
-	return &apiv1.VolumeServiceUpdateRequest{
+	req := &apiv1.VolumeServiceUpdateRequest{
 		Uuid:    desired.Uuid,
 		Project: desired.Project,
-		Labels:  updateLabels,
-	}, nil
+	}
+	if len(updateLabels.Remove) > 0 || len(updateLabels.Update) > 0 {
+		req.Labels = updateLabels
+	}
+
+	return req, nil
 }

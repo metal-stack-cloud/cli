@@ -3,6 +3,7 @@ package testresources
 import (
 	"time"
 
+	adminv1 "github.com/metal-stack-cloud/api/go/admin/v1"
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
 	"github.com/metal-stack/metal-lib/pkg/genericcli/e2e"
 	"google.golang.org/protobuf/types/known/durationpb"
@@ -113,6 +114,82 @@ var (
 			},
 			Purpose:    new("production"),
 			Monitoring: &apiv1.ClusterMonitoring{},
+		}
+	}
+	Machine1 = func() *adminv1.Machine {
+		return &adminv1.Machine{
+			Uuid:        "123e4567-e89b-12d3-a456-426614174000",
+			Name:        "test-compute-node-01",
+			Description: "A dummy machine instance for unit and integration testing.",
+			Project:     "project-99",
+			Image:       "ubuntu-22.04-lts",
+			Size:        "c1-large-x86",
+			Hostname:    "node-01.internal.net",
+			UserData:    "data",
+			Role:        "machine",
+			Creator:     "admin-user@company.com",
+			Created:     timestamppb.New(e2e.TimeBubbleStartTime().Add(-24 * time.Hour)),
+			Partition:   "us-east-1a",
+			Rack:        "rack-b4-u12",
+			State:       "RUNNING",
+			Liveliness:  "ALIVE",
+			Tags: []string{
+				"environment:testing",
+				"tier:frontend",
+				"ephemeral",
+			},
+			MachineNetworks: []*adminv1.MachineNetwork{
+				{
+					Network:             "b8a3f290-7c1a-4d3b-8f1a-9c4b5e6f7a8b",
+					Prefixes:            []string{"10.0.0.0/24", "2001:db8:1::/64"},
+					Ips:                 []string{"10.0.0.15", "2001:db8:1::15"},
+					DestinationPrefixes: []string{"0.0.0.0/0", "::/0"},
+					NetworkType:         "overlay",
+					Vrf:                 1001,
+					Asn:                 65500,
+				},
+			},
+			Vpn: &adminv1.VPN{
+				Address: "10.0.0.5",
+				Authkey: "tskey-auth-k123456CNTRL-al9dkf205jfh",
+			},
+		}
+	}
+	Machine2 = func() *adminv1.Machine {
+		return &adminv1.Machine{
+			Uuid:        "ea01dc1e-a349-4283-b32d-b432733a6d06",
+			Name:        "test-compute-node-02",
+			Description: "A dummy machine instance for unit and integration testing.",
+			Project:     "project-01",
+			Image:       "ubuntu-22.04-lts",
+			Size:        "n1-large-x86",
+			Hostname:    "node-01.internal.net",
+			UserData:    "data",
+			Role:        "machine",
+			Creator:     "admin-user@company.com",
+			Created:     timestamppb.New(e2e.TimeBubbleStartTime()),
+			Partition:   "muc-1",
+			Rack:        "rack-b4-u15",
+			State:       "RUNNING",
+			Liveliness:  "ALIVE",
+			Tags: []string{
+				"environment:prod",
+			},
+			MachineNetworks: []*adminv1.MachineNetwork{
+				{
+					Network:             "b8a3f290-7c1a-4d3b-8f1a-9c4b5e6f7a8b",
+					Prefixes:            []string{"10.0.0.0/24", "2001:db8:1::/64"},
+					Ips:                 []string{"10.0.0.15", "2001:db8:1::15"},
+					DestinationPrefixes: []string{"0.0.0.0/0", "::/0"},
+					NetworkType:         "overlay",
+					Vrf:                 1001,
+					Asn:                 65500,
+				},
+			},
+			Vpn: &adminv1.VPN{
+				Address: "10.0.0.5",
+				Authkey: "hskey-auth-k123456CNTRL-al9dkf2g5jfh",
+			},
 		}
 	}
 )

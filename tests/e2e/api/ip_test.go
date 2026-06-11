@@ -118,7 +118,7 @@ func Test_IPCmd_Apply(t *testing.T) {
 }
 
 func Test_IPCmd_Update(t *testing.T) {
-	tests := []*e2e.Test[apiv1.IPServiceListResponse, *apiv1.IP]{
+	tests := []*e2e.Test[apiv1.IPServiceUpdateResponse, *apiv1.IP]{
 		{
 			Name: "update ip",
 			CmdArgs: []string{"ip", "update", testresources.Ip1().Uuid,
@@ -192,7 +192,7 @@ uuid: 2e0144a2-09ef-42b7-b629-4263295db6e8
 }
 
 func Test_IPCmd_Create(t *testing.T) {
-	tests := []*e2e.Test[apiv1.IPServiceListResponse, *apiv1.IP]{
+	tests := []*e2e.Test[apiv1.IPServiceAllocateResponse, *apiv1.IP]{
 		{
 			Name: "create",
 			CmdArgs: []string{"ip", "create",
@@ -262,7 +262,7 @@ func Test_IPCmd_Create(t *testing.T) {
 }
 
 func Test_IPCmd_Delete(t *testing.T) {
-	tests := []*e2e.Test[apiv1.IPServiceListResponse, *apiv1.IP]{
+	tests := []*e2e.Test[apiv1.IPServiceDeleteResponse, *apiv1.IP]{
 		{
 			Name:    "delete ip",
 			CmdArgs: []string{"ip", "rm", "--project", testresources.Project1().Uuid, testresources.Ip1().Uuid},

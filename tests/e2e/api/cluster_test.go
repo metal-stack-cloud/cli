@@ -65,6 +65,40 @@ func Test_ClusterCmd_List(t *testing.T) {
 func Test_ClusterCmd_Apply(t *testing.T) {
 	tests := []*e2e.Test[apiv1.ClusterServiceListResponse, []*apiv1.Cluster]{
 		{
+			Name:    "apply from file",
+			CmdArgs: append([]string{"cluster", "apply"}, e2e.AppendFromFileCommonArgs()...),
+			NewRootCmd: e2erootcmd.NewRootCmd(t,
+				&e2erootcmd.TestConfig{
+					FsMocks: func(fs *afero.Afero) {
+						require.NoError(t, fs.WriteFile(e2e.InputFilePath, e2e.MustMarshal(t, testresources.Cluster1()), 0755))
+					},
+					ClientMocks: &apitests.ClientMockFns{
+						Apiv1Mocks: &apitests.Apiv1MockFns{
+							Cluster: func(m *mock.Mock) {
+								m.On("Create", mock.Anything, connect.NewRequest(&apiv1.ClusterServiceCreateRequest{
+									Name:        testresources.Cluster1().Name,
+									Project:     testresources.Cluster1().Project,
+									Partition:   testresources.Cluster1().Partition,
+									Kubernetes:  testresources.Cluster1().Kubernetes,
+									Workers:     testresources.Cluster1().Workers,
+									Maintenance: testresources.Cluster1().Maintenance,
+								})).Return(connect.NewResponse(&apiv1.ClusterServiceCreateResponse{
+									Cluster: testresources.Cluster1(),
+								}), nil)
+							},
+						},
+					}}),
+			WantTable: new(`
+            PROGRESS  ID                                    NAME      PROJECT                               TENANT       PARTITION    VERSION  SIZE   AGE  
+            72%       6c631ff1-9038-4ad0-b75e-3ea173b7cdb1  cluster1  c40ad996-e1fd-4511-a7bf-418219cb8d95  metal-stack  partition-a  1.25.10  1 - 3  now
+			`),
+			WantMarkdown: new(`
+            | PROGRESS | ID                                   | NAME     | PROJECT                              | TENANT      | PARTITION   | VERSION | SIZE  | AGE |
+            |----------|--------------------------------------|----------|--------------------------------------|-------------|-------------|---------|-------|-----|
+            | 72%      | 6c631ff1-9038-4ad0-b75e-3ea173b7cdb1 | cluster1 | c40ad996-e1fd-4511-a7bf-418219cb8d95 | metal-stack | partition-a | 1.25.10 | 1 - 3 | now |
+			`),
+		},
+		{
 			Name:    "apply many from file",
 			CmdArgs: append([]string{"cluster", "apply"}, e2e.AppendFromFileCommonArgs()...),
 			NewRootCmd: e2erootcmd.NewRootCmd(t,

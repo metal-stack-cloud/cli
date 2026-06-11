@@ -1,6 +1,8 @@
 package testresources
 
 import (
+	"time"
+
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
 	"github.com/metal-stack/metal-lib/pkg/genericcli/e2e"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -62,6 +64,30 @@ var (
 			Role:       apiv1.TenantRole_TENANT_ROLE_OWNER,
 			ProjectIds: []string{Project2().Uuid},
 			CreatedAt:  timestamppb.New(e2e.TimeBubbleStartTime()),
+		}
+	}
+	TenantInvite1 = func() *apiv1.TenantInvite {
+		return &apiv1.TenantInvite{
+			Secret:           "secret",
+			TargetTenant:     "metal-stack",
+			TargetTenantName: "Metal Stack",
+			Role:             apiv1.TenantRole_TENANT_ROLE_VIEWER,
+			Joined:           false,
+			Tenant:           "metal-stack",
+			TenantName:       "Metal Stack",
+			ExpiresAt:        timestamppb.New(e2e.TimeBubbleStartTime().Add(48 * time.Hour)),
+		}
+	}
+	TenantInvite2 = func() *apiv1.TenantInvite {
+		return &apiv1.TenantInvite{
+			Secret:           "secret",
+			TargetTenant:     "acme-corp",
+			TargetTenantName: "ACME Corp",
+			Role:             apiv1.TenantRole_TENANT_ROLE_EDITOR,
+			Joined:           false,
+			Tenant:           "acme-corp",
+			TenantName:       "ACME Corp",
+			ExpiresAt:        timestamppb.New(e2e.TimeBubbleStartTime().Add(48 * time.Hour)),
 		}
 	}
 )

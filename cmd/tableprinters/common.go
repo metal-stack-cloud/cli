@@ -112,6 +112,9 @@ func (t *TablePrinter) ToHeaderAndRows(data any, wide bool) ([]string, [][]strin
 	case []*apiv1.Health:
 		return t.HealthTable(d, wide)
 
+	case *apiv1.User:
+		return t.UserTable(pointer.WrapInSlice(d), wide)
+
 	default:
 		return nil, nil, fmt.Errorf("unknown table printer for type: %T", d)
 	}
