@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func Test_AuditCmd_Describe(t *testing.T) {
+func Test_AdminAuditCmd_Describe(t *testing.T) {
 	tests := []*e2e.Test[adminv1.AuditServiceGetResponse, *apiv1.AuditTrace]{
 		{
 			Name:    "describe audit trace",
@@ -57,7 +57,7 @@ func Test_AuditCmd_Describe(t *testing.T) {
 	}
 }
 
-func Test_AuditCmd_List(t *testing.T) {
+func Test_AdminAuditCmd_List(t *testing.T) {
 	tests := []*e2e.Test[adminv1.AuditServiceListResponse, []*apiv1.AuditTrace]{
 		{
 			Name:    "list",

@@ -658,3 +658,42 @@ func Test_TenantCmd_Join(t *testing.T) {
 		tt.TestCmd(t)
 	}
 }
+
+func Test_TenantCmd_RequestAdmission(t *testing.T) {
+	tests := []*e2e.Test[apiv1.TenantServiceRequestAdmissionResponse, string]{
+		{
+			Name:    "request admission",
+			CmdArgs: []string{"tenant", "request-admission", testresources.Tenant1().Login, testresources.User1().Email},
+			NewRootCmd: e2erootcmd.NewRootCmd(t, &e2erootcmd.TestConfig{
+				ClientMocks: &apitests.ClientMockFns{
+					Apiv1Mocks: &apitests.Apiv1MockFns{
+						User: func(m *mock.Mock) {
+							m.On("Get", mock.Anything, connect.NewRequest(&apiv1.UserServiceGetRequest{})).Return(connect.NewResponse(&apiv1.UserServiceGetResponse{
+								User: testresources.User1(),
+							}), nil).Maybe()
+						},
+						Asset: func(m *mock.Mock) {
+							m.On("List", mock.Anything, connect.NewRequest(&apiv1.AssetServiceListRequest{})).Return(connect.NewResponse(&apiv1.AssetServiceListResponse{
+								Environment: testresources.Environment1(),
+							}), nil)
+						},
+						Tenant: func(m *mock.Mock) {
+							m.On("RequestAdmission", mock.Anything, connect.NewRequest(&apiv1.TenantServiceRequestAdmissionRequest{
+								Login:                      testresources.Tenant1().Login,
+								Email:                      testresources.User1().Email,
+								Name:                       testresources.Tenant1().Name,
+								EmailConsent:               false,
+								AcceptedTermsAndConditions: true,
+							})).Return(connect.NewResponse(&apiv1.TenantServiceRequestAdmissionResponse{}), nil)
+						},
+					},
+				},
+			}),
+			WantDefault: new(fmt.Sprintf("The terms and conditions can be found on %s. Do you accept? [Y/n] Your admission request has been submitted. We will contact you as soon as possible.",
+				*testresources.Environment1().TermsAndConditionsUrl)),
+		},
+	}
+	for _, tt := range tests {
+		tt.TestCmd(t)
+	}
+}

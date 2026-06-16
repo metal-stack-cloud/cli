@@ -107,7 +107,7 @@ func Test_AdminClusterCmd_Describe(t *testing.T) {
 	}
 }
 
-func Test_ClusterCmd_KubeConfig(t *testing.T) {
+func Test_AdminClusterCmd_KubeConfig(t *testing.T) {
 	tests := []*e2e.Test[adminv1.ClusterServiceCredentialsResponse, string]{
 		{
 			Name: "get kubeconfig",

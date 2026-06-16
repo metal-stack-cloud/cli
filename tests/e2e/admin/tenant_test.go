@@ -134,3 +134,33 @@ termsAndConditions: {}
 		tt.TestCmd(t)
 	}
 }
+
+func Test_AdminTenantCmd_AddMember(t *testing.T) {
+	tests := []*e2e.Test[adminv1.TenantServiceAddMemberResponse, string]{
+		{
+			Name: "add Member",
+			CmdArgs: []string{"admin", "tenant", "add-member",
+				"--tenant-id", testresources.Tenant1().Login,
+				"--member-id", testresources.TenantMember1().Id,
+				"--role", testresources.TenantMember1().Role.String(),
+			},
+			NewRootCmd: e2erootcmd.NewRootCmd(t, &e2erootcmd.TestConfig{
+				ClientMocks: &apitests.ClientMockFns{
+					Adminv1Mocks: &apitests.Adminv1MockFns{
+						Tenant: func(m *mock.Mock) {
+							m.On("AddMember", mock.Anything, connect.NewRequest(&adminv1.TenantServiceAddMemberRequest{
+								TenantId: testresources.Tenant1().Login,
+								MemberId: testresources.TenantMember1().Id,
+								Role:     testresources.TenantMember1().Role,
+							})).Return(connect.NewResponse(&adminv1.TenantServiceAddMemberResponse{}), nil)
+						},
+					},
+				},
+			}),
+			WantDefault: new(``),
+		},
+	}
+	for _, tt := range tests {
+		tt.TestCmd(t)
+	}
+}

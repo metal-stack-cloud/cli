@@ -22,4 +22,12 @@ var (
 			},
 		}
 	}
+	Environment1 = func() *apiv1.Environment {
+		return &apiv1.Environment{
+			ConsoleUrl:            new("https://test-console"),
+			AfterLoginUrl:         new("https://test/dashboard"),
+			StripePublicToken:     new("pk_test_dummy_token_abc123"),
+			TermsAndConditionsUrl: new("https://test/terms"),
+		}
+	}
 )

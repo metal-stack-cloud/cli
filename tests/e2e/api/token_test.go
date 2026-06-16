@@ -17,7 +17,7 @@ import (
 )
 
 func Test_TokenCmd_List(t *testing.T) {
-	tests := []*e2e.Test[apiv1.TokenServiceListResponse, []*apiv1.IP]{
+	tests := []*e2e.Test[apiv1.TokenServiceListResponse, []*apiv1.Token]{
 		{
 			Name:    "token list",
 			CmdArgs: []string{"token", "list"},
