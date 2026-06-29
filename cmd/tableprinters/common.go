@@ -60,6 +60,10 @@ func (t *TablePrinter) ToHeaderAndRows(data any, wide bool) ([]string, [][]strin
 		return t.PaymentPricesTable(pointer.WrapInSlice(d), wide)
 	case []*apiv1.Price:
 		return t.PaymentPricesTable(d, wide)
+	case *apiv1.SubscriptionUsageItem:
+		return t.PaymentSubscriptionUsageTable(pointer.WrapInSlice(d), wide)
+	case []*apiv1.SubscriptionUsageItem:
+		return t.PaymentSubscriptionUsageTable(d, wide)
 
 	case *apiv1.Project:
 		return t.ProjectTable(pointer.WrapInSlice(d), wide)

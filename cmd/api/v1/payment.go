@@ -9,9 +9,7 @@ import (
 	"github.com/metal-stack-cloud/cli/cmd/sorters"
 	"github.com/metal-stack/metal-lib/pkg/genericcli"
 	"github.com/metal-stack/metal-lib/pkg/genericcli/printers"
-	"github.com/metal-stack/metal-lib/pkg/pointer"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 type payment struct {
@@ -23,7 +21,7 @@ func newPaymentCmd(c *config.Config) *cobra.Command {
 		c: c,
 	}
 
-	cmdsConfig := &genericcli.CmdsConfig[*apiv1.PaymentServiceCreateRequest, *apiv1.PaymentServiceUpdateRequest, *apiv1.PaymentCustomer]{
+	cmdsConfig := &genericcli.CmdsConfig[any, any, *apiv1.PaymentCustomer]{
 		BinaryName:  config.BinaryName,
 		GenericCLI:  genericcli.NewGenericCLI(w).WithFS(c.Fs),
 		Singular:    "payment",
@@ -50,11 +48,11 @@ func newPaymentCmd(c *config.Config) *cobra.Command {
 
 			cmd.Flags().String("stripe-public-token", config.DefaultStripePubToken, "the stripe public token")
 		},
-		CreateRequestFromCLI: func() (*apiv1.PaymentServiceCreateRequest, error) {
-			tenant, err := w.c.GetTenant()
-			if err != nil {
-				return nil, err
-			}
+		CreateRequestFromCLI: func() (any, error) {
+			// tenant, err := w.c.GetTenant()
+			// if err != nil {
+			// 	return nil, err
+			// }
 
 			// params := &stripe.PaymentMethodParams{
 			// 	Type: stripe.String(string(stripe.PaymentMethodTypeCard)),
@@ -68,15 +66,16 @@ func newPaymentCmd(c *config.Config) *cobra.Command {
 			// 	return
 			// }
 
-			return &apiv1.PaymentServiceCreateRequest{
-				Login:           tenant,
-				Name:            viper.GetString("name"),
-				PaymentMethodId: "", // TODO
-				Email:           viper.GetString("email"),
-				Address:         &apiv1.Address{}, // TODO
-				Vat:             viper.GetString("vat"),
-				PhoneNumber:     pointer.PointerOrNil(viper.GetString("phone")),
-			}, nil
+			// return &apiv1.PaymentServiceCreateRequest{
+			// 	Login:           tenant,
+			// 	Name:            viper.GetString("name"),
+			// 	PaymentMethodId: "", // TODO
+			// 	Email:           viper.GetString("email"),
+			// 	Address:         &apiv1.Address{}, // TODO
+			// 	Vat:             viper.GetString("vat"),
+			// 	PhoneNumber:     pointer.PointerOrNil(viper.GetString("phone")),
+			// }, nil
+			return nil, nil
 		},
 		UpdateCmdMutateFn: func(cmd *cobra.Command) {
 			cmd.Flags().String("name", "", "the name of the tenant to update")
@@ -113,23 +112,36 @@ func newPaymentCmd(c *config.Config) *cobra.Command {
 
 	genericcli.AddSortFlag(showDefaultPricesCmd, sorters.PriceSorter())
 
-	return genericcli.NewCmds(cmdsConfig, showDefaultPricesCmd)
+	getSubscriptionUsageCmd := &cobra.Command{
+		Use:   "get-subscription-usage",
+		Short: "get-subscription-usage",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return w.GetSubscriptionUsage()
+		},
+	}
+
+	getSubscriptionUsageCmd.Flags().String("tenant", "", "tenant of the subscription usage.")
+	genericcli.Must(getSubscriptionUsageCmd.RegisterFlagCompletionFunc("tenant", c.Completion.TenantListCompletion))
+
+	return genericcli.NewCmds(cmdsConfig, showDefaultPricesCmd, getSubscriptionUsageCmd)
 }
 
-func (p *payment) Convert(r *apiv1.PaymentCustomer) (string, *apiv1.PaymentServiceCreateRequest, *apiv1.PaymentServiceUpdateRequest, error) {
+func (p *payment) Convert(r *apiv1.PaymentCustomer) (string, any, any, error) {
 	panic("unimplemented")
 }
 
-func (p *payment) Create(rq *apiv1.PaymentServiceCreateRequest) (*apiv1.PaymentCustomer, error) {
-	ctx, cancel := p.c.NewRequestContext()
-	defer cancel()
+func (p *payment) Create(rq any) (*apiv1.PaymentCustomer, error) {
+	panic("unimplemented")
 
-	payment, err := p.c.Client.Apiv1().Payment().Create(ctx, connect.NewRequest(rq))
-	if err != nil {
-		return nil, fmt.Errorf("unable to create payment data: %w", err)
-	}
+	// ctx, cancel := p.c.NewRequestContext()
+	// defer cancel()
 
-	return payment.Msg.GetCustomer(), nil
+	// payment, err := p.c.Client.Apiv1().Payment().Create(ctx, connect.NewRequest(rq))
+	// if err != nil {
+	// 	return nil, fmt.Errorf("unable to create payment data: %w", err)
+	// }
+
+	// return payment.Msg.GetCustomer(), nil
 }
 
 func (p *payment) Delete(id string) (*apiv1.PaymentCustomer, error) {
@@ -137,36 +149,59 @@ func (p *payment) Delete(id string) (*apiv1.PaymentCustomer, error) {
 }
 
 func (p *payment) Get(id string) (*apiv1.PaymentCustomer, error) {
-	ctx, cancel := p.c.NewRequestContext()
-	defer cancel()
+	panic("unimplemented")
 
-	tenant, err := p.c.GetTenant()
-	if err != nil {
-		return nil, err
-	}
+	// ctx, cancel := p.c.NewRequestContext()
+	// defer cancel()
 
-	payment, err := p.c.Client.Apiv1().Payment().Get(ctx, connect.NewRequest(&apiv1.PaymentServiceGetRequest{
-		Login: tenant,
-	}))
-	if err != nil {
-		return nil, fmt.Errorf("unable to get payment data: %w", err)
-	}
+	// tenant, err := p.c.GetTenant()
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	return payment.Msg.GetCustomer(), nil
+	// payment, err := p.c.Client.Apiv1().Payment().Get(ctx, connect.NewRequest(&apiv1.PaymentServiceGetRequest{
+	// 	Login: tenant,
+	// }))
+	// if err != nil {
+	// 	return nil, fmt.Errorf("unable to get payment data: %w", err)
+	// }
+
+	// return payment.Msg.GetCustomer(), nil
 }
 
 func (p *payment) List() ([]*apiv1.PaymentCustomer, error) {
 	panic("unimplemented")
 }
 
-func (p *payment) Update(rq *apiv1.PaymentServiceUpdateRequest) (*apiv1.PaymentCustomer, error) {
+func (p *payment) Update(rq any) (*apiv1.PaymentCustomer, error) {
+	panic("unimplemented")
+
+	// ctx, cancel := p.c.NewRequestContext()
+	// defer cancel()
+
+	// payment, err := p.c.Client.Apiv1().Payment().Update(ctx, connect.NewRequest(rq))
+	// if err != nil {
+	// 	return nil, fmt.Errorf("unable to update payment data: %w", err)
+	// }
+
+	// return payment.Msg.GetCustomer(), nil
+}
+
+func (p *payment) GetSubscriptionUsage() error {
 	ctx, cancel := p.c.NewRequestContext()
 	defer cancel()
 
-	payment, err := p.c.Client.Apiv1().Payment().Update(ctx, connect.NewRequest(rq))
+	tenant, err := p.c.GetTenant()
 	if err != nil {
-		return nil, fmt.Errorf("unable to update payment data: %w", err)
+		return err
 	}
 
-	return payment.Msg.GetCustomer(), nil
+	resp, err := p.c.Client.Apiv1().Payment().GetSubscriptionUsage(ctx, connect.NewRequest(&apiv1.PaymentServiceGetSubscriptionUsageRequest{
+		Login: tenant,
+	}))
+	if err != nil {
+		return fmt.Errorf("unable to get subscription usage: %w", err)
+	}
+
+	return p.c.ListPrinter.Print(resp.Msg.GetSubscriptionUsageItems())
 }
