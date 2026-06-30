@@ -48,8 +48,8 @@ func (t *TablePrinter) PaymentSubscriptionUsageTable(items []*apiv1.Subscription
 			item.SubscriptionItemId,
 			item.SubscriptionItemName,
 			strconv.FormatInt(item.TotalUsage, 10),
-			item.PeriodStart.String(),
-			item.PeriodEnd.String(),
+			item.PeriodStart.AsTime().String(),
+			item.PeriodEnd.AsTime().String(),
 		}
 
 		rows = append(rows, row)
