@@ -11,7 +11,7 @@ metal tenant member list [flags]
 ```
   -h, --help              help for list
       --sort-by strings   sort by (comma separated) column(s), sort direction can be changed by appending :asc or :desc behind the column identifier. possible values: created|id|role
-      --tenant string     the tenant in which to remove the member
+      --tenant string     the tenant in which to list the members
 ```
 
 ### Options inherited from parent commands
