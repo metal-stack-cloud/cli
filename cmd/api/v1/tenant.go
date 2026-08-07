@@ -129,7 +129,7 @@ func newTenantCmd(c *config.Config) *cobra.Command {
 		},
 	}
 
-	listMembersCmd.Flags().String("tenant", "", "the tenant in which to remove the member")
+	listMembersCmd.Flags().String("tenant", "", "the tenant in which to list the members")
 
 	genericcli.AddSortFlag(listMembersCmd, sorters.TenantMemberSorter())
 
@@ -156,7 +156,7 @@ func newTenantCmd(c *config.Config) *cobra.Command {
 		ValidArgsFunction: c.Completion.TenantMemberListCompletion,
 	}
 
-	updateMemberCmd.Flags().String("tenant", "", "the tenant in which to remove the member")
+	updateMemberCmd.Flags().String("tenant", "", "the tenant in which to update the member")
 	updateMemberCmd.Flags().String("role", "", "the role of the member")
 
 	genericcli.Must(updateMemberCmd.RegisterFlagCompletionFunc("tenant", c.Completion.TenantListCompletion))

@@ -11,7 +11,7 @@ metal tenant member update <member> [flags]
 ```
   -h, --help            help for update
       --role string     the role of the member
-      --tenant string   the tenant in which to remove the member
+      --tenant string   the tenant in which to update the member
 ```
 
 ### Options inherited from parent commands
