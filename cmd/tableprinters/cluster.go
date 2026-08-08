@@ -14,7 +14,7 @@ import (
 func (t *TablePrinter) ClusterTable(clusters []*apiv1.Cluster, machines map[string][]*adminv1.Machine, wide bool) ([]string, [][]string, error) {
 	var (
 		rows   [][]string
-		header = []string{"", "Tenant", "Project", "ID", "Name", "Partition", "Version", "Size", "Age"}
+		header = []string{"Progress", "ID", "Name", "Project", "Tenant", "Partition", "Version", "Size", "Age"}
 
 		statusIcon = func(s string) string {
 			switch s {
@@ -40,10 +40,10 @@ func (t *TablePrinter) ClusterTable(clusters []*apiv1.Cluster, machines map[stri
 	)
 
 	if wide {
-		header = []string{"ID", "Tenant", "Project", "Name", "Partition", "Purpose", "Version", "Operation", "Progress", "Api", "Control", "Nodes", "Sys", "Size", "Age"}
+		header = []string{"Progress", "ID", "Name", "Project", "Tenant", "Partition", "Version", "Size", "Age", "Purpose", "Operation", "Api", "Control", "Nodes", "Sys"}
 	}
 
-	for _, cluster := range clusters {
+	for idx, cluster := range clusters {
 
 		var (
 			totalMinNodes, totalMaxNodes uint32
@@ -56,6 +56,47 @@ func (t *TablePrinter) ClusterTable(clusters []*apiv1.Cluster, machines map[stri
 
 		nodesRange := fmt.Sprintf("%v - %v", totalMinNodes, totalMaxNodes)
 
+		rows = append(rows, []string{
+			statusShort(cluster.Status),
+			cluster.Uuid,
+			cluster.Name,
+			cluster.Project,
+			cluster.Tenant,
+			cluster.Partition,
+			cluster.Kubernetes.Version,
+			nodesRange,
+			humanize.Time(cluster.CreatedAt.AsTime()),
+		})
+
+		for i, machine := range machines[cluster.Uuid] {
+
+			prefix := "├"
+			if i == len(machines[cluster.Uuid])-1 {
+				prefix = "└"
+			}
+			prefix += "─╴"
+
+			status := machine.Liveliness
+			switch status {
+			case "Alive":
+				status = color.GreenString("✔")
+			default:
+				status = color.RedString("✗")
+			}
+
+			rows = append(rows, []string{
+				status,
+				prefix + machine.Uuid,
+				machine.Hostname,
+				"",
+				"",
+				machine.Partition,
+				machine.Image,
+				machine.Size,
+				humanize.Time(machine.Created.AsTime()),
+			})
+		}
+
 		if wide {
 			var (
 				purpose   = pointer.SafeDeref(cluster.Purpose)
@@ -64,76 +105,27 @@ func (t *TablePrinter) ClusterTable(clusters []*apiv1.Cluster, machines map[stri
 				nodes     = ""
 				system    = ""
 				operation = ""
-				progress  = "0%"
+				progress  = "0"
 			)
 
 			if cluster.Status != nil {
 				operation = cluster.Status.State
-				progress = fmt.Sprintf("%d%% [%s]", cluster.Status.Progress, cluster.Status.Type)
+				progress = fmt.Sprintf("%s [%s]", statusShort(cluster.Status), cluster.Status.Type)
 				api = statusIcon(cluster.Status.ApiServerReady)
 				control = statusIcon(cluster.Status.ControlPlaneReady)
 				nodes = statusIcon(cluster.Status.NodesReady)
 				system = statusIcon(cluster.Status.SystemComponentsReady)
 			}
 
-			rows = append(rows, []string{
-				cluster.Uuid,
-				cluster.Tenant,
-				cluster.Project,
-				cluster.Name,
-				cluster.Partition,
+			rows[idx][0] = progress
+			rows[idx] = append(rows[idx],
 				purpose,
-				cluster.Kubernetes.Version,
 				operation,
-				progress,
 				api,
 				control,
 				nodes,
 				system,
-				nodesRange,
-				humanize.Time(cluster.CreatedAt.AsTime()),
-			})
-		} else {
-			rows = append(rows, []string{
-				statusShort(cluster.Status),
-				cluster.Tenant,
-				cluster.Project,
-				cluster.Uuid,
-				cluster.Name,
-				cluster.Partition,
-				cluster.Kubernetes.Version,
-				nodesRange,
-				humanize.Time(cluster.CreatedAt.AsTime()),
-			})
-
-			for i, machine := range machines[cluster.Uuid] {
-
-				prefix := "├"
-				if i == len(machines[cluster.Uuid])-1 {
-					prefix = "└"
-				}
-				prefix += "─╴"
-
-				status := machine.Liveliness
-				switch status {
-				case "Alive":
-					status = color.GreenString("✔")
-				default:
-					status = color.RedString("✗")
-				}
-
-				rows = append(rows, []string{
-					status,
-					"",
-					"",
-					prefix + machine.Uuid,
-					machine.Hostname,
-					machine.Partition,
-					machine.Image,
-					machine.Size,
-					humanize.Time(machine.Created.AsTime()),
-				})
-			}
+			)
 		}
 	}
 
