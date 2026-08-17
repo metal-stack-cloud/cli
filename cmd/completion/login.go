@@ -5,5 +5,5 @@ import (
 )
 
 func (c *Completion) LoginProviderCompletion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-	return []string{"github", "azure", "google"}, cobra.ShellCompDirectiveNoFileComp
+	return []string{"github", "azure", "google", "openid-connect"}, cobra.ShellCompDirectiveNoFileComp
 }
