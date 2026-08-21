@@ -18,6 +18,7 @@ metal cluster kubeconfig [flags]
       --merge                 merges the kubeconfig into the current kubeconfig (default true)
       --print-only            only prints the kubeconfig to the console instead of writing it
   -p, --project string        the project in which the cluster resides for which to get the kubeconfig for
+      --role string           role for the kubeconfig: "admin" or "viewer" (default "viewer")
 ```
 
 ### Options inherited from parent commands
