@@ -74,6 +74,7 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 	kubeconfigCmd.Flags().DurationP("expiration", "", 8*time.Hour, "kubeconfig will expire after given time")
 	kubeconfigCmd.Flags().Bool("merge", true, "merges the kubeconfig into the current kubeconfig")
 	kubeconfigCmd.Flags().Bool("print-only", false, "only prints the kubeconfig to the console instead of writing it")
+	kubeconfigCmd.Flags().String("role", "viewer", `role for the kubeconfig: "admin" or "viewer"`)
 	kubeconfigCmd.Flags().String("auth-type", string(kubernetes.AuthTypeExec), `the way how the resulting kubeconfig authenticates at the api server. can be "exec" or "certs".
 	  "exec" injects an exec config into the kubeconfig, which uses this CLI to automatically renew certificates when they expire.
 	  "certs" simply adds the client certificates to the kubeconfig, there is no automatic renewal once the certificates have expired, the CLI is not called automatically.`)
@@ -190,18 +191,36 @@ func (c *cluster) kubeconfig(args []string) error {
 		return err
 	}
 
-	expiration := viper.GetDuration("expiration")
-	req := &adminv1.ClusterServiceCredentialsRequest{
-		Uuid:       id,
-		Expiration: durationpb.New(expiration),
+	role := viper.GetString("role")
+	if role != "admin" && role != "viewer" {
+		return fmt.Errorf("role must be \"admin\" or \"viewer\"")
 	}
 
-	resp, err := c.c.Client.Adminv1().Cluster().Credentials(ctx, connect.NewRequest(req))
-	if err != nil {
-		return fmt.Errorf("failed to get cluster credentials: %w", err)
+	expiration := durationpb.New(viper.GetDuration("expiration"))
+
+	var rawKubeconfig []byte
+	switch role {
+	case "admin":
+		resp, err := c.c.Client.Adminv1().Cluster().GetAdminKubeconfig(ctx, connect.NewRequest(&adminv1.ClusterServiceGetAdminKubeconfigRequest{
+			Uuid:       id,
+			Expiration: expiration,
+		}))
+		if err != nil {
+			return fmt.Errorf("failed to get admin kubeconfig: %w", err)
+		}
+		rawKubeconfig = []byte(resp.Msg.Kubeconfig)
+	case "viewer":
+		resp, err := c.c.Client.Adminv1().Cluster().GetViewerKubeconfig(ctx, connect.NewRequest(&adminv1.ClusterServiceGetViewerKubeconfigRequest{
+			Uuid:       id,
+			Expiration: expiration,
+		}))
+		if err != nil {
+			return fmt.Errorf("failed to get viewer kubeconfig: %w", err)
+		}
+		rawKubeconfig = []byte(resp.Msg.Kubeconfig)
 	}
 
-	kubeconfig, err := kubernetes.NewKubeconfigFromRaw(c.c.Fs, c.c.In, c.c.Out, []byte(resp.Msg.Kubeconfig), nil, c.c.GetProject(), id) // FIXME: reverse lookup project name
+	kubeconfig, err := kubernetes.NewKubeconfigFromRaw(c.c.Fs, c.c.In, c.c.Out, rawKubeconfig, nil, c.c.GetProject(), id) // FIXME: reverse lookup project name
 	if err != nil {
 		return err
 	}
