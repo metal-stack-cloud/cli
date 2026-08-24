@@ -144,19 +144,19 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 
 	monitoringCmd := &cobra.Command{
 		Use:   "monitoring",
-		Short: "fetch endpoints and access credentials to cluster monitoring",
+		Short: "fetch endpoint and access credentials for cluster monitoring",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id, err := genericcli.GetExactlyOneArg(args)
 			if err != nil {
 				return err
 			}
 
-			cluster, err := w.Get(id)
+			clusterMonitoring, err := w.getMonitoringCredentials(id)
 			if err != nil {
 				return err
 			}
 
-			return c.DescribePrinter.Print(cluster.Monitoring)
+			return c.DescribePrinter.Print(clusterMonitoring)
 		},
 		ValidArgsFunction: c.Completion.ClusterListCompletion,
 	}
@@ -317,6 +317,23 @@ func (c *cluster) Get(id string) (*apiv1.Cluster, error) {
 	}
 
 	return resp.Msg.Cluster, nil
+}
+
+func (c *cluster) getMonitoringCredentials(id string) (*apiv1.ClusterMonitoring, error) {
+	ctx, cancel := c.c.NewRequestContext()
+	defer cancel()
+
+	req := &apiv1.ClusterServiceGetMonitoringCredentialsRequest{
+		Uuid:    id,
+		Project: c.c.GetProject(),
+	}
+
+	resp, err := c.c.Client.Apiv1().Cluster().GetMonitoringCredentials(ctx, connect.NewRequest(req))
+	if err != nil {
+		return nil, fmt.Errorf("failed to get cluster credentials: %w", err)
+	}
+
+	return resp.Msg.Monitoring, nil
 }
 
 func (c *cluster) List() ([]*apiv1.Cluster, error) {

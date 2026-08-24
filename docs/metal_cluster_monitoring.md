@@ -1,6 +1,6 @@
 ## metal cluster monitoring
 
-fetch endpoints and access credentials to cluster monitoring
+fetch endpoint and access credentials for cluster monitoring
 
 ```
 metal cluster monitoring [flags]
