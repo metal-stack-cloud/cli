@@ -127,7 +127,7 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 
 	genericcli.Must(kubeconfigCmd.RegisterFlagCompletionFunc("project", c.Completion.ProjectListCompletion))
 	genericcli.Must(kubeconfigCmd.RegisterFlagCompletionFunc("auth-type", c.Completion.ClusterKubeconfigAuthType))
-	// genericcli.Must(kubeconfigCmd.RegisterFlagCompletionFunc("access-level", cobra.FixedCompletions(config.AccessLevels, cobra.ShellCompDirectiveNoFileComp)))
+	genericcli.Must(kubeconfigCmd.RegisterFlagCompletionFunc("access-level", cobra.FixedCompletions(config.AccessLevels, cobra.ShellCompDirectiveNoFileComp)))
 
 	execConfigCmd := &cobra.Command{
 		Use:   "exec-config",
