@@ -16,7 +16,6 @@ import (
 	"github.com/spf13/viper"
 
 	corev1 "k8s.io/api/core/v1"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/yaml"
 )
 
@@ -194,8 +193,8 @@ func (c *volume) volumeManifest(args []string) error {
 
 	filesystem := corev1.PersistentVolumeFilesystem
 	pv := corev1.PersistentVolume{
-		TypeMeta:   v1.TypeMeta{Kind: "PersistentVolume", APIVersion: "v1"},
-		ObjectMeta: v1.ObjectMeta{Name: name, Namespace: namespace},
+		Kind: "PersistentVolume", APIVersion: "v1",
+		Name: name, Namespace: namespace,
 		Spec: corev1.PersistentVolumeSpec{
 			AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
 			VolumeMode:  &filesystem,
@@ -231,12 +230,10 @@ func (v *volume) volumeEncryptionSecretManifest() error {
 	namespace := viper.GetString("namespace")
 	passphrase := viper.GetString("passphrase")
 	secret := corev1.Secret{
-		TypeMeta: v1.TypeMeta{Kind: "Secret", APIVersion: "v1"},
-		ObjectMeta: v1.ObjectMeta{
-			Name:      "storage-encryption-key",
-			Namespace: namespace,
-		},
-		Type: corev1.SecretTypeOpaque,
+		Kind: "Secret", APIVersion: "v1",
+		Name:      "storage-encryption-key",
+		Namespace: namespace,
+		Type:      corev1.SecretTypeOpaque,
 		StringData: map[string]string{
 			"host-encryption-passphrase": passphrase,
 		},
