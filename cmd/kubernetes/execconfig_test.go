@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/spf13/afero"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	c "k8s.io/client-go/pkg/apis/clientauthentication/v1"
 )
 
@@ -108,10 +107,8 @@ func TestExecCache_ExecConfig(t *testing.T) {
 			},
 			wantErr: false,
 			want: &c.ExecCredential{
-				TypeMeta: metav1.TypeMeta{
-					Kind:       "ExecCredential",
-					APIVersion: "client.authentication.k8s.io/v1",
-				},
+				Kind:       "ExecCredential",
+				APIVersion: "client.authentication.k8s.io/v1",
 				Spec: c.ExecCredentialSpec{
 					Interactive: false,
 				},
