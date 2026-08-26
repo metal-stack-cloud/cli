@@ -224,14 +224,14 @@ func (c *project) Delete(id string) (*apiv1.Project, error) {
 
 func (c *project) Convert(r *apiv1.Project) (string, *apiv1.ProjectServiceCreateRequest, *apiv1.ProjectServiceUpdateRequest, error) {
 	return r.Uuid, &apiv1.ProjectServiceCreateRequest{
-			Login:       r.Tenant,
-			Name:        r.Name,
-			Description: r.Description,
-		}, &apiv1.ProjectServiceUpdateRequest{
-			Project:     r.Uuid,
-			Name:        new(r.Name),
-			Description: new(r.Description),
-		}, nil
+		Login:       r.Tenant,
+		Name:        r.Name,
+		Description: r.Description,
+	}, &apiv1.ProjectServiceUpdateRequest{
+		Project:     r.Uuid,
+		Name:        new(r.Name),
+		Description: new(r.Description),
+	}, nil
 }
 
 func (c *project) Update(rq *apiv1.ProjectServiceUpdateRequest) (*apiv1.Project, error) {
