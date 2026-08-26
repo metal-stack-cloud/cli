@@ -9,6 +9,7 @@ metal cluster kubeconfig [flags]
 ### Options
 
 ```
+      --access-level string   access level for the kubeconfig. One of "admin" or "viewer" (default "viewer")
       --auth-type string      the way how the resulting kubeconfig authenticates at the api server. can be "exec" or "certs".
                               	  "exec" injects an exec config into the kubeconfig, which uses this CLI to automatically renew certificates when they expire.
                               	  "certs" simply adds the client certificates to the kubeconfig, there is no automatic renewal once the certificates have expired, the CLI is not called automatically. (default "exec")
