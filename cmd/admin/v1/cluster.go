@@ -118,9 +118,29 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 		Short: "commands for cluster machines",
 	}
 
+	// metal admin cluster monitoring
+	monitoringCmd := &cobra.Command{
+		Use:   "monitoring",
+		Short: "fetch endpoint and access credentials for cluster monitoring",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			id, err := genericcli.GetExactlyOneArg(args)
+			if err != nil {
+				return err
+			}
+
+			clusterMonitoring, err := w.getMonitoringCredentials(id)
+			if err != nil {
+				return err
+			}
+
+			return c.DescribePrinter.Print(clusterMonitoring)
+		},
+		ValidArgsFunction: c.Completion.AdminClusterListCompletion,
+	}
+
 	machineCmd.AddCommand(machineListCmd, machineSSHCmd)
 
-	return genericcli.NewCmds(cmdsConfig, kubeconfigCmd, machineCmd)
+	return genericcli.NewCmds(cmdsConfig, kubeconfigCmd, machineCmd, monitoringCmd)
 }
 
 func (c *cluster) Create(rq any) (*apiv1.Cluster, error) {
@@ -240,6 +260,22 @@ func (c *cluster) kubeconfig(args []string) error {
 	_, _ = fmt.Fprintf(c.c.Out, "%s wrote context %q into %s\n", color.GreenString("✔"), kubeconfig.ContextName, kubeconfig.Path)
 
 	return nil
+}
+
+func (c *cluster) getMonitoringCredentials(id string) (*apiv1.ClusterMonitoring, error) {
+	ctx, cancel := c.c.NewRequestContext()
+	defer cancel()
+
+	req := &adminv1.ClusterServiceGetMonitoringCredentialsRequest{
+		Uuid: id,
+	}
+
+	resp, err := c.c.Client.Adminv1().Cluster().GetMonitoringCredentials(ctx, connect.NewRequest(req))
+	if err != nil {
+		return nil, fmt.Errorf("failed to get cluster credentials: %w", err)
+	}
+
+	return resp.Msg.Monitoring, nil
 }
 
 func (c *cluster) machineList(args []string) error {
