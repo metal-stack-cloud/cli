@@ -8,6 +8,7 @@ import (
 	adminv1 "github.com/metal-stack-cloud/api/go/admin/v1"
 	apiv1 "github.com/metal-stack-cloud/api/go/api/v1"
 	apitests "github.com/metal-stack-cloud/api/go/tests"
+	"github.com/metal-stack-cloud/cli/cmd/config"
 	e2erootcmd "github.com/metal-stack-cloud/cli/testing/e2e"
 	"github.com/metal-stack-cloud/cli/tests/e2e/testresources"
 	e2e "github.com/metal-stack/metal-lib/pkg/genericcli/e2e"
@@ -108,19 +109,78 @@ func Test_AdminClusterCmd_Describe(t *testing.T) {
 }
 
 func Test_AdminClusterCmd_KubeConfig(t *testing.T) {
-	tests := []*e2e.Test[adminv1.ClusterServiceCredentialsResponse, string]{
+	tests := []*e2e.Test[adminv1.ClusterServiceGetAdminKubeconfigResponse, string]{
 		{
-			Name: "get kubeconfig",
+			Name: "get viewer kubeconfig",
 			CmdArgs: []string{"admin", "cluster", "kubeconfig", testresources.Cluster1().Uuid,
-				"--expiration", "9h", "--print-only=true", "--auth-type=certs"},
+				"--expiration", "9h", "--print-only=true", "--auth-type=certs", "--access-level=" + config.AccessLevelViewer},
 			NewRootCmd: e2erootcmd.NewRootCmd(t, &e2erootcmd.TestConfig{
 				ClientMocks: &apitests.ClientMockFns{
 					Adminv1Mocks: &apitests.Adminv1MockFns{
 						Cluster: func(m *mock.Mock) {
-							m.On("Credentials", mock.Anything, connect.NewRequest(&adminv1.ClusterServiceCredentialsRequest{
+							m.On("GetViewerKubeconfig", mock.Anything, connect.NewRequest(&adminv1.ClusterServiceGetViewerKubeconfigRequest{
 								Uuid:       testresources.Cluster1().Uuid,
 								Expiration: durationpb.New(9 * time.Hour),
-							})).Return(connect.NewResponse(&adminv1.ClusterServiceCredentialsResponse{
+							})).Return(connect.NewResponse(&adminv1.ClusterServiceGetViewerKubeconfigResponse{
+								Kubeconfig: `
+apiVersion: v1
+kind: Config
+
+clusters:
+- name: project--test-external
+  cluster:
+    server: https://example.com
+    insecure-skip-tls-verify: true
+
+users:
+- name: myuser-test-external
+  user:
+    token: fake-token
+
+contexts:
+- name: test
+  context:
+    cluster: project--test-external
+    user: myuser-test-external
+
+current-context: test
+preferences: {}
+`,
+							}), nil)
+						},
+					},
+				},
+			}),
+			WantDefault: new(`
+apiVersion: v1
+clusters:
+- cluster:
+    server: https://example.com
+  name: test@metalstack.cloud
+contexts:
+- context:
+    cluster: test@metalstack.cloud
+    user: test@metalstack.cloud
+  name: test@metalstack.cloud
+current-context: test@metalstack.cloud
+kind: Config
+users:
+- name: test@metalstack.cloud
+  user: {}
+			`),
+		},
+		{
+			Name: "get admin kubeconfig",
+			CmdArgs: []string{"admin", "cluster", "kubeconfig", testresources.Cluster1().Uuid,
+				"--expiration", "9h", "--print-only=true", "--auth-type=certs", "--access-level=" + config.AccessLevelAdmin},
+			NewRootCmd: e2erootcmd.NewRootCmd(t, &e2erootcmd.TestConfig{
+				ClientMocks: &apitests.ClientMockFns{
+					Adminv1Mocks: &apitests.Adminv1MockFns{
+						Cluster: func(m *mock.Mock) {
+							m.On("GetAdminKubeconfig", mock.Anything, connect.NewRequest(&adminv1.ClusterServiceGetAdminKubeconfigRequest{
+								Uuid:       testresources.Cluster1().Uuid,
+								Expiration: durationpb.New(9 * time.Hour),
+							})).Return(connect.NewResponse(&adminv1.ClusterServiceGetAdminKubeconfigResponse{
 								Kubeconfig: `
 apiVersion: v1
 kind: Config

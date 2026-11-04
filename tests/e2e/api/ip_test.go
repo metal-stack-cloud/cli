@@ -149,15 +149,14 @@ func Test_IPCmd_Update(t *testing.T) {
 			}),
 			WantObject: testresources.Ip1(),
 			WantDefault: new(`
-description: ip1 description
+uuid: 2e0144a2-09ef-42b7-b629-4263295db6e8
 ip: 1.1.1.1
 name: ip1
+description: ip1 description
 project: c40ad996-e1fd-4511-a7bf-418219cb8d95
-tags:
-- cluster.metal-stack.io/id/namespace/service=<cluster>/default/ingress-nginx
 type: IP_TYPE_STATIC
-uuid: 2e0144a2-09ef-42b7-b629-4263295db6e8
-			`),
+tags:
+    - cluster.metal-stack.io/id/namespace/service=<cluster>/default/ingress-nginx`),
 		},
 		{
 			Name:    "update ip from file",

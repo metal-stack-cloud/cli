@@ -79,16 +79,16 @@ func Test_AdminTenantCmd_Admit(t *testing.T) {
 
 			WantObject: testresources.Tenant2(),
 			WantDefault: new(`
-createdAt: "2000-01-01T00:00:00Z"
-createdBy: metal-stack
-description: test Tenant 2
-email: x-cellent@mail.com
 login: x-cellent.com
 name: x-cellent
+email: x-cellent@mail.com
+description: test Tenant 2
 oauthProvider: O_AUTH_PROVIDER_GITHUB
-onboarded: true
 phoneNumber: "0123456787"
 termsAndConditions: {}
+onboarded: true
+createdBy: metal-stack
+createdAt: "2000-01-01T00:00:00Z"
 			`),
 		},
 	}
@@ -117,16 +117,16 @@ func Test_AdminTenantCmd_Revoke(t *testing.T) {
 
 			WantObject: testresources.Tenant2(),
 			WantDefault: new(`
-createdAt: "2000-01-01T00:00:00Z"
-createdBy: metal-stack
-description: test Tenant 2
-email: x-cellent@mail.com
 login: x-cellent.com
 name: x-cellent
+email: x-cellent@mail.com
+description: test Tenant 2
 oauthProvider: O_AUTH_PROVIDER_GITHUB
-onboarded: true
 phoneNumber: "0123456787"
 termsAndConditions: {}
+onboarded: true
+createdBy: metal-stack
+createdAt: "2000-01-01T00:00:00Z"
 			`),
 		},
 	}

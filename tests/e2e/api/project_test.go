@@ -159,13 +159,12 @@ func Test_ProjectCmd_Update(t *testing.T) {
 			}),
 			WantObject: testresources.Project1(),
 			WantDefault: new(`
-avatarUrl: https://cdn.example.com/avatars/me.png
-createdAt: "2000-01-01T00:00:00Z"
-description: Internal research and development for something.
-name: Some Initiative
-tenant: metal-stack
 uuid: c40ad996-e1fd-4511-a7bf-418219cb8d95
-			`),
+name: Some Initiative
+description: Internal research and development for something.
+tenant: metal-stack
+createdAt: "2000-01-01T00:00:00Z"
+avatarUrl: https://cdn.example.com/avatars/me.png`),
 		},
 		{
 			Name:    "update project from file",
