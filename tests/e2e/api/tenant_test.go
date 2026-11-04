@@ -66,12 +66,15 @@ func Test_TenantCmd_List(t *testing.T) {
 	tests := []*e2e.Test[apiv1.TenantServiceListResponse, []*apiv1.Tenant]{
 		{
 			Name:    "list tenants",
-			CmdArgs: []string{"tenant", "list", testresources.Tenant1().Login},
+			CmdArgs: []string{"tenant", "list", "--name", testresources.Tenant1().Name, "--tenant", testresources.Tenant1().Login},
 			NewRootCmd: e2erootcmd.NewRootCmd(t, &e2erootcmd.TestConfig{
 				ClientMocks: &apitests.ClientMockFns{
 					Apiv1Mocks: &apitests.Apiv1MockFns{
 						Tenant: func(m *mock.Mock) {
-							m.On("List", mock.Anything, connect.NewRequest(&apiv1.TenantServiceListRequest{})).Return(connect.NewResponse(&apiv1.TenantServiceListResponse{
+							m.On("List", mock.Anything, connect.NewRequest(&apiv1.TenantServiceListRequest{
+								Id:   new(testresources.Tenant1().Login),
+								Name: new(testresources.Tenant1().Name),
+							})).Return(connect.NewResponse(&apiv1.TenantServiceListResponse{
 								Tenants: []*apiv1.Tenant{
 									testresources.Tenant1(),
 								},
@@ -614,8 +617,8 @@ func Test_TenantCmd_CreateInvite(t *testing.T) {
 			}),
 			WantDefault: new(fmt.Sprintf("You can share this secret with the member to join, it expires in %s:\n\n%s (https://console.metalstack.cloud/organization-invite/%s)",
 				humanize.RelTime(e2e.TimeBubbleStartTime(), testresources.ProjectInvite1().ExpiresAt.AsTime(), "from now", "ago"),
-				testresources.ProjectInvite1().Secret,
-				testresources.ProjectInvite1().Secret,
+				testresources.TenantInvite1().Secret,
+				testresources.TenantInvite1().Secret,
 			)),
 		},
 	}

@@ -408,7 +408,7 @@ status: {}
 func Test_VolumeCmd_EncryptionSecret(t *testing.T) {
 	tests := []*e2e.Test[apiv1.VolumeServiceGetResponse, string]{
 		{
-			Name: "volume manifest",
+			Name: "volume ecryption secret",
 			CmdArgs: []string{
 				"storage",
 				"volume",
@@ -423,15 +423,16 @@ func Test_VolumeCmd_EncryptionSecret(t *testing.T) {
 # Place this secret, after modifying namespace and the actual secret value, in the same namespace as the pvc.
 #
 # IMPORTANT
-# Remember to make a safe copy of this secret at a secure location, once lost all your data will be lost as well.apiVersion: v1
+# Remember to make a safe copy of this secret at a secure location, once lost all your data will be lost as well.
+
+apiVersion: v1
 kind: Secret
 metadata:
   name: storage-encryption-key
   namespace: test-namespace
 stringData:
   host-encryption-passphrase: test-phrase
-type: Opaque
-			`),
+type: Opaque`),
 		},
 	}
 	for _, tt := range tests {

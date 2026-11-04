@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func Test_ProjectCmd_List(t *testing.T) {
+func Test_AdminProjectCmd_List(t *testing.T) {
 	tests := []*e2e.Test[adminv1.ProjectServiceListResponse, []*apiv1.Project]{
 		{
 			Name:    "list projects",

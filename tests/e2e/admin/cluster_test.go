@@ -237,7 +237,7 @@ users:
 func Test_AdminClusterCmd_ListMachines(t *testing.T) {
 	tests := []*e2e.Test[adminv1.ClusterServiceGetResponse, string]{
 		{
-			Name:    "describe",
+			Name:    "machines list",
 			CmdArgs: []string{"admin", "cluster", "machine", "list", testresources.Cluster1().Uuid},
 			NewRootCmd: e2erootcmd.NewRootCmd(t, &e2erootcmd.TestConfig{
 				ClientMocks: &apitests.ClientMockFns{

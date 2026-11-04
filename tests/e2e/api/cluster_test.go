@@ -655,7 +655,7 @@ endpoint: endpoint`),
 func Test_ClusterCmd_Reconcile(t *testing.T) {
 	tests := []*e2e.Test[apiv1.ClusterServiceOperateResponse, *apiv1.Cluster]{
 		{
-			Name:    "cluster monitoring",
+			Name:    "cluster reconcile",
 			CmdArgs: []string{"cluster", "reconcile", "--project", testresources.Cluster1().Project, testresources.Cluster1().Uuid},
 			NewRootCmd: e2erootcmd.NewRootCmd(t, &e2erootcmd.TestConfig{
 				ClientMocks: &apitests.ClientMockFns{

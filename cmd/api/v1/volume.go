@@ -246,7 +246,9 @@ func (v *volume) volumeEncryptionSecretManifest() error {
 # Place this secret, after modifying namespace and the actual secret value, in the same namespace as the pvc.
 #
 # IMPORTANT
-# Remember to make a safe copy of this secret at a secure location, once lost all your data will be lost as well.`)
+# Remember to make a safe copy of this secret at a secure location, once lost all your data will be lost as well.
+
+`)
 	_, _ = fmt.Fprintln(v.c.Out, string(y))
 	return nil
 }

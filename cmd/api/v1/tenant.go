@@ -36,7 +36,7 @@ func newTenantCmd(c *config.Config) *cobra.Command {
 		ListPrinter:     func() printers.Printer { return c.ListPrinter },
 		ListCmdMutateFn: func(cmd *cobra.Command) {
 			cmd.Flags().String("name", "", "lists only tenants with the given name")
-			cmd.Flags().String("id", "", "lists only tenant with the given tenant id")
+			cmd.Flags().String("tenant", "", "lists only tenant with the given tenant id")
 		},
 		CreateCmdMutateFn: func(cmd *cobra.Command) {
 			cmd.Flags().String("name", "", "the name of the tenant to create")
