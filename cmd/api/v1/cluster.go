@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"slices"
+	"strings"
 	"time"
 
 	"connectrpc.com/connect"
@@ -118,6 +119,7 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 	kubeconfigCmd.Flags().DurationP("expiration", "", 8*time.Hour, "kubeconfig will expire after given time")
 	kubeconfigCmd.Flags().Bool("merge", true, "merges the kubeconfig into the current kubeconfig")
 	kubeconfigCmd.Flags().Bool("print-only", false, "only prints the kubeconfig to the console instead of writing it")
+	kubeconfigCmd.Flags().String("access-level", config.AccessLevelViewer, `access level for the kubeconfig. One of "admin" or "viewer"`)
 	kubeconfigCmd.Flags().String("auth-type", string(kubernetes.AuthTypeExec), `the way how the resulting kubeconfig authenticates at the api server. can be "exec" or "certs".
 	  "exec" injects an exec config into the kubeconfig, which uses this CLI to automatically renew certificates when they expire.
 	  "certs" simply adds the client certificates to the kubeconfig, there is no automatic renewal once the certificates have expired, the CLI is not called automatically.`)
@@ -125,6 +127,7 @@ func newClusterCmd(c *config.Config) *cobra.Command {
 
 	genericcli.Must(kubeconfigCmd.RegisterFlagCompletionFunc("project", c.Completion.ProjectListCompletion))
 	genericcli.Must(kubeconfigCmd.RegisterFlagCompletionFunc("auth-type", c.Completion.ClusterKubeconfigAuthType))
+	genericcli.Must(kubeconfigCmd.RegisterFlagCompletionFunc("access-level", cobra.FixedCompletions(config.AccessLevels, cobra.ShellCompDirectiveNoFileComp)))
 
 	execConfigCmd := &cobra.Command{
 		Use:   "exec-config",
@@ -554,27 +557,39 @@ func (c *cluster) kubeconfig(args []string) error {
 		return err
 	}
 
-	req := &apiv1.ClusterServiceGetCredentialsRequest{
-		Uuid:       id,
-		Project:    c.c.GetProject(),
-		Expiration: durationpb.New(viper.GetDuration("expiration")),
+	accessLevel := viper.GetString("access-level")
+	if !config.IsValidAccessLevel(accessLevel) {
+		return fmt.Errorf("access-level must be one of: %s", strings.Join(config.AccessLevels, ", "))
 	}
 
-	resp, err := c.c.Client.Apiv1().Cluster().GetCredentials(ctx, connect.NewRequest(req))
-	if err != nil {
-		return fmt.Errorf("failed to get cluster credentials: %w", err)
+	expiration := durationpb.New(viper.GetDuration("expiration"))
+	project := c.c.GetProject()
+
+	var rawKubeconfig []byte
+	switch accessLevel {
+	case config.AccessLevelAdmin:
+		resp, err := c.c.Client.Apiv1().Cluster().GetAdminKubeconfig(ctx, connect.NewRequest(&apiv1.ClusterServiceGetAdminKubeconfigRequest{
+			Uuid:       id,
+			Project:    project,
+			Expiration: expiration,
+		}))
+		if err != nil {
+			return fmt.Errorf("failed to get admin kubeconfig: %w", err)
+		}
+		rawKubeconfig = []byte(resp.Msg.Kubeconfig)
+	case config.AccessLevelViewer:
+		resp, err := c.c.Client.Apiv1().Cluster().GetViewerKubeconfig(ctx, connect.NewRequest(&apiv1.ClusterServiceGetViewerKubeconfigRequest{
+			Uuid:       id,
+			Project:    project,
+			Expiration: expiration,
+		}))
+		if err != nil {
+			return fmt.Errorf("failed to get viewer kubeconfig: %w", err)
+		}
+		rawKubeconfig = []byte(resp.Msg.Kubeconfig)
 	}
 
-	projectResp, err := c.c.Client.Apiv1().Project().Get(ctx, connect.NewRequest(&apiv1.ProjectServiceGetRequest{Project: c.c.GetProject()}))
-	if err != nil {
-		return err
-	}
-
-	var (
-		projectName = helpers.TrimProvider(projectResp.Msg.Project.Name)
-	)
-
-	kubeconfig, err := kubernetes.NewKubeconfigFromRaw(c.c.Fs, c.c.In, c.c.Out, []byte(resp.Msg.Kubeconfig), &projectName, projectResp.Msg.Project.Uuid, id)
+	kubeconfig, err := kubernetes.NewKubeconfigFromRaw(c.c.Fs, c.c.In, c.c.Out, rawKubeconfig, &project, project, id)
 	if err != nil {
 		return err
 	}

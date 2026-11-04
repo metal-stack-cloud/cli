@@ -91,10 +91,8 @@ func (ec *ExecCache) ExecConfig(clusterid string, kubeRaw string, exp time.Durat
 	ai := kubeconfig.AuthInfos[0]
 	expiration := metav1.NewTime(time.Now().Add(exp))
 	ed := c.ExecCredential{
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: "client.authentication.k8s.io/v1", // since k8s 1.24, if earlier versions are used, the API version is client.authentication.k8s.io/v1beta1
-			Kind:       "ExecCredential",
-		},
+		APIVersion: "client.authentication.k8s.io/v1", // since k8s 1.24, if earlier versions are used, the API version is client.authentication.k8s.io/v1beta1
+		Kind:       "ExecCredential",
 		Status: &c.ExecCredentialStatus{
 			ClientCertificateData: string(ai.AuthInfo.ClientCertificateData),
 			ClientKeyData:         string(ai.AuthInfo.ClientKeyData),
