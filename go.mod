@@ -3,19 +3,16 @@ module github.com/metal-stack-cloud/cli
 go 1.27
 
 require (
-	bou.ke/monkey v1.0.2
 	connectrpc.com/connect v1.20.0
 	github.com/charmbracelet/fang v1.0.0
 	github.com/dustin/go-humanize v1.0.1
 	github.com/fatih/color v1.19.0
 	github.com/golang-jwt/jwt/v5 v5.3.1
-	github.com/google/go-cmp v0.7.0
 	github.com/metal-stack-cloud/api v0.16.9
 	github.com/metal-stack/metal-lib v0.26.3
 	github.com/metal-stack/v v1.0.3
 	github.com/spf13/afero v1.15.0
 	github.com/spf13/cobra v1.10.2
-	github.com/spf13/pflag v1.0.10
 	github.com/spf13/viper v1.21.0
 	github.com/stretchr/testify v1.12.1
 	google.golang.org/grpc v1.83.1
@@ -70,6 +67,7 @@ require (
 	github.com/golang/groupcache v0.0.0-20241129210726-2c02b8208cf8 // indirect
 	github.com/google/btree v1.1.3 // indirect
 	github.com/google/cel-go v0.31.0 // indirect
+	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/hdevalence/ed25519consensus v0.2.0 // indirect
 	github.com/huin/goupnp v1.3.0 // indirect
@@ -108,6 +106,7 @@ require (
 	github.com/safchain/ethtool v0.7.0 // indirect
 	github.com/sagikazarmark/locafero v0.12.0 // indirect
 	github.com/spf13/cast v1.10.0 // indirect
+	github.com/spf13/pflag v1.0.10 // indirect
 	github.com/stretchr/objx v0.5.3 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/tailscale/certstore v0.1.1-0.20260409135935-3638fb84b77d // indirect

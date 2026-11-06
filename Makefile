@@ -33,11 +33,15 @@ cli:
 
 .PHONY: test
 test:
-	CGO_ENABLED=1 go test ./... -race -coverprofile=coverage.out -covermode=atomic && go tool cover -func=coverage.out
+	CGO_ENABLED=1 go test ./... -race \
+		-coverpkg=./... \
+		-coverprofile=coverage.out \
+		-covermode=atomic && \
+	go tool cover -func=coverage.out
 
 .PHONY: golint
 golint:
-	golangci-lint run -p bugs -p unused -D protogetter
+	golangci-lint run -D protogetter
 
 .PHONY: markdown
 markdown:

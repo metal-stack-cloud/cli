@@ -1,7 +1,5 @@
 9fans.net/go v0.0.8-0.20250307142834-96bdba94b63f h1:1C7nZuxUMNz7eiQALRfiqNOm04+m3edWlRff/BYHf0Q=
 9fans.net/go v0.0.8-0.20250307142834-96bdba94b63f/go.mod h1:hHyrZRryGqVdqrknjq5OWDLGCTJ2NeEvtrpR96mjraM=
-bou.ke/monkey v1.0.2 h1:kWcnsrCNUatbxncxR/ThdYqbytgOIArtYWqcQLQzKLI=
-bou.ke/monkey v1.0.2/go.mod h1:OqickVX3tNx6t33n1xvtTtu85YN5s6cKwVug+oHMaIA=
 buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.12-20260709200747-435963d16310.1 h1:6nlcxMOui23ZRVAfJM451duu79P1npA5JRdZqMilrrQ=
 buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.12-20260709200747-435963d16310.1/go.mod h1:TCt1lluMFnctISJXvkIQ4x3ABrPuUKCWKyjKdkJNBpw=
 buf.build/go/protovalidate v1.3.0 h1:8ITcnZGkAHx6TyhZvro+iET/AyqU8gEWQJK2WsT62ms=

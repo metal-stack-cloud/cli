@@ -39,7 +39,7 @@ func Execute() {
 		Completion: &completion.Completion{},
 	}
 
-	cmd := newRootCmd(cfg)
+	cmd := NewRootCmd(cfg)
 	cmd.SilenceErrors = true
 
 	err := fang.Execute(cmd.Context(), cmd, fang.WithErrorHandler(customErrHandler(cfg)))
@@ -52,7 +52,7 @@ func Execute() {
 	}
 }
 
-func newRootCmd(c *config.Config) *cobra.Command {
+func NewRootCmd(c *config.Config) *cobra.Command {
 	rootCmd := &cobra.Command{
 		Use:          config.BinaryName,
 		Aliases:      []string{"m"},

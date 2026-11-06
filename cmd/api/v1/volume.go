@@ -246,7 +246,9 @@ func (v *volume) volumeEncryptionSecretManifest() error {
 # Place this secret, after modifying namespace and the actual secret value, in the same namespace as the pvc.
 #
 # IMPORTANT
-# Remember to make a safe copy of this secret at a secure location, once lost all your data will be lost as well.`)
+# Remember to make a safe copy of this secret at a secure location, once lost all your data will be lost as well.
+
+`)
 	_, _ = fmt.Fprintln(v.c.Out, string(y))
 	return nil
 }
@@ -272,6 +274,11 @@ func (v *volume) updateFromCLI(args []string) (*apiv1.VolumeServiceUpdateRequest
 		return nil, err
 	}
 
+	req := &apiv1.VolumeServiceUpdateRequest{
+		Uuid:    uuid,
+		Project: v.c.GetProject(),
+	}
+
 	var (
 		updateLabels = &apiv1.UpdateVolumeLabels{}
 		addLabels    = viper.GetStringSlice("add-label")
@@ -289,13 +296,14 @@ func (v *volume) updateFromCLI(args []string) (*apiv1.VolumeServiceUpdateRequest
 			Key:   labelKey,
 			Value: labelValue,
 		})
+
 	}
 
-	return &apiv1.VolumeServiceUpdateRequest{
-		Uuid:    uuid,
-		Project: v.c.GetProject(),
-		Labels:  updateLabels,
-	}, nil
+	if len(updateLabels.Remove) > 0 || len(updateLabels.Update) > 0 {
+		req.Labels = updateLabels
+	}
+
+	return req, nil
 }
 
 func (v *volume) volumeResponseToUpdate(desired *apiv1.Volume) (*apiv1.VolumeServiceUpdateRequest, error) {
@@ -332,9 +340,13 @@ func (v *volume) volumeResponseToUpdate(desired *apiv1.Volume) (*apiv1.VolumeSer
 		}
 	}
 
-	return &apiv1.VolumeServiceUpdateRequest{
+	req := &apiv1.VolumeServiceUpdateRequest{
 		Uuid:    desired.Uuid,
 		Project: desired.Project,
-		Labels:  updateLabels,
-	}, nil
+	}
+	if len(updateLabels.Remove) > 0 || len(updateLabels.Update) > 0 {
+		req.Labels = updateLabels
+	}
+
+	return req, nil
 }
