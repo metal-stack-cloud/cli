@@ -26,6 +26,8 @@ require (
 	sigs.k8s.io/yaml v1.6.0
 )
 
+replace github.com/metal-stack-cloud/api v0.16.9 => ../api
+
 require (
 	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.12-20260709200747-435963d16310.1 // indirect
 	buf.build/go/protovalidate v1.3.0 // indirect

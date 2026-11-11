@@ -12,9 +12,9 @@ func (t *TablePrinter) AuditTable(data []*apiv1.AuditTrace, wide bool) ([]string
 		rows [][]string
 	)
 
-	header := []string{"Time", "Request-Id", "User", "Project", "Method", "Phase", "Code"}
+	header := []string{"Time", "Request-Id", "User", "Project", "Tenant", "Method", "Phase", "Code"}
 	if wide {
-		header = []string{"Time", "Request-Id", "User", "Project", "Method", "Phase", "Source-Ip", "Code", "Body"}
+		header = []string{"Time", "Request-Id", "User", "Project", "Tenant", "Method", "Phase", "Source-Ip", "Code", "Body"}
 	}
 
 	for _, audit := range data {
@@ -25,6 +25,7 @@ func (t *TablePrinter) AuditTable(data []*apiv1.AuditTrace, wide bool) ([]string
 		method := audit.Method
 		sourceIp := audit.SourceIp
 		project := pointer.SafeDeref(audit.Project)
+		tenant := audit.Tenant
 		body := genericcli.TruncateEnd(pointer.SafeDeref(audit.Body), 30)
 
 		code := ""
@@ -33,9 +34,9 @@ func (t *TablePrinter) AuditTable(data []*apiv1.AuditTrace, wide bool) ([]string
 		}
 
 		if wide {
-			rows = append(rows, []string{time, id, user, project, method, phase.String(), sourceIp, code, body})
+			rows = append(rows, []string{time, id, user, project, tenant, method, phase.String(), sourceIp, code, body})
 		} else {
-			rows = append(rows, []string{time, id, user, project, method, phase.String(), code})
+			rows = append(rows, []string{time, id, user, project, tenant, method, phase.String(), code})
 		}
 	}
 
