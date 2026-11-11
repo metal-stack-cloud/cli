@@ -128,6 +128,7 @@ func (a *adminAudit) List() ([]*apiv1.AuditTrace, error) {
 		SourceIp:   pointer.PointerOrNil(viper.GetString("source-ip")),
 		Limit:      pointer.PointerOrNil(viper.GetInt32("limit")),
 		Phase:      helpersaudit.ToPhase(viper.GetString("phase")),
+		Tenant:     pointer.PointerOrNil(viper.GetString("tenant")),
 	}
 
 	resp, err := a.c.Client.Adminv1().Audit().List(ctx, connect.NewRequest(req))
